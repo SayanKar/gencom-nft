@@ -7,12 +7,11 @@
   pointer-events: none;
 }
 
+/* Canvas Grid */
+
 .canvasGridContainer {
-  border: 1px solid #282c34;
-  overflow: auto;
-  margin: 20px;
-  width: 800px;
-  height: 800px;
+  width: fit-content;
+  height: fit-content;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -21,15 +20,16 @@
 .cellBox {
   width: 100%;
   height: 100%;
-  -webkit-transition:-webkit-transform 0.5s ease-in-out;
-  -moz-transition:-moz-transform 0.5s ease-in-out;
-  transition:transform 0.5s ease-in-out;
+  -webkit-transition: -webkit-transform 0.5s ease-in-out;
+  -moz-transition: -moz-transform 0.5s ease-in-out;
+  transition: transform 0.5s ease-in-out;
 }
 
-.cellBox:active, .cellBox:focus {
-  -webkit-transform:scale(1.5);
-  -moz-transform:scale(1.5);
-  transform:scale(1.5);
+.cellBox:active,
+.cellBox:focus {
+  -webkit-transform: scale(1.5);
+  -moz-transform: scale(1.5);
+  transform: scale(1.5);
   border: 1px solid black;
 }
 
@@ -43,7 +43,63 @@
 .tableCell {
   min-width: 12px;
   height: 12px;
-  padding: 0px;  
+  padding: 0px;
+}
+
+/* Canvas Room */
+
+#canvasBoxContainer {
+  width: 100%;
+  height: fit-content;
+  background: rgba(244, 245, 246, 1);
+}
+
+#roomTitle {
+  font-weight: 500;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  letter-spacing: -1px;
+  color: rgba(31, 38, 59, 1);
+}
+
+/* Canvas Box */
+
+#canvasBoxWrapperContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#canvasBoxWrapper {
+  width: 1000px;
+}
+
+.gridContainerCard {
+  display: flex;
+  flex-direction: column;
+  width: 464px;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: 40px;
+}
+
+.cardDataRow {
+  display: flex;
+  margin-top: 10px;
+}
+
+@media only screen and (max-width: 1100px) {
+  #canvasBoxWrapper {
+    width: 700px;
+  }
+}
+
+@media only screen and (max-width: 750px) {
+  #canvasBoxWrapper {
+    width: 500px;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -75,4 +131,3 @@
     transform: rotate(360deg);
   }
 }
-
