@@ -1,15 +1,15 @@
 import "../App.css";
 import React from "react";
 import { useState } from "react";
-
+import {colors} from "../constants";
 const getColor = () => {
-  return Math.floor(Math.random() * 256);
+  return colors[Math.floor(Math.random() * 16)];
 };
 
 export default function CanvasGrid(props) {
   const makeColor = () => {
     let color = Array.from({ length: props.rows }, () =>
-      Array.from({ length: props.columns }, () => [getColor(), getColor(), getColor()])
+      Array.from({ length: props.columns }, () => [getColor()])
     );
     return color;
   };
@@ -56,7 +56,7 @@ function GridCell(props) {
       <div
         className="cellBox"
         tabIndex={0}
-        style={{ background: createColor(props.color[props.row][col]) }}
+        style={{ background: props.color[props.row][col] }}
       ></div>
     </td>
   ));

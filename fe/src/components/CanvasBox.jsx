@@ -10,14 +10,45 @@ import {
   OutlinedInput,
   InputAdornment,
   Button,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import CanvasGrid from "./CanvasGrid";
 import SquareIcon from "@mui/icons-material/Square";
+import PaletteIcon from "@mui/icons-material/Palette";
+import CircleIcon from "@mui/icons-material/Circle";
+import GavelIcon from '@mui/icons-material/Gavel';
+import { colors } from "../constants";
+
 export default function CanvasBox(props) {
+  const renderColorSelectionButtons = () => {
+    let list = [];
+    for (let key in colors) {
+      if (colors.hasOwnProperty(key)) {
+        list.push(
+          <Tooltip title={`Color: ${colors[key]}`}>
+            <IconButton sx={{ marginRight: "8px" }}>
+              <CircleIcon
+                sx={{
+                  color: colors[key],
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+        );
+      }
+    }
+    return list;
+  };
+
   return (
     <Box component="div" id="canvasBoxWrapperContainer">
       <Box component="div" id="canvasBoxWrapper">
-        <Grid container spacing={2}>
+        <Grid
+          container
+          spacing={2}
+          sx={{ display: "flex", justifyContent: "center" }}
+        >
           <Grid
             item
             md={12}
@@ -122,7 +153,13 @@ export default function CanvasBox(props) {
                 paddingTop: "10px",
               }}
             >
-              <CardContent sx={{ display: "flex", flexDirection: "column" }}>
+              <CardContent
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  width: "384px",
+                }}
+              >
                 <Typography
                   variant="h5"
                   sx={{
@@ -136,6 +173,44 @@ export default function CanvasBox(props) {
                   Choose and Bid
                 </Typography>
                 <Divider sx={{ width: "384px", marginBottom: "10px" }} />
+                <Typography
+                  variant="body1"
+                  sx={{
+                    width: "384px",
+                    color: "rgba(31, 38, 59, 1)",
+                    fontWeight: "500",
+                    display: "flex",
+                    margin: "10px 0px 20px 0px",
+                  }}
+                  align="left"
+                >
+                  Choose Color
+                  <PaletteIcon sx={{ margin: "0px 0px 0px 4px" }} />
+                </Typography>
+                <Box
+                  component="div"
+                  sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    marginBottom: "15px",
+                  }}
+                >
+                  {renderColorSelectionButtons()}
+                </Box>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    width: "384px",
+                    color: "rgba(31, 38, 59, 1)",
+                    fontWeight: "500",
+                    display: "flex",
+                    margin: "10px 0px 20px 0px",
+                  }}
+                  align="left"
+                >
+                  Choose Bid Amount
+                  <GavelIcon sx={{ margin: "0px 0px 0px 8px" }} />
+                </Typography>
                 <FormControl sx={{ m: 1, width: "400px" }}>
                   <InputLabel htmlFor="bidding-price">Bid Amount</InputLabel>
                   <OutlinedInput
@@ -151,9 +226,20 @@ export default function CanvasBox(props) {
                   sx={{ width: "384px", paddingLeft: "5px" }}
                   align="left"
                 >
-                  {"* Bid 50.06EDG for Cell in Row 13 and Column 24"}
+                  {
+                    "* Bid 50.06EDG for Cell in Row 13 and Column 24 with color "
+                  }
+                  <CircleIcon
+                    sx={{
+                      color: colors[8],
+                      fontSize: "13px",
+                      marginBottom: "-2px",
+                    }}
+                  />
                 </Typography>
-                <Button variant="contained" sx={{marginTop:"10px"}}>Bid</Button>
+                <Button variant="contained" sx={{ marginTop: "10px" }}>
+                  Bid
+                </Button>
               </CardContent>
             </Card>
           </Grid>
