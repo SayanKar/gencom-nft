@@ -12,9 +12,11 @@ import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
 import "../App.css";
 import CanvasBox from "./CanvasBox";
+import Navbar from "./Navbar";
 export default function CanvasRoom(props) {
   return (
     <Box component="div">
+      <Navbar />
       <Box component="div" id="canvasBoxContainer">
         <Typography variant="h4" id="roomTitle">
           Lets Rock the Party
