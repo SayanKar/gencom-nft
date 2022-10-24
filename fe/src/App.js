@@ -12,7 +12,7 @@ function App() {
   return (
     <div className="App">
       {/* <CanvasGrid rows={32} columns={32}/> */}
-      <CanvasRoom />
+      <HomePage />
     </div>
   );
 }
