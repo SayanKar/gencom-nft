@@ -7,10 +7,11 @@ import {
     CardMedia,
     Typography,
     CardContent,
+    Stack,
 } from "@mui/material";
 import "../App.css";
 import Navbar from './Navbar';
-import PixelImage from '../pixelimage.jpg';
+import testImage from '../test.jpg';
 
 export default function HomePage(props) {
     return (
@@ -129,34 +130,78 @@ export default function HomePage(props) {
                            >
                               <Grid
                                item
-                               sm={12}
-                               md={4}
+                               md={12}
+                               lg={4}
                                sx={{ display: "flex", justifyContent: "center" }}
                               >
                                  <Card
-                                  sx={{ borderRadius: "15px", padding: "5px" }}
+                                  sx={{ borderRadius: "16px", paddingLeft: "10px", paddingRight: "10px", paddingTop: "10px"}}
                                  >
                                     <CardActionArea>
                                        <CardMedia
                                         component="img"
-                                        height="400"
-                                        image={PixelImage}
+                                        height="350"
+                                        image={testImage}
                                         alt="featured room image"
-                                        sx={{ borderRadiu: "15px" }}
+                                        sx={{ 
+                                          borderRadius: "16px"
+                                        }}
                                        />
                                        <CardContent>
-                                          
+                                          <Typography variant="h4"
+                                           sx={{ 
+                                             fontWeight: "900",
+                                             fontFamily: "serif",
+                                            }}>
+                                             Room Name
+                                          </Typography>
+                                          <Stack direction="row" spacing={2}
+                                           sx={{
+                                             justifyContent: "center",
+                                             marginTop: "3px",
+                                           }}>
+                                             <Typography variant="h6"
+                                              sx={{
+                                                fontWeight: "800",
+                                                fontFamily: "serif",
+                                              }}>
+                                                0.18 ETH
+                                             </Typography>
+                                             <Typography variant="h6"
+                                              sx={{
+                                                fontWeight: "800",
+                                                fontFamily: "serif",
+                                              }}>
+                                                9 members
+                                             </Typography>
+                                          </Stack>
+                                          <Box
+                                           component="div"
+                                           sx={{
+                                             backgroundColor: "rgb(243, 246, 254)",
+                                             textAlign: "center",
+                                             color: "rgb(0, 87, 255)",
+                                             fontSize: "14px",
+                                             fontWeight: "500",
+                                             height: "auto!important",
+                                             margin: "auto -16px -16px",
+                                             padding: "10px",
+                                             borderBottomLeftRadius: "16px",
+                                             borderBottomRightRadius: "16px",
+                                           }}>
+                                             Party Live
+                                          </Box>
                                        </CardContent>
                                     </CardActionArea>
                                  </Card>
                               </Grid>
                               <Grid
                                item
-                               sm={12}
-                               md={8}
+                               md={12}
+                               lg={8}
                                sx={{ display: "flex", justifyContent: "center" }}
                               >
-
+                                 
                               </Grid>
                            </Grid>
                          </Box>
