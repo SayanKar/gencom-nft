@@ -1,10 +1,16 @@
 import {
     Box,
     Button,
+    Grid,
+    Card,
+    CardActionArea,
+    CardMedia,
+    Typography,
+    CardContent,
 } from "@mui/material";
 import "../App.css";
 import Navbar from './Navbar';
-import BgPic from '../../src/bgpic.png';
+import PixelImage from '../pixelimage.jpg';
 
 export default function HomePage(props) {
     return (
@@ -61,7 +67,7 @@ export default function HomePage(props) {
                                   id="buttonContainer"
                                   sx={{
                                     display: "flex",
-                                    paddingLeft: "55px",
+                                    paddingLeft: "100px",
                                   }}>
                                     <Button
                                      variant="contained"
@@ -91,12 +97,68 @@ export default function HomePage(props) {
                                        backgroundColor: '#0057ff',
                                        color: '#fff',
                                        cursor: 'pointer',
+                                       marginLeft: '30px'
                                      }}>
                                        Start a Room
                                     </Button> 
                                  </Box>
                                 </Box>
                              </Box>
+                         </Box>
+                     </Box>
+                     <Box
+                      component="div"
+                      sx={{
+                        marginTop: '-70px',
+                        marginLeft: '10px',
+                        marginRight: '10px',
+                      }}
+                     >
+                        <Box
+                         component="div"
+                         sx={{
+                           marginTop: "-70px",
+                           marginLeft: "180px",
+                           marginRight: "180px",
+                           paddingLeft: "40px",
+                         }}>
+                           <Grid
+                            container
+                            spacing={2}
+                            sx={{ display: "flex", justifyContent: "center"}}
+                           >
+                              <Grid
+                               item
+                               sm={12}
+                               md={4}
+                               sx={{ display: "flex", justifyContent: "center" }}
+                              >
+                                 <Card
+                                  sx={{ borderRadius: "15px", padding: "5px" }}
+                                 >
+                                    <CardActionArea>
+                                       <CardMedia
+                                        component="img"
+                                        height="400"
+                                        image={PixelImage}
+                                        alt="featured room image"
+                                        sx={{ borderRadiu: "15px" }}
+                                       />
+                                       <CardContent>
+                                          
+                                       </CardContent>
+                                    </CardActionArea>
+                                 </Card>
+                              </Grid>
+                              <Grid
+                               item
+                               sm={12}
+                               md={8}
+                               sx={{ display: "flex", justifyContent: "center" }}
+                              >
+
+                              </Grid>
+                           </Grid>
                          </Box>
                      </Box>
                 </Box>
