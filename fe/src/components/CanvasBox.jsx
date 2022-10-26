@@ -27,7 +27,7 @@ export default function CanvasBox(props) {
     for (let key in colors) {
       if (colors.hasOwnProperty(key)) {
         list.push(
-          <Tooltip title={`Color: ${colors[key]}`}>
+          <Tooltip title={`Color: ${colors[key]}`} key={key}>
             <IconButton sx={{ marginRight: "8px" }} onClick={() => setTransaction({ ...transaction, color: key})}>
               <CircleIcon
                 sx={{

@@ -8,6 +8,7 @@ import {
   Avatar,
   Divider,
 } from "@mui/material";
+import dayjs from "dayjs";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -16,17 +17,19 @@ import "../App.css";
 import CanvasBox from "./CanvasBox";
 import Navbar from "./Navbar";
 import { useState } from "react";
+import { useEffect } from "react";
 
 export default function CanvasRoom(props) {
   const [canvasDetails, setCanvasDetails] = useState({
     title: "Lets Rock the Party",
     desc: "Ubiq is a business intelligence & reporting tool for small & medium businesses. Build business dashboards, charts & reports in minutes. Get insights from data quickly. Try it for free!",
-    endTime: 1698333356,
-    startTime: 1698323356,
+    endTime: 1666862999,
+    startTime: 1666825989,
     participants: 23,
     bids: 23,
     creatorAddress: "5Gs5gfzHkBsRt97qgmvBW2qX6M7FPXP8cJkAj7T7kNFbGVvG",
     isDynamic: false,
+    premiumPercentage: "0",
   });
   return (
     <Box component="div">
@@ -68,20 +71,10 @@ export default function CanvasRoom(props) {
             flexWrap: "wrap",
           }}
         >
-          <Strip
-            Icon={
-              <Circle
-                sx={{
-                  color: "#02be01",
-                  fontSize: "16px",
-                  margin: "0px 8px -3px 0px",
-                }}
-              />
-            }
-            Text={"10 days : 14 hrs : 36 mins : 50 sec"}
-            tooltip={"Countdown till bidding ends"}
+          <RenderTimer
+            start={canvasDetails.startTime}
+            end={canvasDetails.endTime}
           />
-
           <Strip Text={"Canvas Id: " + props.Id} tooltip={"Canvas Id"} />
           <Strip
             Icon={
@@ -107,20 +100,23 @@ export default function CanvasRoom(props) {
           />
           <Strip
             Icon={
-              canvasDetails.isDynamic ? <CheckBoxIcon
-                sx={{
-                  fontSize: "16px",
-                  margin: "0px 8px -3px 0px",
-                  color: "#02be01",
-                }}
-              />
-              :
-              <CancelIcon sx={{
-                fontSize: "16px",
-                margin: "0px 8px -3px 0px",
-                color: "#f57c00",
-              }}/>
-
+              canvasDetails.isDynamic ? (
+                <CheckBoxIcon
+                  sx={{
+                    fontSize: "16px",
+                    margin: "0px 8px -3px 0px",
+                    color: "#02be01",
+                  }}
+                />
+              ) : (
+                <CancelIcon
+                  sx={{
+                    fontSize: "16px",
+                    margin: "0px 8px -3px 0px",
+                    color: "#f57c00",
+                  }}
+                />
+              )
             }
             Text={"Dynamic"}
             tooltip={
@@ -157,5 +153,31 @@ const Strip = (props) => {
         </Typography>
       </Paper>
     </Tooltip>
+  );
+};
+
+const RenderTimer = (props) => {
+  const now = dayjs().unix()
+  const [time, setTime] = useState(props.end - now)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTime(time - 1)
+    }, 1000);
+    return () => clearTimeout(timer);
+  });
+  return (
+    <Strip
+      Icon={
+        <Circle
+          sx={{
+            color: now >= props.start ? time > 0 ? "#02be01": "#f57c00" : "#42a5f5",
+            fontSize: "16px",
+            margin: "0px 8px -3px 0px",
+          }}
+        />
+      }
+      Text={now >= props.start ? time > 0 ? `${Math.floor(time/86400)} days : ${Math.floor((time%86400)/3600)} hrs : ${Math.floor(((time%86400)%3600)/60)} mins : ${Math.floor(time%60)} sec`: "Canvas expired" : "Opening Soon"}
+      tooltip={"Countdown till bidding ends"}
+    />
   );
 };
