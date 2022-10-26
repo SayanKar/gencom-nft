@@ -15,7 +15,7 @@ import testImage from '../test1.webp';
 export default function FeaturedRoomCard(props) {
     return (
         <Card
-            sx={{ borderRadius: "16px", paddingLeft: "10px", paddingRight: "10px", paddingTop: "10px", marginBottom: "50px" }}
+            sx={{ borderRadius: "16px", paddingLeft: "10px", paddingRight: "10px", paddingTop: "10px" }}
         >
             <CardActionArea>
                 <CardMedia

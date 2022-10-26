@@ -12,6 +12,7 @@ import {
 import "../App.css";
 import Navbar from './Navbar';
 import FeaturedRoomCard from './FeaturedRoomCard';
+import RoomFeed from "./RoomFeed";
 
 export default function HomePage(props) {
    return (
@@ -142,7 +143,7 @@ export default function HomePage(props) {
                            lg={8}
                            sx={{ display: "flex", justifyContent: "center" }}
                         >
-
+                           <RoomFeed />
                         </Grid>
                      </Grid>
                   </Box>
