@@ -57,6 +57,7 @@ function GridCell(props) {
         className="cellBox"
         tabIndex={0}
         style={{ background: props.color[props.row][col] }}
+        onClick={() => props.setSelectedCell(props.row, col)}
       ></div>
     </td>
   ));

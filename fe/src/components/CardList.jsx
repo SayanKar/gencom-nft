@@ -35,7 +35,7 @@ export default function CardList(props) {
         container
         spacing={2}
         sx={{
-          height: props.rows ? "" + 525 * props.rows + "px" : "fit-content",
+          maxHeight: props.rows ? "" + 535 * props.rows + "px" : "fit-content",
           overflowY: "auto",
           overflowX: "hidden",
         }}
@@ -52,7 +52,7 @@ export default function CardList(props) {
             alignItems: "center",
             borderRadius: "15px",
             background: "#cce8ff",
-            margin: "10px 0",
+            margin: "20px 0",
             cursor: "pointer",
           }}
         >
