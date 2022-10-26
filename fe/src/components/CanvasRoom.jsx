@@ -157,11 +157,11 @@ const Strip = (props) => {
 };
 
 const RenderTimer = (props) => {
-  const now = dayjs().unix()
-  const [time, setTime] = useState(props.end - now)
+  const now = dayjs().unix();
+  const [time, setTime] = useState(props.end - now);
   useEffect(() => {
     const timer = setTimeout(() => {
-      setTime(time - 1)
+      setTime(time - 1);
     }, 1000);
     return () => clearTimeout(timer);
   });
@@ -170,13 +170,28 @@ const RenderTimer = (props) => {
       Icon={
         <Circle
           sx={{
-            color: now >= props.start ? time > 0 ? "#02be01": "#f57c00" : "#42a5f5",
+            color:
+              now >= props.start
+                ? time > 0
+                  ? "#02be01"
+                  : "#f57c00"
+                : "#42a5f5",
             fontSize: "16px",
             margin: "0px 8px -3px 0px",
           }}
         />
       }
-      Text={now >= props.start ? time > 0 ? `${Math.floor(time/86400)} days : ${Math.floor((time%86400)/3600)} hrs : ${Math.floor(((time%86400)%3600)/60)} mins : ${Math.floor(time%60)} sec`: "Canvas expired" : "Opening Soon"}
+      Text={
+        now >= props.start
+          ? time > 0
+            ? `${Math.floor(time / 86400)} days : ${Math.floor(
+                (time % 86400) / 3600
+              )} hrs : ${Math.floor(
+                ((time % 86400) % 3600) / 60
+              )} mins : ${Math.floor(time % 60)} sec`
+            : "Canvas expired"
+          : "Opening Soon"
+      }
       tooltip={"Countdown till bidding ends"}
     />
   );
