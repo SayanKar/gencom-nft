@@ -11,6 +11,7 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import DisplayCard from './components/DisplayCard';
 import CardList from './components/CardList';
+import Footer from './components/Footer';
 
 
 function App() {
@@ -19,10 +20,9 @@ function App() {
     // style={{display: "flex", justifyContent: "center", padding: "40px"}}
     >
       {/* <CanvasGrid rows={32} columns={32}/> */}
-
       <Navbar />
       <HomePage />
-
+      <Footer />
     </div>
   );
 }
