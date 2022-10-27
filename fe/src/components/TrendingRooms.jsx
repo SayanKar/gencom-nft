@@ -19,7 +19,7 @@ export default function TrendingRooms(props) {
             component="div"
             sx={{
                 marginTop: "100px",
-                marginBottom: "30px"
+                marginBottom: "30px",
             }}
         >
             <Box

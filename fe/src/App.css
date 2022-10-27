@@ -212,3 +212,19 @@ a {
   cursor: pointer;
   text-decoration: underline;
 }
+
+#twitterIcon:hover {
+  color: rgb(29, 155, 240);
+}
+
+#githubIcon:hover {
+  color: black;
+}
+
+#instagramIcon:hover {
+  color: darkmagenta;
+}
+
+#footerSiteLogo {
+  height: 70px;
+}
