@@ -10,8 +10,8 @@ import {
     Stack,
     Item
 } from "@mui/material";
-import "../App.css";
-import DisplayCard from "./DisplayCard";
+import "../../App.css";
+import DisplayCard from "../DisplayCard";
 
 export default function TrendingRooms(props) {
     return (

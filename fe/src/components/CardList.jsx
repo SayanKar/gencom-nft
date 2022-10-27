@@ -22,7 +22,7 @@ export default function CardList(props) {
     });
   };
   return (
-    <Box sx={{ width: "90%", margin: "0 auto" }}>
+    <Box sx={{ width: "90%", margin: "40px auto" }}>
       <Typography
         sx={{ fontFamily: "'Fredoka One', cursive", marginBottom: "30px" }}
         align="left"
