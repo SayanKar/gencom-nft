@@ -11,7 +11,7 @@ import Circle from "@mui/icons-material/Circle";
 import testImage from "../test.jpg";
 import { fontSize } from "@mui/system";
 export default function DisplayCard(props) {
-  const { width = "320px", height = "300px" } = props;
+  const { width = "352px", height = "300px" } = props;
   const bottomStripColor = {
     "0" : {
       text : "#42a5f5",

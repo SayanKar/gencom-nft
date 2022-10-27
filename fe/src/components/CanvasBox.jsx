@@ -17,8 +17,9 @@ import CanvasGrid from "./CanvasGrid";
 import SquareIcon from "@mui/icons-material/Square";
 import PaletteIcon from "@mui/icons-material/Palette";
 import CircleIcon from "@mui/icons-material/Circle";
-import GavelIcon from '@mui/icons-material/Gavel';
+import GavelIcon from "@mui/icons-material/Gavel";
 import { colors } from "../constants";
+import { useState } from "react";
 
 export default function CanvasBox(props) {
   const renderColorSelectionButtons = () => {
@@ -26,8 +27,8 @@ export default function CanvasBox(props) {
     for (let key in colors) {
       if (colors.hasOwnProperty(key)) {
         list.push(
-          <Tooltip title={`Color: ${colors[key]}`}>
-            <IconButton sx={{ marginRight: "8px" }}>
+          <Tooltip title={`Color: ${colors[key]}`} key={key}>
+            <IconButton sx={{ marginRight: "8px" }} onClick={() => setTransaction({ ...transaction, color: key})}>
               <CircleIcon
                 sx={{
                   color: colors[key],
@@ -40,6 +41,21 @@ export default function CanvasBox(props) {
     }
     return list;
   };
+
+  const [gridData, setGridData] = useState();
+
+  const [selectedCell, setSelectedCell] = useState({
+    row: 0,
+    column: 0,
+  });
+
+  const [selectedCellDetails, setSelectedCellDetails] = useState({
+    owner: "5Gs5gfzHkBsRt97qgmvBW2qX6M7FPXP8cJkAj7T7kNFbGVvG",
+    bidPrice: "234 EDG",
+    color: "5",
+  });
+
+  const [transaction, setTransaction] = useState({ color: "4", bid: 50.67 });
 
   return (
     <Box component="div" id="canvasBoxWrapperContainer">
@@ -56,7 +72,16 @@ export default function CanvasBox(props) {
             sx={{ display: "flex", justifyContent: "center" }}
           >
             <Card className="gridContainerCard" sx={{ borderRadius: "15px" }}>
-              <CanvasGrid rows={32} columns={32} />
+              <CanvasGrid
+                rows={32}
+                columns={32}
+                setSelectedCell={(x, y) =>
+                  setSelectedCell({
+                    row: x,
+                    column: y,
+                  })
+                }
+              />
               <Typography
                 variant="h6"
                 align="left"
@@ -77,7 +102,10 @@ export default function CanvasBox(props) {
                   variant="subtitle2"
                   sx={{ width: "192px" }}
                 >
-                  Row: <span style={{ color: "rgba(143,151,163,1)" }}> 20</span>
+                  Row:{" "}
+                  <span style={{ color: "rgba(143,151,163,1)" }}>
+                    {selectedCell.row + 1}
+                  </span>
                 </Typography>
                 <Typography
                   align="right"
@@ -85,7 +113,9 @@ export default function CanvasBox(props) {
                   sx={{ width: "192px" }}
                 >
                   Column:{" "}
-                  <span style={{ color: "rgba(143,151,163,1)" }}> 13</span>
+                  <span style={{ color: "rgba(143,151,163,1)" }}>
+                    {selectedCell.column + 1}
+                  </span>
                 </Typography>
               </Box>
               <Box component="div" className="cardDataRow">
@@ -96,10 +126,9 @@ export default function CanvasBox(props) {
                 >
                   Owner:{" "}
                   <span
-                    style={{ color: "rgba(143,151,163,1)", fontSize: "12px" }}
+                    style={{ color: "rgba(143,151,163,1)", fontSize: "11px" }}
                   >
-                    {" "}
-                    0x4c2b769913DaBa0Fe66901E79190125E0193fb02
+                    {selectedCellDetails.owner}{" "}
                   </span>
                 </Typography>
               </Box>
@@ -114,7 +143,7 @@ export default function CanvasBox(props) {
                     style={{ color: "rgba(143,151,163,1)", fontSize: "12px" }}
                   >
                     {" "}
-                    0.0056 EDG
+                    {selectedCellDetails.bidPrice}
                   </span>
                 </Typography>
               </Box>
@@ -128,12 +157,13 @@ export default function CanvasBox(props) {
                   <span
                     style={{ color: "rgba(143,151,163,1)", fontSize: "12px" }}
                   >
-                    {" "}
-                    rgb(100, 200, 100){" "}
+                    {colors[selectedCellDetails.color]}
                   </span>
                 </Typography>
                 <Typography sx={{ width: "30px" }}>
-                  <SquareIcon sx={{ color: "rgb(100, 200, 100)" }} />
+                  <SquareIcon
+                    sx={{ color: colors[selectedCellDetails.color] }}
+                  />
                 </Typography>
               </Box>
             </Card>
@@ -219,6 +249,10 @@ export default function CanvasBox(props) {
                       <InputAdornment position="start">EDG</InputAdornment>
                     }
                     label="Bid Amount"
+                    value={transaction.bid}
+                    onChange={(e) =>
+                      setTransaction({ ...transaction, bid: e.target.value })
+                    }
                   />
                 </FormControl>
                 <Typography
@@ -226,16 +260,21 @@ export default function CanvasBox(props) {
                   sx={{ width: "384px", paddingLeft: "5px" }}
                   align="left"
                 >
-                  {
-                    "* Bid 50.06EDG for Cell in Row 13 and Column 24 with color "
-                  }
-                  <CircleIcon
-                    sx={{
-                      color: colors[8],
-                      fontSize: "13px",
-                      marginBottom: "-2px",
-                    }}
-                  />
+                  {transaction.bid && transaction.color && selectedCell.row ? (
+                    <>
+                      * Bid {transaction.bid} for Cell in Row {selectedCell.row} and Column {selectedCell.column} with color 
+                      <CircleIcon
+                        sx={{
+                          color: colors[transaction.color],
+                          fontSize: "13px",
+                          marginBottom: "-2px",
+                          marginLeft: "5px"
+                        }}
+                      />
+                    </>
+                  ) : (
+                    "* Select a color and bid price"
+                  )}
                 </Typography>
                 <Button variant="contained" sx={{ marginTop: "10px" }}>
                   Bid
