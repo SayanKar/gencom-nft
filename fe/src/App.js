@@ -17,7 +17,8 @@ function App() {
     // style={{display: "flex", justifyContent: "center", padding: "40px"}}
     >
       {/* <CanvasGrid rows={32} columns={32}/> */}
-      <CanvasRoom isRoom={false} ids={[1,2,3,4,5,6,7,8]} rows={2} isMain={true}/>
+      <Navbar />
+      <HomePage />
     </div>
   );
 }

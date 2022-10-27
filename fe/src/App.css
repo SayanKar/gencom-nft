@@ -202,3 +202,8 @@ a {
 #roomLink #profileLink {
   color: "#0057ff";
 }
+
+#viewAllRoomButton:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
