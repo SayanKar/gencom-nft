@@ -10,14 +10,11 @@ import {
    Stack,
 } from "@mui/material";
 import "../App.css";
-import Navbar from './Navbar';
-import FeaturedRoomCard from './FeaturedRoomCard';
-import RoomFeed from "./RoomFeed";
+import TrendingRooms from "./TrendingRooms";
 
 export default function HomePage(props) {
    return (
       <Box component="div">
-         <Navbar />
          <Box
             component="div"
             sx={{
@@ -31,7 +28,7 @@ export default function HomePage(props) {
                   fontWeight: "700",
                   minHeight: "calc(100vh - 4rem)",
                   width: "100vw",
-                  boxShadow: "0 6px 10px rgb(0 0 0 / 5%)"
+                  boxShadow: "0 6px 10px rgb(0 0 0 / 5%)",
                }}>
                <Box
                   component="div"
@@ -99,7 +96,7 @@ export default function HomePage(props) {
                                     backgroundColor: '#0057ff',
                                     color: '#fff',
                                     cursor: 'pointer',
-                                    marginLeft: '30px'
+                                    marginLeft: '30px',
                                  }}>
                                  Start a Room
                               </Button>
@@ -112,41 +109,9 @@ export default function HomePage(props) {
                   component="div"
                   sx={{
                      marginTop: '-70px',
-                     marginLeft: '10px',
-                     marginRight: '10px',
                   }}
                >
-                  <Box
-                     component="div"
-                     sx={{
-                        marginTop: "-70px",
-                        marginLeft: "180px",
-                        marginRight: "180px",
-                        paddingLeft: "40px",
-                     }}>
-                     <Grid
-                        container
-                        spacing={2}
-                        sx={{ display: "flex", justifyContent: "center" }}
-                     >
-                        <Grid
-                           item
-                           md={12}
-                           lg={4}
-                           sx={{ display: "flex", justifyContent: "center" }}
-                        >
-                           <FeaturedRoomCard />
-                        </Grid>
-                        <Grid
-                           item
-                           md={12}
-                           lg={8}
-                           sx={{ display: "flex", justifyContent: "center" }}
-                        >
-                           <RoomFeed />
-                        </Grid>
-                     </Grid>
-                  </Box>
+                  <TrendingRooms />
                </Box>
             </Box>
          </Box>

@@ -21,9 +21,9 @@ export default function Navbar(props) {
             paddingLeft: "1rem",
             paddingRight: "1rem",
             zIndex: "99",
-            top: "0",
             justifyContent: 'space-between',
-            borderBottom: "1px solid #eaebed"
+            borderBottom: "1px solid #eaebed",
+            marginTop: "-35px"
          }}>
             <Toolbar>
                 <Box
@@ -52,7 +52,8 @@ export default function Navbar(props) {
                          variant="h6"
                          sx={{ 
                             color: "black",
-                            fontWeight: "700",
+                            fontWeight: "400",
+                            fontFamily: "'Fredoka One', cursive",
                           }}>
                             Gen
                         </Typography>
@@ -60,7 +61,8 @@ export default function Navbar(props) {
                          variant="h6"
                          sx={{ 
                             color: "#0057ff",
-                            fontWeight: "700",
+                            fontWeight: "400",
+                            fontFamily: "'Fredoka One', cursive",
                           }}>
                             com
                         </Typography>
@@ -74,12 +76,13 @@ export default function Navbar(props) {
                         fontSize: "0.875rem",
                         cursor: "pointer",
                         justifyContent: "center",
-                        fontWeight: "700",
+                        fontWeight: "400",
                         border: "none",
                         borderRadius: "0.75rem",
                         padding: "0.5rem 0.75rem",
                         transition: "0.1s ease",
                         textTransform: "none",
+                        fontFamily: "'Fredoka One', cursive",
                         }}>
                             + Create a room
                     </Button>
@@ -90,12 +93,13 @@ export default function Navbar(props) {
                         fontSize: "0.875rem",
                         cursor: "pointer",
                         justifyContent: "center",
-                        fontWeight: "700",
+                        fontWeight: "400",
                         border: "none",
                         borderRadius: "0.75rem",
                         padding: "0.5rem 0.75rem",
                         transition: "0.1s ease",
-                        textTransform: "none"
+                        textTransform: "none",
+                        fontFamily: "'Fredoka One', cursive",
                         }}>
                             All Rooms
                     </Button>
@@ -106,12 +110,13 @@ export default function Navbar(props) {
                         fontSize: "0.875rem",
                         cursor: "pointer",
                         justifyContent: "center",
-                        fontWeight: "700",
+                        fontWeight: "400",
                         border: "none",
                         borderRadius: "0.75rem",
                         padding: "0.5rem 0.75rem",
                         transition: "0.1s ease",
-                        textTransform: "none"
+                        textTransform: "none",
+                        fontFamily: "'Fredoka One', cursive",
                         }}>
                             About
                     </Button>                    
@@ -121,7 +126,7 @@ export default function Navbar(props) {
                      size="small"
                      sx={{
                         textTransform: "none",
-                        fontweight: "700",
+                        fontweight: "400",
                         justifyContent: "center",
                         cursor: "pointer",
                         backgroundColor: "#0057ff",
@@ -129,6 +134,7 @@ export default function Navbar(props) {
                         padding: "0.5rem 0.75rem",
                         transition: "0.1s ease",
                         border: "none",
+                        fontFamily: "'Fredoka One', cursive",
                      }}>
                         Connect Wallet
                     </Button>

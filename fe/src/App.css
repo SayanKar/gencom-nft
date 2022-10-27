@@ -194,3 +194,11 @@
 .feedContainer {
   background-color: #fff;
 }
+
+a {
+  text-decoration: none !important;
+}
+
+#roomLink #profileLink {
+  color: "#0057ff";
+}

@@ -3,6 +3,7 @@ import './App.css';
 import CanvasGrid from './components/CanvasGrid';
 import CanvasRoom from './components/CanvasRoom';
 import HomePage from './components/HomePage';
+import Navbar from './components/Navbar';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
@@ -12,9 +13,10 @@ import CardList from './components/CardList';
 
 function App() {
   return (
-    <div className="App" style={{display: "flex", justifyContent: "center", padding: "40px"}}>
+    <div className="App">
       {/* <CanvasGrid rows={32} columns={32}/> */}
-      <DisplayCard/>
+      <Navbar />
+      <HomePage />
     </div>
   );
 }
