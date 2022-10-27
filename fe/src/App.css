@@ -137,3 +137,78 @@ html, body {
     transform: rotate(360deg);
   }
 }
+
+/* Homepage */
+@media screen and (min-width: 992px){
+  #parentTopBox {
+    min-height: 501px;
+  }
+}
+
+@media screen and (min-width: 992px) {
+  #topBox {
+    max-width: 1100px;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  #topBox {
+    max-width: 768px;
+  }
+}
+
+@media screen and (min-width: 576px){
+  #topBox {
+    max-width: 576px;
+  }
+}
+
+#topBox {
+  margin: 0 auto;
+  overflow: hidden;
+  padding: 20px;
+}
+
+@media screen and (min-width: 992px) {
+  #midBox {
+    min-height: 290px;
+  }
+}
+
+#midBox #lowBox {
+  flex: "1 1";
+}
+
+#midBox #lowBox #homePageHeader {
+  line-height: 140%;
+}
+
+#midBox #buttonContainer #joinRoomButton {
+  width: 152px;
+  height: 55px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 140%;
+  border: none;
+  transition: 0.1s ease;
+  background-color: #111;
+  margin-right: 12px;
+}
+
+.feedContainer {
+  background-color: #fff;
+}
+
+a {
+  text-decoration: none !important;
+}
+
+#roomLink #profileLink {
+  color: "#0057ff";
+}
+
+#viewAllRoomButton:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
