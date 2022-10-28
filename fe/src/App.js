@@ -12,6 +12,9 @@ import "@fontsource/roboto/700.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useState } from "react";
 import AllCanvas from "./components/AllCanvas";
+import Profile from "./components/Profile";
+
+
 
 function App() {
   const [contract, setContract] = useState(null);
@@ -19,18 +22,24 @@ function App() {
   const [network, setNetwork] = useState({ url: "", address: "" });
 
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<HomePage />} errorElement={<Error/>}/>
-          <Route path="/canvas" element={<AllCanvas />} />
-          <Route path="/canvas/:canvasId" element={<CanvasRoom />} />
-          <Route path="/create" element={<CreateRoom />} />
-        </Routes>
-        <Footer />
-      </BrowserRouter>
-    </div>
+      <div className="App">
+        <BrowserRouter>
+          <Navbar />
+          <Routes>
+            <Route
+              exact
+              path="/"
+              element={<HomePage />}
+              errorElement={<Error />}
+            />
+            <Route exact path="/canvas" element={<AllCanvas />} />
+            <Route path="/canvas/:canvasId" element={<CanvasRoom />} />
+            <Route path="/create" element={<CreateRoom />} />
+            <Route path="/profile/:address" element={<Profile />} />
+          </Routes>
+          <Footer />
+        </BrowserRouter>
+      </div>
   );
 }
 

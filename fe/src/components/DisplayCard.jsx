@@ -60,7 +60,7 @@ export default function DisplayCard(props) {
           <CardSkeleton />
         ) : (
           <Link
-            to={props.redirectTo + props.id}
+            to={"/canvas/" + props.id}
             sx={{ textDecoration: "none !important" }}
           >
             <Box

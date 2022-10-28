@@ -17,7 +17,7 @@ export default function CardList(props) {
             marginBottom: "20px",
           }}
         >
-          <DisplayCard id={id} redirectTo={props.redirectTo}/>
+          <DisplayCard id={id}/>
         </Grid>
       );
     });
@@ -42,7 +42,7 @@ export default function CardList(props) {
       >
         {renderItems()}
       </Grid>
-      {props.isMain && (
+      {props.isMain === true && (
         <Link to="/canvas">
         <Box
           sx={{

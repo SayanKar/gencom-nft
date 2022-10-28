@@ -119,7 +119,7 @@ export default function HomePage(props) {
               </Box>
             </Box>
           </Box>
-          <CardList title={"Trending Canvas"} isMain={true} ids={[1, 2, 3, 4, 5]} redirectTo={"/canvas/"} />
+          <CardList title={"Trending Canvas"} isMain={true} ids={[1, 2, 3, 4, 5]}/>
         </Box>
       </Box>
     </Box>
