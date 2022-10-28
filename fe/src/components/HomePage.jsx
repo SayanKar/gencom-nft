@@ -9,9 +9,14 @@ import {
   CardContent,
   Stack,
 } from "@mui/material";
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import "../App.css";
 import CardList from "./CardList";
 export default function HomePage(props) {
+  useEffect(() => {
+    window.scrollTo(0,0);
+  }, []);
   return (
     <Box component="div">
       <Box
@@ -28,7 +33,6 @@ export default function HomePage(props) {
             fontWeight: "700",
             minHeight: "calc(100vh - 4rem)",
             width: "100vw",
-            boxShadow: "0 6px 10px rgb(0 0 0 / 5%)",
           }}
         >
           <Box
@@ -72,6 +76,7 @@ export default function HomePage(props) {
                       paddingLeft: "100px",
                     }}
                   >
+                    <Link to="/canvas">
                     <Button
                       variant="contained"
                       disableElevation
@@ -84,6 +89,8 @@ export default function HomePage(props) {
                     >
                       Join a Room
                     </Button>
+                    </Link>
+                    <Link to="/create">
                     <Button
                       variant="contained"
                       disableElevation
@@ -106,12 +113,13 @@ export default function HomePage(props) {
                     >
                       Start a Room
                     </Button>
+                    </Link>
                   </Box>
                 </Box>
               </Box>
             </Box>
           </Box>
-          <CardList rows={2} isMain={true} ids={[1, 2, 3, 4, 5]} />
+          <CardList title={"Trending Canvas"} isMain={true} ids={[1, 2, 3, 4, 5]} redirectTo={"/canvas/"} />
         </Box>
       </Box>
     </Box>

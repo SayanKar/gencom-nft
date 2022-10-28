@@ -104,6 +104,7 @@ export default function Navbar(props) {
               + Create a room
             </Button>
           </Link>
+          <Link to="/canvas">
           <Button
             variant="text"
             sx={{
@@ -122,6 +123,7 @@ export default function Navbar(props) {
           >
             All Rooms
           </Button>
+          </Link>
           <Button
             variant="text"
             sx={{

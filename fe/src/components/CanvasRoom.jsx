@@ -31,6 +31,11 @@ export default function CanvasRoom(props) {
     isDynamic: false,
     premiumPercentage: "0",
   });
+
+  useEffect(() => {
+    window.scrollTo(0,0);
+  }, []);
+  
   return (
     <Box component="div">
       <Navbar />

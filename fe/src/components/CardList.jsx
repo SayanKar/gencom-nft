@@ -1,4 +1,5 @@
-import { Box, Grid, Typography } from "@mui/material";
+import { Box, Grid, Skeleton, Typography } from "@mui/material";
+import { Link } from "react-router-dom";
 import DisplayCard from "./DisplayCard";
 export default function CardList(props) {
   const renderItems = () => {
@@ -16,26 +17,25 @@ export default function CardList(props) {
             marginBottom: "20px",
           }}
         >
-          <DisplayCard id={id} />
+          <DisplayCard id={id} redirectTo={props.redirectTo}/>
         </Grid>
       );
     });
   };
   return (
-    <Box sx={{ width: "90%", margin: "40px auto" }}>
+    <Box sx={{ width: "90%", margin: "60px auto", }}>
       <Typography
         sx={{ fontFamily: "'Fredoka One', cursive", marginBottom: "30px" }}
         align="left"
         variant="h6"
       >
-        {" "}
-        Trending Rooms
+        {props.title}
       </Typography>
       <Grid
         container
         spacing={2}
         sx={{
-          maxHeight: props.rows ? "" + 535 * props.rows + "px" : "fit-content",
+          maxHeight: props.rows ? "" + 545 * props.rows + "px" : "fit-content",
           overflowY: "auto",
           overflowX: "hidden",
         }}
@@ -43,6 +43,7 @@ export default function CardList(props) {
         {renderItems()}
       </Grid>
       {props.isMain && (
+        <Link to="/canvas">
         <Box
           sx={{
             width: "100%",
@@ -67,7 +68,10 @@ export default function CardList(props) {
             View All Canvas
           </Typography>
         </Box>
+        </Link>
       )}
     </Box>
   );
 }
+
+

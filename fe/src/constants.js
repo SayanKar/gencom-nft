@@ -16,3 +16,4 @@ export const colors = {
     "14": "#cf6ee4",
     "15": "820080",
 }
+export const CONTRACT_ADDRESS = "atMUNA6heP5H2r2PzU9DujHF3BkSGkoHfaqSwqMinThdkHF"
