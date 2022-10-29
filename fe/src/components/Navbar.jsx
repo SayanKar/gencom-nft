@@ -211,7 +211,7 @@ export default function Navbar(props) {
                 }}
               >
                 <Identicon
-                  value={props.activeAccount.address}
+                  value={props.activeAccount?.address}
                   size={25}
                   theme={"polkadot"}
                 />
@@ -222,7 +222,7 @@ export default function Navbar(props) {
                     fontFamily: "'Fredoka One', cursive",
                   }}
                 >
-                  {cutAddress(props.activeAccount.address)}
+                  {cutAddress(props.activeAccount?.address)}
                 </Typography>
               </CardActionArea>
             </Card>

@@ -10,5 +10,6 @@ export async function getAllAccounts() {
 }
 
 export function cutAddress(addr) {
+    if(!addr) return "";
     return addr.substring(0,5) + "..." + addr.substring(addr.length - 4);
 } 

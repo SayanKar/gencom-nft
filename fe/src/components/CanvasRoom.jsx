@@ -39,7 +39,6 @@ export default function CanvasRoom(props) {
   
   return (
     <Box component="div">
-      <Navbar />
       <Box component="div" id="canvasBoxContainer">
         <Typography
           variant="h4"
