@@ -78,17 +78,28 @@ mod creative_nft {
         is_dynamic: bool,
     }
 
+    #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Default)]
+    #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
+    pub struct CanvasStats {
+        total_bids: u128,
+        total_participants: u128,
+        minted: bool,
+    }
+
     // Similar to ERC1155
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate)]
+    #[derive(SpreadAllocate)]
     pub struct CreativeNft {
         owner: AccountId,
         creation_fees: Balance,
         canvas_nonce: CanvasId,
         canvas_details: Mapping<CanvasId, Canvas>,
+        canvas_analytics: Mapping<CanvasId, CanvasStats>,
         grids: Mapping<(CanvasId, u8, u8), Cell>,
         participants: Mapping<(CanvasId, AccountId), ()>,
-        canvas_analytics: Mapping<CanvasId, (u128, u128)>, // (total_bids, total_participants)
+        cash_flow: Mapping<AccountId, (Balance, Balance)>, // (spent, received)
+        owned_tokens: Mapping<(AccountId, u128), (CanvasId, u8, u8)>, // (Account, index) -> (canvasId, x, y)
+        owned_tokens_index: Mapping<(CanvasId, u8, u8), u128>,        // (canvasId,x,y) -> index
     }
 
     impl CreativeNft {
@@ -104,6 +115,13 @@ mod creative_nft {
         pub fn update_creation_fees(&mut self, new_fees: Balance) {
             assert_eq!(self.env().caller(), self.owner);
             self.creation_fees = new_fees;
+        }
+
+        #[ink(message)]
+        pub fn collect_fees(&mut self, acc: AccountId, val: Balance) {
+            assert!(self.owner == self.env().caller(), "Not Authorised");
+            assert!(val <= self.env().balance(), "Value exceeds fees collected");
+            self.env().transfer(acc, val).unwrap();
         }
 
         #[ink(message, payable)]
@@ -158,6 +176,10 @@ mod creative_nft {
             }
             self.canvas_nonce += 1;
 
+            let (mut spent, receive) = self.cash_flow.get(&caller).unwrap_or_default();
+            spent += self.env().transferred_value();
+            self.cash_flow.insert(&caller, &(spent, receive));
+
             canvas_id
         }
 
@@ -194,6 +216,36 @@ mod creative_nft {
             self.canvas_details.insert(&canvas_id, &ncanvas);
         }
 
+        #[ink(message)]
+        pub fn mint_canvas(&mut self, canvas_id: CanvasId) {
+            let canvas = self.canvas_details.get(&canvas_id).unwrap();
+            assert!(
+                canvas.end_time < self.env().block_timestamp(),
+                "Painting phase isn't over yet"
+            );
+
+            let mut stats = self.canvas_analytics.get(&canvas_id).unwrap_or_default();
+            assert!(stats.minted == false, "Canvas has already been minted");
+
+            let grid = self.get_grid_details(canvas_id).unwrap();
+            grid.iter().enumerate().for_each(|(x, row)| {
+                let x: u8 = x.try_into().unwrap();
+                row.iter().enumerate().for_each(|(y, cell)| {
+                    let y: u8 = y.try_into().unwrap();
+                    let owner = cell.owner;
+                    let (mut idx, _, _) = self.owned_tokens.get(&(owner, 0)).unwrap_or_default();
+                    idx += 1;
+
+                    self.owned_tokens.insert(&(owner, 0), &(idx, 0, 0));
+                    self.owned_tokens.insert(&(owner, idx), &(canvas_id, x, y));
+                    self.owned_tokens_index.insert(&(canvas_id, x, y), &idx);
+                });
+            });
+
+            stats.minted = true;
+            self.canvas_analytics.insert(&canvas_id, &stats);
+        }
+
         #[ink(message, payable)]
         pub fn capture_cell(
             &mut self,
@@ -214,17 +266,24 @@ mod creative_nft {
 
             self.env().transfer(cell.owner, bid).unwrap(); // Is Re-entrancy possible?
 
+            let (mut spent, receive) = self.cash_flow.get(&caller).unwrap_or_default();
+            spent += bid;
+            self.cash_flow.insert(&caller, &(spent, receive));
+
+            let (spent, mut receive) = self.cash_flow.get(&cell.owner).unwrap_or_default();
+            receive += bid;
+            self.cash_flow.insert(&caller, &(spent, receive));
+
             let ncell = Cell {
                 owner: caller,
                 value: bid,
                 color: color.map_or(cell.color, |c| Colors::color_code(&c)),
             };
 
-            let (mut total_bids, mut total_participants) =
-                self.canvas_analytics.get(&canvas_id).unwrap_or_default();
+            let mut stats = self.canvas_analytics.get(&canvas_id).unwrap_or_default();
 
-            total_bids += 1;
-            total_participants += match self
+            stats.total_bids += 1;
+            stats.total_participants += match self
                 .participants
                 .insert_return_size(&(canvas_id, caller), &())
             {
@@ -232,8 +291,7 @@ mod creative_nft {
                 None => 1,
             };
 
-            self.canvas_analytics
-                .insert(&canvas_id, &(total_bids, total_participants));
+            self.canvas_analytics.insert(&canvas_id, &stats);
             self.grids.insert(&(canvas_id, cord_x, cord_y), &ncell);
         }
 
@@ -289,6 +347,11 @@ mod creative_nft {
         }
 
         #[ink(message)]
+        pub fn get_canvas_stats(&self, canvas_id: CanvasId) -> CanvasStats {
+            self.canvas_analytics.get(&canvas_id).unwrap_or_default()
+        }
+
+        #[ink(message)]
         pub fn get_grid_details(&self, canvas_id: CanvasId) -> Option<Vec<Vec<Cell>>> {
             let canvas = match self.get_canvas_details(canvas_id) {
                 Some(r) => r,
@@ -336,6 +399,26 @@ mod creative_nft {
                 .into_iter()
                 .filter(|&id| self.participants.get(&(id, acc)).is_some())
                 .collect()
+        }
+
+        #[ink(message)]
+        pub fn get_user_cash_flow(&self, acc: AccountId) -> (Balance, Balance) {
+            self.cash_flow.get(&acc).unwrap_or_default()
+        }
+
+        #[ink(message)]
+        pub fn get_user_nfts(&self, acc: AccountId) -> Vec<(CanvasId, u8, u8)> {
+            let (count, _, _) = self.owned_tokens.get(&(acc, 0)).unwrap_or_default();
+
+            (1..=count)
+                .into_iter()
+                .map(|x| self.owned_tokens.get(&(acc, x)).unwrap())
+                .collect()
+        }
+
+        #[ink(message)]
+        pub fn get_owned_nft_count(&self, acc: AccountId) -> u128 {
+            self.owned_tokens.get(&(acc, 0)).unwrap_or_default().0
         }
     }
 }
