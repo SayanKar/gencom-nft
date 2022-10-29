@@ -260,6 +260,15 @@ a {
   #contactContainer {
     margin-left: 50px;
   }
+  #aboutDivider1 {
+    display: none;
+  }
+  #aboutDivider2 {
+    display: none;
+  }
+  #aboutDivider3 {
+    display: none;
+  }
 }
 
 #essentialLink1 #essentialLink2 {
