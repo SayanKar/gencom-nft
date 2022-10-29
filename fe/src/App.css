@@ -237,3 +237,32 @@ a {
   border-radius: 28px;
   overflow: hidden;
 }
+
+#siteNameInAbout {
+  font-weight: 700;
+}
+
+@media screen and (max-width: 1200px){
+  #introContainer {
+    display: block;
+  }
+  #introText {
+    text-align: center;
+    margin-left: 30px;
+    margin-right: 30px;
+  }
+  #totalTokenAmount {
+    margin-left: 50px;
+  }
+  #contributorCaption {
+    margin-left: 50px;
+  }
+  #contactContainer {
+    margin-left: 50px;
+  }
+}
+
+#essentialLink1 #essentialLink2 {
+  font-weight: 600;
+  color: black;
+}

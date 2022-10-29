@@ -13,6 +13,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useState } from "react";
 import AllCanvas from "./components/AllCanvas";
 import Profile from "./components/Profile";
+import About from "./components/About";
 
 
 
@@ -36,6 +37,7 @@ function App() {
             <Route path="/canvas/:canvasId" element={<CanvasRoom />} />
             <Route path="/create" element={<CreateRoom />} />
             <Route path="/profile/:address" element={<Profile />} />
+            <Route path="/about" element={<About />} />
           </Routes>
           <Footer />
         </BrowserRouter>
