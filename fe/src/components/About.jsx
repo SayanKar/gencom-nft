@@ -184,6 +184,7 @@ export default function About(props) {
                 sx={{
                     backgroundColor: "#AEBDCA",
                     paddingTop: "150px",
+                    paddingBottom: "150px",
                 }}
             >
                 <Grid
@@ -199,11 +200,13 @@ export default function About(props) {
                         item
                         lg={4}
                         md={12}
+                        sm={12}
+                        xs={12}
                         sx={{
                             width: "33%"
                         }}
                     >
-                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} />
+                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} id="aboutDivider1"/>
                         <Typography
                             variant="h5"
                             sx={{
@@ -237,11 +240,13 @@ export default function About(props) {
                         item
                         lg={4}
                         md={12}
+                        sm={12}
+                        xs={12}
                         sx={{
                             width: "33%",
                         }}
                     >
-                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} />
+                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} id="aboutDivider2"/>
                         <Typography
                             variant="h5"
                             sx={{
@@ -277,11 +282,13 @@ export default function About(props) {
                         item
                         lg={4}
                         md={12}
+                        sm={12}
+                        xs={12}
                         sx={{
                             width: "33%",
                         }}
                     >
-                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} />
+                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} id="aboutDivider3"/>
                         <Typography
                             variant="h5"
                             sx={{
@@ -310,7 +317,109 @@ export default function About(props) {
                         </Typography>
                     </Grid>
                 </Grid>
-                <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} />
+                <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "40px", marginLeft: "100px", marginRight: "100px", }} />
+                <Grid
+                    container
+                    sx={{
+                        paddingLeft: "100px",
+                        paddingRight: "100px",
+                    }}
+                    spacing={4}
+                >
+                    <Grid
+                        item
+                        lg={4}
+                        md={12}
+                        sm={12}
+                        xs={12}
+                        sx={{
+                            width: "33%",
+                        }}
+                    >
+                        <Typography
+                            variant="h3"
+                            sx={{
+                                fontSize: "1.75rem",
+                                color: "rgb(71, 85, 105)",
+                                fontFamily: "'Fredoka One', cursive",
+                            }}
+                            align="left">
+                            What are the different types of NFT?
+                        </Typography>
+                    </Grid>
+                    <Grid
+                        item
+                        lg={4}
+                        md={12}
+                        sm={12}
+                        xs={12}
+                        sx={{
+                            width: "33%",
+                        }}
+                    >
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                color: "black",
+                                fontWeight: "200",
+                                fontFamily: "'Fredoka One', cursive",
+                            }}
+                            align="left"
+                        >
+                            Static
+                        </Typography>
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                color: "rgb(71, 85, 105)",
+                                marginTop: "20px",
+                                lineHeight: "150%",
+                                fontSize: "1.1rem",
+                                fontWeight: "500",
+                            }}
+                            align="left"
+                        >
+                            Owner can't change the color of the cell once the NFT is minted.
+                        </Typography>
+                    </Grid>
+                    <Grid
+                        item
+                        lg={4}
+                        md={12}
+                        sm={12}
+                        xs={12}
+                        sx={{
+                            width: "33%",
+                        }}
+                    >
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                color: "black",
+                                fontWeight: "200",
+                                fontFamily: "'Fredoka One', cursive",
+                            }}
+                            align="left"
+                        >
+                            Dynamic
+                        </Typography>
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                color: "rgb(71, 85, 105)",
+                                marginTop: "20px",
+                                lineHeight: "150%",
+                                fontSize: "1.1rem",
+                                fontWeight: "500",
+                            }}
+                            align="left"
+                        >
+                            Owner can change the color of the cell even after NFT is minted.
+                            {" "}
+                            Thus, the NFT art can keep on changing.
+                        </Typography>
+                    </Grid>
+                </Grid>
             </Box>
         </Box>
     );
