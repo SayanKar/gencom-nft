@@ -16,6 +16,7 @@ export default function CardList(props) {
             alignItems: "center",
             marginBottom: "20px",
           }}
+          key={id}
         >
           <DisplayCard id={id} isNFT={props.isNFT} isProfile={props.isProfile} isEdit={props.isEdit}/>
         </Grid>

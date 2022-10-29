@@ -6,12 +6,33 @@ import {
   IconButton,
   Stack,
   Button,
+  Chip,
+  Avatar,
+  Card,
+  CardHeader,
+  Paper,
+  CardActionArea,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import "../App.css";
-import PixelImage from '../assets/pixelimage.jpg';
+import PixelImage from "../assets/pixelimage.jpg";
 import { fontWeight } from "@mui/system";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import ChooseAccount from "./ChooseAccount";
+import Identicon from "@polkadot/react-identicon";
+import { cutAddress } from "../Integration";
 export default function Navbar(props) {
+  const [openChangeAccount, setChangeAccount] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
   return (
     <AppBar
       position="sticky"
@@ -144,27 +165,105 @@ export default function Navbar(props) {
               About
             </Button>
           </Link>
-          <Button
-            variant="contained"
-            disableElevation
-            size="small"
-            sx={{
-              textTransform: "none",
-              fontweight: "400",
-              justifyContent: "center",
-              cursor: "pointer",
-              backgroundColor: "#0057ff",
-              borderRadius: ".75rem",
-              padding: "0.5rem 0.75rem",
-              transition: "0.1s ease",
-              border: "none",
-              fontFamily: "'Fredoka One', cursive",
+          {props.activeAccount === null ? (
+            <Button
+              variant="contained"
+              disableElevation
+              size="small"
+              sx={{
+                textTransform: "none",
+                fontweight: "400",
+                justifyContent: "center",
+                cursor: "pointer",
+                backgroundColor: "#0057ff",
+                borderRadius: ".75rem",
+                padding: "0.5rem 0.75rem",
+                transition: "0.1s ease",
+                border: "none",
+                fontFamily: "'Fredoka One', cursive",
+              }}
+              onClick={() => setChangeAccount(true)}
+            >
+              Connect Wallet
+            </Button>
+          ) : (
+            <Card
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                borderRadius: "25px",
+                boxShadow: "none",
+                border: "1.5px solid #0057ff",
+              }}
+              onClick={handleClick}
+              id="profile"
+              aria-controls={open ? "profile-menu" : undefined}
+              aria-haspopup="true"
+              aria-expanded={open ? "true" : undefined}
+            >
+              <CardActionArea
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  height: "100%",
+                  padding: "0 10px",
+                  width: "100%",
+                }}
+              >
+                <Identicon
+                  value={props.activeAccount.address}
+                  size={25}
+                  theme={"polkadot"}
+                />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    marginLeft: "5px",
+                    fontFamily: "'Fredoka One', cursive",
+                  }}
+                >
+                  {cutAddress(props.activeAccount.address)}
+                </Typography>
+              </CardActionArea>
+            </Card>
+          )}
+        </Stack>
+        <Menu
+          id="profile-menu"
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+          MenuListProps={{
+            "aria-labelledby": "profile",
+          }}
+          sx={{marginTop:"5px"}}
+        >
+          <MenuItem onClick={handleClose}>
+            <Link to={"/profile/" + props.activeAccount?.address} sx={{width:"100%", height:"100%"}}>Profile</Link>
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setChangeAccount(true);
+              handleClose();
             }}
           >
-            Connect Wallet
-          </Button>
-        </Stack>
+            Change Account
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              props.setActiveAccount(null);
+              handleClose();
+            }}
+          >
+            Logout
+          </MenuItem>
+        </Menu>
       </Toolbar>
+      <ChooseAccount
+        open={openChangeAccount}
+        handleClose={() => setChangeAccount(false)}
+        setActiveAccount={(acc) => props.setActiveAccount(acc)}
+      />
     </AppBar>
   );
 }

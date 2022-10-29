@@ -15,34 +15,55 @@ import AllCanvas from "./components/AllCanvas";
 import Profile from "./components/Profile";
 import About from "./components/About";
 
-
-
 function App() {
   const [contract, setContract] = useState(null);
-  const [activeAccount, setActiveAccount] = useState();
+  const [activeAccount, setActiveAccount] = useState(null);
   const [network, setNetwork] = useState({ url: "", address: "" });
-
   return (
-      <div className="App">
-        <BrowserRouter>
-          <Navbar />
-          <Routes>
-            <Route
-              exact
-              path="/"
-              element={<HomePage />}
-              errorElement={<Broken />}
-            />
-            <Route exact path="/canvas" element={<AllCanvas />} errorElement={<Broken/>}/>
-            <Route path="/canvas/:canvasId" element={<CanvasRoom />} errorElement={<Broken/>}/>
-            <Route path="/create" element={<CanvasForm />} errorElement={<Broken/>}/>
-            <Route path="/profile/:address" element={<Profile />} errorElement={<Broken/>}/>
-            <Route path="/about" element={<About />} errorElement={<Broken/>}/>
-            <Route path="/edit/:canvasId" element={<CanvasForm isEdit={true}/>} errorElement={<Broken/>}/>
-          </Routes>
-          <Footer />
-        </BrowserRouter>
-      </div>
+    <div className="App">
+      <BrowserRouter>
+        <Navbar
+          activeAccount={activeAccount}
+          setActiveAccount={(acc) => setActiveAccount(acc)}
+        />
+        <Routes>
+          <Route
+            exact
+            path="/"
+            element={<HomePage />}
+            errorElement={<Broken />}
+          />
+          <Route
+            exact
+            path="/canvas"
+            element={<AllCanvas />}
+            errorElement={<Broken />}
+          />
+          <Route
+            path="/canvas/:canvasId"
+            element={<CanvasRoom />}
+            errorElement={<Broken />}
+          />
+          <Route
+            path="/create"
+            element={<CanvasForm />}
+            errorElement={<Broken />}
+          />
+          <Route
+            path="/profile/:address"
+            element={<Profile />}
+            errorElement={<Broken />}
+          />
+          <Route path="/about" element={<About />} errorElement={<Broken />} />
+          <Route
+            path="/edit/:canvasId"
+            element={<CanvasForm isEdit={true} />}
+            errorElement={<Broken />}
+          />
+        </Routes>
+        <Footer />
+      </BrowserRouter>
+    </div>
   );
 }
 

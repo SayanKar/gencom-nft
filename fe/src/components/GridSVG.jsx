@@ -6,7 +6,7 @@ export default function GridSVG(props) {
     for (let i = 0; i < 32; i++) {
       for (let j = 0; j < 32; j++) {
         list.push(
-          <rect x={i * 10} y={j * 10} width="10" height="10" fill={props.colors[i][j]} />
+          <rect x={i * 10} y={j * 10} width="10" height="10" fill={props.colors[i][j]} key={i+" "+j}/>
         );
       }
     }
