@@ -17,7 +17,7 @@ import VideoTutorial from "./VideoTutorial";
 
 export default function HomePage(props) {
   useEffect(() => {
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
   }, []);
   return (
     <Box component="div">
@@ -79,48 +79,60 @@ export default function HomePage(props) {
                     }}
                   >
                     <Link to="/canvas">
-                    <Button
-                      variant="contained"
-                      disableElevation
-                      id="joinRoomButton"
-                      sx={{
-                        textTransform: "none",
-                        color: "#fff",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Join a Room
-                    </Button>
+                      <Button
+                        variant="contained"
+                        disableElevation
+                        id="joinRoomButton"
+                        sx={{
+                          textTransform: "none",
+                          color: "#fff",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Join a Room
+                      </Button>
                     </Link>
                     <Link to="/create">
-                    <Button
-                      variant="contained"
-                      disableElevation
-                      id="startRoomButton"
-                      sx={{
-                        textTransform: "none",
-                        width: "152px",
-                        height: "55px",
-                        borderRadius: "12px",
-                        fontSize: "18px",
-                        fontWeight: "600",
-                        lineHeight: "140%",
-                        border: "none",
-                        transition: "0.1s ease",
-                        backgroundColor: "#0057ff",
-                        color: "#fff",
-                        cursor: "pointer",
-                        marginLeft: "30px",
-                      }}
-                    >
-                      Start a Room
-                    </Button>
+                      <Button
+                        variant="contained"
+                        disableElevation
+                        id="startRoomButton"
+                        sx={{
+                          textTransform: "none",
+                          width: "152px",
+                          height: "55px",
+                          borderRadius: "12px",
+                          fontSize: "18px",
+                          fontWeight: "600",
+                          lineHeight: "140%",
+                          border: "none",
+                          transition: "0.1s ease",
+                          backgroundColor: "#0057ff",
+                          color: "#fff",
+                          cursor: "pointer",
+                          marginLeft: "30px",
+                        }}
+                      >
+                        Start a Room
+                      </Button>
                     </Link>
                   </Box>
                 </Box>
               </Box>
             </Box>
           </Box>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: "400",
+              fontFamily: "'Fredoka One', cursive",
+              marginTop: "30px",
+              marginLeft: "5%"
+            }}
+            align="left"
+          >
+            Trending Rooms
+          </Typography>
           <CardList rows={2} isMain={true} ids={[1, 2, 3, 4, 5, 6]} />
           <VideoTutorial />
         </Box>
