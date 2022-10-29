@@ -11,7 +11,7 @@ import {
     Divider,
 } from "@mui/material";
 import "../App.css";
-import PixelImage from '../pixelimage.jpg';
+import PixelImage from '../assets/pixelimage.jpg';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import InstagramIcon from '@mui/icons-material/Instagram';

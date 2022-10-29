@@ -4,7 +4,7 @@ import HomePage from "./components/HomePage";
 import Navbar from "./components/Navbar";
 import CanvasForm from "./components/CanvasForm";
 import Footer from "./components/Footer";
-import Error from "./components/Error";
+import Broken from "./components/Broken";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
@@ -31,14 +31,14 @@ function App() {
               exact
               path="/"
               element={<HomePage />}
-              errorElement={<Error />}
+              errorElement={<Broken />}
             />
-            <Route exact path="/canvas" element={<AllCanvas />} />
-            <Route path="/canvas/:canvasId" element={<CanvasRoom />} />
-            <Route path="/create" element={<CanvasForm />} />
-            <Route path="/profile/:address" element={<Profile />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/edit/:canvasId" element={<CanvasForm isEdit={true}/>} />
+            <Route exact path="/canvas" element={<AllCanvas />} errorElement={<Broken/>}/>
+            <Route path="/canvas/:canvasId" element={<CanvasRoom />} errorElement={<Broken/>}/>
+            <Route path="/create" element={<CanvasForm />} errorElement={<Broken/>}/>
+            <Route path="/profile/:address" element={<Profile />} errorElement={<Broken/>}/>
+            <Route path="/about" element={<About />} errorElement={<Broken/>}/>
+            <Route path="/edit/:canvasId" element={<CanvasForm isEdit={true}/>} errorElement={<Broken/>}/>
           </Routes>
           <Footer />
         </BrowserRouter>

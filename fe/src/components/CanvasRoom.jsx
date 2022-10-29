@@ -18,8 +18,9 @@ import CanvasBox from "./CanvasBox";
 import Navbar from "./Navbar";
 import { useState } from "react";
 import { useEffect } from "react";
-
+import { useParams } from "react-router-dom";
 export default function CanvasRoom(props) {
+  const { canvasId } = useParams();
   const [canvasDetails, setCanvasDetails] = useState({
     title: "Lets Rock the Party",
     desc: "Ubiq is a business intelligence & reporting tool for small & medium businesses. Build business dashboards, charts & reports in minutes. Get insights from data quickly. Try it for free!",
@@ -80,7 +81,7 @@ export default function CanvasRoom(props) {
             start={canvasDetails.startTime}
             end={canvasDetails.endTime}
           />
-          <Strip Text={"Canvas Id: " + props.Id} tooltip={"Canvas Id"} />
+          <Strip Text={"Canvas Id: " + canvasId} tooltip={"Canvas Id"} />
           <Strip
             Icon={
               <PeopleAltIcon

@@ -8,7 +8,7 @@ import {
   Button,
 } from "@mui/material";
 import "../App.css";
-import PixelImage from "../pixelimage.jpg";
+import PixelImage from '../assets/pixelimage.jpg';
 import { fontWeight } from "@mui/system";
 import { Link } from "react-router-dom";
 export default function Navbar(props) {
