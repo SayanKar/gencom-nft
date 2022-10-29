@@ -275,3 +275,8 @@ a {
   font-weight: 600;
   color: black;
 }
+
+#sayanImage {
+  max-width: 100%;
+  max-height: 100%;
+}

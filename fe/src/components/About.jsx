@@ -15,6 +15,7 @@ import PixelImage from '../assets/pixelimage.jpg';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import InstagramIcon from '@mui/icons-material/Instagram';
+import BuilderCard from "./BuilderCard";
 
 export default function About(props) {
     return (
@@ -206,7 +207,7 @@ export default function About(props) {
                             width: "33%"
                         }}
                     >
-                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} id="aboutDivider1"/>
+                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} id="aboutDivider1" />
                         <Typography
                             variant="h5"
                             sx={{
@@ -246,7 +247,7 @@ export default function About(props) {
                             width: "33%",
                         }}
                     >
-                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} id="aboutDivider2"/>
+                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} id="aboutDivider2" />
                         <Typography
                             variant="h5"
                             sx={{
@@ -288,7 +289,7 @@ export default function About(props) {
                             width: "33%",
                         }}
                     >
-                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} id="aboutDivider3"/>
+                        <Divider sx={{ backgroundColor: "black", height: "0.5px", marginBottom: "20px", }} id="aboutDivider3" />
                         <Typography
                             variant="h5"
                             sx={{
@@ -418,6 +419,72 @@ export default function About(props) {
                             {" "}
                             Thus, the NFT art can keep on changing.
                         </Typography>
+                    </Grid>
+                </Grid>
+            </Box>
+            <Box
+                component="div"
+                id="teamIntroContainer"
+                sx={{
+                    backgroundColor: "#3E065F",
+                    paddingTop: "150px",
+                    paddingBottom: "150px"
+                }}
+            >
+                <Typography
+                    variant="h2"
+                    sx={{
+                        fontSize: "2.25rem",
+                        fontWeight: "700",
+                        color: 'white',
+                        fontFamily: "'Fredoka One', cursive",
+                    }}
+                >
+                    Built by...
+                </Typography>
+                <Grid
+                    container
+                    sx={{
+                        marginTop: "100px",
+                        marginLeft: "50px"
+                    }}
+                    spacing={1}
+                >
+                    <Grid
+                        item
+                        lg={4}
+                    >
+                        <BuilderCard
+                         link="https://avatars.githubusercontent.com/u/44398655?v=4"
+                         name="Sayan Kar"
+                         twitter="https://twitter.com/Sayan1308Kar"
+                         github="https://github.com/SayanKar"
+                         linkedin="https://www.linkedin.com/in/sayan-kar-/"
+                         />
+                    </Grid>
+                    <Grid
+                        item
+                        lg={4}
+                    >
+                        <BuilderCard
+                         link="https://avatars.githubusercontent.com/u/46227078?v=4"
+                         name="Nimish Agrawal"
+                         twitter=""
+                         github="https://github.com/realnimish"
+                         linkedin="https://www.linkedin.com/in/realnimish/"
+                         />
+                    </Grid>
+                    <Grid
+                        item
+                        lg={4}
+                    >
+                        <BuilderCard
+                        link="https://avatars.githubusercontent.com/u/41407039?v=4"
+                        name="Soumyajit Deb"
+                        twitter="https://twitter.com/OnChainIntern"
+                        github="https://github.com/hyp3r5pace"
+                        linkedin="https://www.linkedin.com/in/soumyajitdeb/"
+                        />
                     </Grid>
                 </Grid>
             </Box>
