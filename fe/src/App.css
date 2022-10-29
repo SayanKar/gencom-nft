@@ -232,3 +232,8 @@ a {
 #footerSiteLogo {
   height: 70px;
 }
+
+#tutorialVideo {
+  border-radius: 28px;
+  overflow: hidden;
+}

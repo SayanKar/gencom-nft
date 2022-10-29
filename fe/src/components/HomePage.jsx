@@ -13,6 +13,8 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../App.css";
 import CardList from "./CardList";
+import VideoTutorial from "./VideoTutorial";
+
 export default function HomePage(props) {
   useEffect(() => {
     window.scrollTo(0,0);
@@ -119,7 +121,8 @@ export default function HomePage(props) {
               </Box>
             </Box>
           </Box>
-          <CardList title={"Trending Canvas"} isMain={true} ids={[1, 2, 3, 4, 5]}/>
+          <CardList rows={2} isMain={true} ids={[1, 2, 3, 4, 5, 6]} />
+          <VideoTutorial />
         </Box>
       </Box>
     </Box>
