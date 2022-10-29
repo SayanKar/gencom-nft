@@ -13,10 +13,12 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 
-export default function CreateRoom(props) {
+export default function CanvasForm(props) {
   const [startTimeValue, setStartTimeValue] = useState(dayjs("2022-04-07"));
   const [endTimeValue, setEndTimeValue] = useState(dayjs("2022-04-08"));
+  const { canvasId } = useParams();
 
   return (
     <Box
@@ -41,7 +43,7 @@ export default function CreateRoom(props) {
           align="left"
           variant="h5"
         >
-          Create a Room
+          {props.isEdit ? "Edit Canvas #" + canvasId : "Create a Room"}
         </Typography>
         <Divider sx={{ marginBottom: "20px" }} />
         <Typography
@@ -71,9 +73,16 @@ export default function CreateRoom(props) {
           sx={{ margin: "5px 0" }}
         />
         <TextField
-          helperText="* Sets a minimum cell price for buyers"
+          helperText="* Sets a base cell price"
           id="minPriceInput"
-          label="Cell Min Price"
+          label="Cell base price"
+          fullWidth
+          sx={{ margin: "5px 0" }}
+        />
+        <TextField
+          helperText="* Set premium percentage"
+          id="premiumInput"
+          label="Premium %"
           fullWidth
           sx={{ margin: "5px 0" }}
         />
@@ -129,7 +138,7 @@ export default function CreateRoom(props) {
             fullWidth
           />
           <Button sx={{ marginTop: "5px" }} variant="contained">
-            Create
+            {props.isEdit ? "Edit" : "Create"}
           </Button>
         </Box>
       </Paper>

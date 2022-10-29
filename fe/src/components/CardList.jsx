@@ -17,7 +17,7 @@ export default function CardList(props) {
             marginBottom: "20px",
           }}
         >
-          <DisplayCard id={id}/>
+          <DisplayCard id={id} isNFT={props.isNFT} isProfile={props.isProfile} isEdit={props.isEdit}/>
         </Grid>
       );
     });

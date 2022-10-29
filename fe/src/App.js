@@ -2,7 +2,7 @@ import "./App.css";
 import CanvasRoom from "./components/CanvasRoom";
 import HomePage from "./components/HomePage";
 import Navbar from "./components/Navbar";
-import CreateRoom from "./components/CreateRoom";
+import CanvasForm from "./components/CanvasForm";
 import Footer from "./components/Footer";
 import Error from "./components/Error";
 import "@fontsource/roboto/300.css";
@@ -35,9 +35,10 @@ function App() {
             />
             <Route exact path="/canvas" element={<AllCanvas />} />
             <Route path="/canvas/:canvasId" element={<CanvasRoom />} />
-            <Route path="/create" element={<CreateRoom />} />
+            <Route path="/create" element={<CanvasForm />} />
             <Route path="/profile/:address" element={<Profile />} />
             <Route path="/about" element={<About />} />
+            <Route path="/edit/:canvasId" element={<CanvasForm isEdit={true}/>} />
           </Routes>
           <Footer />
         </BrowserRouter>
