@@ -10,15 +10,18 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AllCanvas from "./components/AllCanvas";
 import Profile from "./components/Profile";
 import About from "./components/About";
+import Loading from "./components/Loading";
+import Error404 from "./components/Error404";
 
 function App() {
   const [contract, setContract] = useState(null);
   const [activeAccount, setActiveAccount] = useState(null);
   const [network, setNetwork] = useState({ url: "", address: "" });
+
   return (
     <div className="App">
       <BrowserRouter>
@@ -60,6 +63,7 @@ function App() {
             element={<CanvasForm isEdit={true} />}
             errorElement={<Broken />}
           />
+          <Route path='*' element={<Error404 />}/>
         </Routes>
         <Footer />
       </BrowserRouter>
