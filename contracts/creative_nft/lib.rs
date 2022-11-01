@@ -56,6 +56,7 @@ mod creative_nft {
 
     type CanvasId = u64;
     type TokenId = u128;
+    type Result<T> = core::result::Result<T, Error>;
 
     /// Event emitted when a token transfer occurs.
     #[ink(event)]
@@ -129,8 +130,20 @@ mod creative_nft {
     #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Copy, Clone)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub enum Error {
+        /// Caller does not have the required permissions
         Unauthorised,
+        /// The operation's required conditions are not satisfied
         NotAllowed,
+        /// Required funds were not received
+        InsufficientFunds,
+        /// End time should be greater than start time
+        InvalidDuration,
+        /// Given canvas-id has not yet been created
+        CanvasNotFound,
+        /// Given token-id doesn't exist
+        TokenNotFound,
+        /// Dimension of canvas cannot be zero
+        ZeroDimensions,
     }
 
     #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Clone)]
@@ -201,16 +214,20 @@ mod creative_nft {
         }
 
         #[ink(message)]
-        pub fn update_creation_fees(&mut self, new_fees: Balance) {
-            assert_eq!(self.env().caller(), self.owner);
+        pub fn update_creation_fees(&mut self, new_fees: Balance) -> Result<()> {
+            self.only_owner()?;
             self.creation_fees = new_fees;
+            Ok(())
         }
 
         #[ink(message)]
-        pub fn collect_fees(&mut self, acc: AccountId, val: Balance) {
-            assert!(self.owner == self.env().caller(), "Not Authorised");
-            assert!(val <= self.env().balance(), "Value exceeds fees collected");
-            self.env().transfer(acc, val).unwrap();
+        pub fn collect_fees(&mut self, acc: AccountId, val: Balance) -> Result<()> {
+            self.only_owner()?;
+            if val > self.env().balance() {
+                return Err(Error::InsufficientFunds);
+            }
+            self.env().transfer(acc, val).expect("transfer failed");
+            Ok(())
         }
 
         #[ink(message, payable)]
@@ -224,19 +241,16 @@ mod creative_nft {
             base_price: Balance,
             premium: u8,
             is_dynamic: bool,
-        ) -> CanvasId {
-            assert!(
-                self.env().transferred_value() >= self.creation_fees,
-                "Insufficient fees sent"
-            );
-            assert!(
-                dimensions.0 > 0 && dimensions.1 > 0,
-                "Dimension should be greater than zero"
-            );
-            assert!(
-                start_time < end_time,
-                "End time should be greater than start time"
-            );
+        ) -> Result<CanvasId> {
+            if self.env().transferred_value() < self.creation_fees {
+                return Err(Error::InsufficientFunds);
+            }
+            if dimensions.0 == 0 || dimensions.1 == 0 {
+                return Err(Error::ZeroDimensions);
+            }
+            if start_time >= end_time {
+                return Err(Error::InvalidDuration);
+            }
 
             let caller = self.env().caller();
             let canvas_id = self.canvas_nonce;
@@ -274,7 +288,7 @@ mod creative_nft {
                 state: State::New(caller),
             });
 
-            canvas_id
+            Ok(canvas_id)
         }
 
         #[ink(message)]
@@ -287,15 +301,18 @@ mod creative_nft {
             new_end_time: Option<u64>,
             premium: Option<u8>,
             is_dynamic: Option<bool>,
-        ) {
-            let canvas = self.get_canvas_details(canvas_id).unwrap();
+        ) -> Result<()> {
+            let canvas = self.get_canvas_details(canvas_id)?;
+
+            if self.env().block_timestamp() >= canvas.start_time {
+                return Err(Error::NotAllowed);
+            }
 
             let start_time = new_start_time.unwrap_or(canvas.start_time);
             let end_time = new_end_time.unwrap_or(canvas.end_time);
-            assert!(
-                start_time < end_time,
-                "End time should be greater than start time"
-            );
+            if start_time >= end_time {
+                return Err(Error::InvalidDuration);
+            }
 
             let ncanvas = Canvas {
                 title: title.unwrap_or(canvas.title),
@@ -313,20 +330,20 @@ mod creative_nft {
                 canvas_id,
                 state: State::Edited,
             });
+            Ok(())
         }
 
         #[ink(message)]
-        pub fn mint_canvas(&mut self, canvas_id: CanvasId) {
-            let canvas = self.canvas_details.get(&canvas_id).unwrap();
-            assert!(
-                canvas.end_time < self.env().block_timestamp(),
-                "Painting phase isn't over yet"
-            );
+        pub fn mint_canvas(&mut self, canvas_id: CanvasId) -> Result<()> {
+            let canvas = self.get_canvas_details(canvas_id)?;
 
             let mut stats = self.canvas_analytics.get(&canvas_id).unwrap_or_default();
-            assert!(stats.minted == false, "Canvas has already been minted");
 
-            let grid = self.get_grid_details(canvas_id).unwrap();
+            if stats.minted || canvas.end_time >= self.env().block_timestamp() {
+                return Err(Error::NotAllowed);
+            }
+
+            let grid = self.get_grid_details(canvas_id)?;
             grid.iter().enumerate().for_each(|(x, row)| {
                 let x: u8 = x.try_into().unwrap();
                 row.iter().enumerate().for_each(|(y, cell)| {
@@ -354,6 +371,7 @@ mod creative_nft {
                 canvas_id,
                 state: State::Minted(self.env().caller()),
             });
+            Ok(())
         }
 
         #[ink(message, payable)]
@@ -363,18 +381,25 @@ mod creative_nft {
             cord_x: u8,
             cord_y: u8,
             color: Option<Colors>,
-        ) {
+        ) -> Result<()> {
             let caller = self.env().caller();
-            let canvas = self.get_canvas_details(canvas_id).unwrap();
-            assert!(self.env().block_timestamp() <= canvas.end_time);
+            let canvas = self.get_canvas_details(canvas_id)?;
 
-            let cell = self.get_cell_details(canvas_id, cord_x, cord_y).unwrap();
+            if self.env().block_timestamp() > canvas.end_time {
+                return Err(Error::NotAllowed);
+            }
+
+            let cell = self.get_cell_details(canvas_id, cord_x, cord_y)?;
             let price = cell.value * (100 + canvas.premium as u128) / 100;
             let bid = self.env().transferred_value();
 
-            assert!(bid >= price, "Insufficient bid amount");
+            if bid < price {
+                return Err(Error::InsufficientFunds);
+            }
 
-            self.env().transfer(cell.owner, bid).unwrap(); // Is Re-entrancy possible?
+            self.env()
+                .transfer(cell.owner, bid)
+                .expect("transfer failed"); // Is Re-entrancy possible?
 
             let (mut spent, receive) = self.cash_flow.get(&caller).unwrap_or_default();
             spent += bid;
@@ -412,26 +437,7 @@ mod creative_nft {
                 by: caller,
                 color,
             });
-        }
-
-        fn _change_cell_color(
-            &mut self,
-            canvas_id: CanvasId,
-            cord_x: u8,
-            cord_y: u8,
-            new_color: &Colors,
-        ) {
-            let mut cell = self.get_cell_details(canvas_id, cord_x, cord_y).unwrap();
-            assert!(self.env().caller() == cell.owner, "Not Authorised");
-
-            cell.color = Colors::color_code(new_color);
-            let token_id = encode(canvas_id, cord_x, cord_y);
-            self.grids.insert(&token_id, &cell);
-
-            self.env().emit_event(TokenColor {
-                token_id,
-                color: *new_color,
-            });
+            Ok(())
         }
 
         #[ink(message)]
@@ -441,10 +447,14 @@ mod creative_nft {
             cord_x: u8,
             cord_y: u8,
             new_color: Colors,
-        ) {
-            let canvas = self.get_canvas_details(canvas_id).unwrap();
-            assert!(canvas.is_dynamic || self.env().block_timestamp() <= canvas.end_time);
-            self._change_cell_color(canvas_id, cord_x, cord_y, &new_color);
+        ) -> Result<()> {
+            let canvas = self.get_canvas_details(canvas_id)?;
+
+            if !canvas.is_dynamic && self.env().block_timestamp() > canvas.end_time {
+                return Err(Error::NotAllowed);
+            }
+            self.change_color(canvas_id, cord_x, cord_y, &new_color);
+            Ok(())
         }
 
         #[ink(message)]
@@ -452,13 +462,17 @@ mod creative_nft {
             &mut self,
             canvas_id: CanvasId,
             data: Vec<(u8, u8, Colors)>,
-        ) {
-            let canvas = self.get_canvas_details(canvas_id).unwrap();
-            assert!(canvas.is_dynamic || self.env().block_timestamp() <= canvas.end_time);
+        ) -> Result<()> {
+            let canvas = self.get_canvas_details(canvas_id)?;
+
+            if !canvas.is_dynamic && self.env().block_timestamp() > canvas.end_time {
+                return Err(Error::NotAllowed);
+            }
 
             data.iter().for_each(|(cord_x, cord_y, new_color)| {
-                self._change_cell_color(canvas_id, *cord_x, *cord_y, new_color);
-            })
+                self.change_color(canvas_id, *cord_x, *cord_y, new_color);
+            });
+            Ok(())
         }
 
         #[ink(message)]
@@ -467,8 +481,10 @@ mod creative_nft {
         }
 
         #[ink(message)]
-        pub fn get_canvas_details(&self, canvas_id: CanvasId) -> Option<Canvas> {
-            self.canvas_details.get(&canvas_id)
+        pub fn get_canvas_details(&self, canvas_id: CanvasId) -> Result<Canvas> {
+            self.canvas_details
+                .get(&canvas_id)
+                .ok_or(Error::CanvasNotFound)
         }
 
         #[ink(message)]
@@ -477,24 +493,22 @@ mod creative_nft {
         }
 
         #[ink(message)]
-        pub fn get_grid_details(&self, canvas_id: CanvasId) -> Option<Vec<Vec<Cell>>> {
-            let canvas = match self.get_canvas_details(canvas_id) {
-                Some(r) => r,
-                None => return None,
-            };
+        pub fn get_grid_details(&self, canvas_id: CanvasId) -> Result<Vec<Vec<Cell>>> {
+            let canvas = self.get_canvas_details(canvas_id)?;
+
             let mut grid: Vec<Vec<Cell>> = Vec::new();
             grid.reserve_exact(canvas.dimensions.0.into());
 
             for x in 0..canvas.dimensions.0 {
                 let mut row: Vec<Cell> = Vec::with_capacity(canvas.dimensions.1.into());
                 for y in 0..canvas.dimensions.1 {
-                    let cell = self.get_cell_details(canvas_id, x, y).unwrap();
+                    let cell = self.get_cell_details(canvas_id, x, y)?;
                     row.push(cell);
                 }
                 grid.push(row);
             }
 
-            Some(grid)
+            Ok(grid)
         }
 
         #[ink(message)]
@@ -503,8 +517,10 @@ mod creative_nft {
             canvas_id: CanvasId,
             cord_x: u8,
             cord_y: u8,
-        ) -> Option<Cell> {
-            self.grids.get(&encode(canvas_id, cord_x, cord_y))
+        ) -> Result<Cell> {
+            self.grids
+                .get(&encode(canvas_id, cord_x, cord_y))
+                .ok_or(Error::TokenNotFound)
         }
 
         #[ink(message)]
@@ -513,7 +529,7 @@ mod creative_nft {
                 .into_iter()
                 .filter(|&id| {
                     self.get_canvas_details(id)
-                        .is_some_and(|canvas| canvas.creator == acc)
+                        .is_ok_and(|canvas| canvas.creator == acc)
                 })
                 .collect()
         }
@@ -541,9 +557,33 @@ mod creative_nft {
                 .collect()
         }
 
-        #[ink(message)]
-        pub fn get_owned_nft_count(&self, acc: AccountId) -> u128 {
-            self.owned_tokens.get(&(acc, 0)).unwrap_or_default()
+        fn only_owner(&self) -> Result<()> {
+            if self.env().caller() != self.owner {
+                return Err(Error::Unauthorised);
+            }
+            Ok(())
+        }
+
+        fn change_color(
+            &mut self,
+            canvas_id: CanvasId,
+            cord_x: u8,
+            cord_y: u8,
+            new_color: &Colors,
+        ) {
+            let mut cell = self
+                .get_cell_details(canvas_id, cord_x, cord_y)
+                .expect("cell not found");
+            assert!(self.env().caller() == cell.owner, "Not Authorised");
+
+            cell.color = Colors::color_code(new_color);
+            let token_id = encode(canvas_id, cord_x, cord_y);
+            self.grids.insert(&token_id, &cell);
+
+            self.env().emit_event(TokenColor {
+                token_id,
+                color: *new_color,
+            });
         }
     }
 
@@ -557,8 +597,10 @@ mod creative_nft {
         #[ink(message)]
         pub fn owner_of(&self, id: TokenId) -> Option<AccountId> {
             let (canvas_id, cord_x, cord_y) = decode(id);
-            self.get_cell_details(canvas_id, cord_x, cord_y)
-                .and_then(|canvas| Some(canvas.owner))
+            match self.get_cell_details(canvas_id, cord_x, cord_y) {
+                Ok(cell) => Some(cell.owner),
+                Err(_) => None,
+            }
         }
 
         #[ink(message)]
@@ -572,7 +614,7 @@ mod creative_nft {
         }
 
         #[ink(message)]
-        pub fn set_approval_for_all(&mut self, to: AccountId, approved: bool) -> Result<(), Error> {
+        pub fn set_approval_for_all(&mut self, to: AccountId, approved: bool) -> Result<()> {
             let caller = self.env().caller();
             if to == caller {
                 return Err(Error::NotAllowed);
@@ -593,23 +635,8 @@ mod creative_nft {
             Ok(())
         }
 
-        fn approved_or_owner(&self, caller: AccountId, id: TokenId) -> bool {
-            let owner = match self.owner_of(id) {
-                Some(a) => a,
-                None => return false,
-            };
-
-            if caller == AccountId::from([0x0; 32]) {
-                return false;
-            }
-
-            caller == owner
-                || self.token_approvals.get(&id) == Some(caller)
-                || self.is_approved_for_all(owner, caller)
-        }
-
         #[ink(message)]
-        pub fn approve(&mut self, to: AccountId, id: TokenId) -> Result<(), Error> {
+        pub fn approve(&mut self, to: AccountId, id: TokenId) -> Result<()> {
             let caller = self.env().caller();
 
             if !self.approved_or_owner(caller, id) {
@@ -634,18 +661,13 @@ mod creative_nft {
         }
 
         #[ink(message)]
-        pub fn transfer(&mut self, destination: AccountId, id: TokenId) -> Result<(), Error> {
+        pub fn transfer(&mut self, destination: AccountId, id: TokenId) -> Result<()> {
             let caller = self.env().caller();
             self.transfer_from(caller, destination, id)
         }
 
         #[ink(message)]
-        pub fn transfer_from(
-            &mut self,
-            from: AccountId,
-            to: AccountId,
-            id: TokenId,
-        ) -> Result<(), Error> {
+        pub fn transfer_from(&mut self, from: AccountId, to: AccountId, id: TokenId) -> Result<()> {
             let caller = self.env().caller();
 
             if !self.approved_or_owner(caller, id) {
@@ -667,7 +689,7 @@ mod creative_nft {
 
             // 3. Update grid
             let (canvas_id, cord_x, cord_y) = decode(id);
-            let mut cell = self.get_cell_details(canvas_id, cord_x, cord_y).unwrap();
+            let mut cell = self.get_cell_details(canvas_id, cord_x, cord_y)?;
             cell.owner = to;
             self.grids.insert(&id, &cell);
 
@@ -677,6 +699,21 @@ mod creative_nft {
                 id,
             });
             Ok(())
+        }
+
+        fn approved_or_owner(&self, caller: AccountId, id: TokenId) -> bool {
+            let owner = match self.owner_of(id) {
+                Some(a) => a,
+                None => return false,
+            };
+
+            if caller == AccountId::from([0x0; 32]) {
+                return false;
+            }
+
+            caller == owner
+                || self.token_approvals.get(&id) == Some(caller)
+                || self.is_approved_for_all(owner, caller)
         }
     }
 }
