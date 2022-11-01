@@ -57,6 +57,46 @@ mod creative_nft {
     type CanvasId = u64;
     type TokenId = u128;
 
+    /// Event emitted when a token transfer occurs.
+    #[ink(event)]
+    pub struct Transfer {
+        #[ink(topic)]
+        from: Option<AccountId>,
+        #[ink(topic)]
+        to: Option<AccountId>,
+        #[ink(topic)]
+        id: TokenId,
+    }
+
+    /// Event emitted when a token approve occurs.
+    #[ink(event)]
+    pub struct Approval {
+        #[ink(topic)]
+        owner: AccountId,
+        #[ink(topic)]
+        approved: AccountId,
+        #[ink(topic)]
+        id: TokenId,
+    }
+
+    /// Event emitted when an operator is enabled or disabled for an owner.
+    /// The operator can manage all NFTs of the owner.
+    #[ink(event)]
+    pub struct ApprovalForAll {
+        #[ink(topic)]
+        owner: AccountId,
+        #[ink(topic)]
+        operator: AccountId,
+        approved: bool,
+    }
+
+    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Copy, Clone)]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    pub enum Error {
+        Unauthorised,
+        NotAllowed,
+    }
+
     #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Clone)]
     #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
     pub struct Cell {
@@ -86,7 +126,6 @@ mod creative_nft {
         minted: bool,
     }
 
-    // Similar to ERC1155
     #[ink(storage)]
     #[derive(SpreadAllocate)]
     pub struct CreativeNft {
@@ -100,6 +139,8 @@ mod creative_nft {
         cash_flow: Mapping<AccountId, (Balance, Balance)>, // (spent, received)
         owned_tokens: Mapping<(AccountId, u128), TokenId>,
         owned_tokens_index: Mapping<TokenId, u128>,
+        token_approvals: Mapping<TokenId, AccountId>,
+        operator_approvals: Mapping<(AccountId, AccountId), ()>,
     }
 
     #[inline]
@@ -251,6 +292,12 @@ mod creative_nft {
                     self.owned_tokens.insert(&(owner, 0), &idx);
                     self.owned_tokens.insert(&(owner, idx), &token_id);
                     self.owned_tokens_index.insert(&token_id, &idx);
+
+                    self.env().emit_event(Transfer {
+                        from: Some(AccountId::from([0x0; 32])),
+                        to: Some(owner),
+                        id: token_id,
+                    });
                 });
             });
 
@@ -432,6 +479,139 @@ mod creative_nft {
         #[ink(message)]
         pub fn get_owned_nft_count(&self, acc: AccountId) -> u128 {
             self.owned_tokens.get(&(acc, 0)).unwrap_or_default()
+        }
+    }
+
+    /// ERC721 standard implemented here
+    impl CreativeNft {
+        #[ink(message)]
+        pub fn balance_of(&self, owner: AccountId) -> u128 {
+            self.owned_tokens.get(&(owner, 0)).unwrap_or_default()
+        }
+
+        #[ink(message)]
+        pub fn owner_of(&self, id: TokenId) -> Option<AccountId> {
+            let (canvas_id, cord_x, cord_y) = decode(id);
+            self.get_cell_details(canvas_id, cord_x, cord_y)
+                .and_then(|canvas| Some(canvas.owner))
+        }
+
+        #[ink(message)]
+        pub fn get_approved(&self, id: TokenId) -> Option<AccountId> {
+            self.token_approvals.get(&id)
+        }
+
+        #[ink(message)]
+        pub fn is_approved_for_all(&self, owner: AccountId, operator: AccountId) -> bool {
+            self.operator_approvals.contains(&(owner, operator))
+        }
+
+        #[ink(message)]
+        pub fn set_approval_for_all(&mut self, to: AccountId, approved: bool) -> Result<(), Error> {
+            let caller = self.env().caller();
+            if to == caller {
+                return Err(Error::NotAllowed);
+            }
+
+            if approved {
+                self.operator_approvals.insert(&(caller, to), &());
+            } else {
+                self.operator_approvals.remove(&(caller, to));
+            }
+
+            self.env().emit_event(ApprovalForAll {
+                owner: caller,
+                operator: to,
+                approved,
+            });
+
+            Ok(())
+        }
+
+        fn approved_or_owner(&self, caller: AccountId, id: TokenId) -> bool {
+            let owner = match self.owner_of(id) {
+                Some(a) => a,
+                None => return false,
+            };
+
+            if caller == AccountId::from([0x0; 32]) {
+                return false;
+            }
+
+            caller == owner
+                || self.token_approvals.get(&id) == Some(caller)
+                || self.is_approved_for_all(owner, caller)
+        }
+
+        #[ink(message)]
+        pub fn approve(&mut self, to: AccountId, id: TokenId) -> Result<(), Error> {
+            let caller = self.env().caller();
+
+            if !self.approved_or_owner(caller, id) {
+                return Err(Error::Unauthorised);
+            }
+
+            if to == AccountId::from([0x0; 32]) {
+                self.token_approvals.remove(&id);
+            } else if self.token_approvals.contains(&id) {
+                return Err(Error::NotAllowed);
+            } else {
+                self.token_approvals.insert(&id, &to);
+            }
+
+            self.env().emit_event(Approval {
+                owner: caller,
+                approved: to,
+                id,
+            });
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn transfer(&mut self, destination: AccountId, id: TokenId) -> Result<(), Error> {
+            let caller = self.env().caller();
+            self.transfer_from(caller, destination, id)
+        }
+
+        #[ink(message)]
+        pub fn transfer_from(
+            &mut self,
+            from: AccountId,
+            to: AccountId,
+            id: TokenId,
+        ) -> Result<(), Error> {
+            let caller = self.env().caller();
+
+            if !self.approved_or_owner(caller, id) {
+                return Err(Error::Unauthorised);
+            }
+
+            self.token_approvals.remove(&id);
+
+            // 1. Remove token from current owner
+            let owner = self.owner_of(id).unwrap();
+            let idx = self.owned_tokens_index.get(&id).unwrap();
+            self.owned_tokens.remove(&(owner, idx));
+            self.owned_tokens.insert(&(owner, 0), &(idx - 1));
+
+            // 2. Add token to new owner
+            let pos = self.owned_tokens.get(&(to, 0)).unwrap_or_default() + 1;
+            self.owned_tokens_index.insert(&id, &pos);
+            self.owned_tokens.insert(&(to, pos), &id);
+
+            // 3. Update grid
+            let (canvas_id, cord_x, cord_y) = decode(id);
+            let mut cell = self.get_cell_details(canvas_id, cord_x, cord_y).unwrap();
+            cell.owner = to;
+            self.grids.insert(&id, &cell);
+
+            self.env().emit_event(Transfer {
+                from: Some(from),
+                to: Some(to),
+                id,
+            });
+            Ok(())
         }
     }
 }
