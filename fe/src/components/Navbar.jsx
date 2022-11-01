@@ -236,11 +236,14 @@ export default function Navbar(props) {
           MenuListProps={{
             "aria-labelledby": "profile",
           }}
-          sx={{marginTop:"5px"}}
+          sx={{ marginTop: "5px" }}
         >
-          <MenuItem onClick={handleClose}>
-            <Link to={"/profile/" + props.activeAccount?.address} sx={{width:"100%", height:"100%"}}>Profile</Link>
-          </MenuItem>
+          <Link
+            to={"/profile/" + props.activeAccount?.address}
+            sx={{ width: "100%", height: "100%" }}
+          >
+            <MenuItem onClick={handleClose}>Profile</MenuItem>
+          </Link>
           <MenuItem
             onClick={() => {
               setChangeAccount(true);

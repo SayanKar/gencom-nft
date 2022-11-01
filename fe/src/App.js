@@ -14,13 +14,48 @@ import { useEffect, useState } from "react";
 import AllCanvas from "./components/AllCanvas";
 import Profile from "./components/Profile";
 import About from "./components/About";
-import Loading from "./components/Loading";
 import Error404 from "./components/Error404";
-
+import { ApiPromise, WsProvider } from "@polkadot/api";
+import { ContractPromise } from "@polkadot/api-contract";
+import { CONTRACT_ADDRESS, metadata } from "./constants";
+import { web3FromSource } from "@polkadot/extension-dapp";
 function App() {
   const [contract, setContract] = useState(null);
   const [activeAccount, setActiveAccount] = useState(null);
-  const [network, setNetwork] = useState({ url: "", address: "" });
+  const [api, setApi] = useState(null);
+  const [signer, setSigner] = useState(null);
+
+  const connectToContract = async () => {
+    const wsProvider = new WsProvider(
+      "wss://rpc.shibuya.astar.network"
+    );
+    const api = await ApiPromise.create({ provider: wsProvider });
+    const contract = new ContractPromise(api, metadata, CONTRACT_ADDRESS);
+    setApi(api);
+    setContract(contract);
+  };
+
+  useEffect(() => {
+    connectToContract();
+  }, []);
+
+  useEffect(() => {
+    const createSigner = async () => {
+      activeAccount && setSigner(
+        await web3FromSource(activeAccount.meta.source).then(
+          res => res.signer
+        )
+      )
+    };
+    createSigner();
+  }, [activeAccount]);
+
+  useEffect(() => {
+    activeAccount && (async () => {
+      const {nonce, data: balance} = await api.query.system.account(activeAccount.address);
+      console.log(nonce * 1, balance.free * 1);
+    })();
+  }, [activeAccount]);
 
   return (
     <div className="App">
@@ -33,37 +68,97 @@ function App() {
           <Route
             exact
             path="/"
-            element={<HomePage />}
+            element={
+              <HomePage
+                activeAccount={activeAccount}
+                contract={contract}
+                api={api}
+                signer={signer}
+              />
+            }
             errorElement={<Broken />}
           />
           <Route
             exact
             path="/canvas"
-            element={<AllCanvas />}
+            element={
+              <AllCanvas
+                activeAccount={activeAccount}
+                contract={contract}
+                api={api}
+                signer={signer}
+
+              />
+            }
             errorElement={<Broken />}
           />
           <Route
             path="/canvas/:canvasId"
-            element={<CanvasRoom />}
+            element={
+              <CanvasRoom
+                activeAccount={activeAccount}
+                contract={contract}
+                api={api}
+                signer={signer}
+
+              />
+            }
             errorElement={<Broken />}
           />
           <Route
             path="/create"
-            element={<CanvasForm />}
+            element={
+              <CanvasForm
+                activeAccount={activeAccount}
+                contract={contract}
+                api={api}
+                signer={signer}
+
+              />
+            }
             errorElement={<Broken />}
           />
           <Route
             path="/profile/:address"
-            element={<Profile />}
+            element={
+              <Profile
+                activeAccount={activeAccount}
+                contract={contract}
+                api={api}
+                signer={signer}
+
+              />
+            }
             errorElement={<Broken />}
           />
-          <Route path="/about" element={<About />} errorElement={<Broken />} />
+          <Route
+            path="/about"
+            element={
+              <About
+                activeAccount={activeAccount}
+                contract={contract}
+                api={api}
+                signer={signer}
+
+              />
+            }
+            errorElement={<Broken />}
+          />
           <Route
             path="/edit/:canvasId"
-            element={<CanvasForm isEdit={true} />}
+            element={
+              <CanvasForm
+                isEdit={true}
+                activeAccount={activeAccount}
+                contract={contract}
+                api={api}
+                signer={signer}
+
+              />
+            }
             errorElement={<Broken />}
           />
-          <Route path='*' element={<Error404 />}/>
+          <Route path="*" element={<Error404 />} />
         </Routes>
         <Footer />
       </BrowserRouter>

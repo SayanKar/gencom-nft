@@ -14,11 +14,144 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useSnackbar } from "notistack";
+import { PRECISION, SYMBOL } from "../constants";
+import { useEffect } from "react";
 
 export default function CanvasForm(props) {
-  const [startTimeValue, setStartTimeValue] = useState(dayjs("2022-04-07"));
-  const [endTimeValue, setEndTimeValue] = useState(dayjs("2022-04-08"));
+  const BN = require("bn.js");
+  const [currentTime,] = useState(dayjs());
+  const [startTimeValue, setStartTimeValue] = useState(currentTime);
+  const [endTimeValue, setEndTimeValue] = useState(currentTime.add(6, "hour"));
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
+  const [cellPrice, setCellPrice] = useState(0);
+  const [premium, setPremium] = useState(0);
+  const [isDynamic, setIsDynamic] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
+  const [creationFee, setCreationFee] = useState(0);
+
+  const handleTitleChange = (e) => {
+    setTitle(e.target.value);
+  };
+
+  const handleDescChange = (e) => {
+    setDesc(e.target.value);
+  };
+
+  const handleCellPriceChange = (e) => {
+    setCellPrice(e.target.value);
+  };
+
+  const handlePremiumChange = (e) => {
+    if (e.target.value <= 200) {
+      setPremium(parseInt(e.target.value).toString());
+    }
+  };
+
+  const onSubmit = async () => {
+    if (props.contract && props.activeAccount && props.signer) {
+      if (title === "" || desc === "") {
+        enqueueSnackbar("Title, Description cannot be empty", {
+          variant: "error",
+        });
+        return;
+      }
+      if (cellPrice < 0.000001 && cellPrice > 0) {
+        enqueueSnackbar("Precision is upto 6 decimal places", {
+          variant: "error",
+        });
+        return;
+      }
+      if(cellPrice === "" || premium === "") {
+        enqueueSnackbar("Cell base price and Premium cannot be empty", {
+          variant: "error",
+        });
+        return;
+      }
+      setPosting(true);
+      try {
+        console.log('Creating Room');
+        await props.contract.query.createCanvas(
+          props.activeAccount.address,
+          {
+            value: 0,
+            gasLimit: 300000n * 1000000n,
+          },
+          title,
+          desc,
+          [32, 32],
+          startTimeValue.unix(),
+          endTimeValue.unix(),
+          (new BN(cellPrice * 1000000)).mul(new BN(PRECISION)),
+          premium,
+          isDynamic
+        ).then((res) => console.log(res));
+        await props.contract.tx
+          .createCanvas(
+            {
+              value: 0,
+              gasLimit: 300000n * 1000000n,
+            },
+            title,
+            desc,
+            [32, 32],
+            startTimeValue.unix(),
+            endTimeValue.unix(),
+            (new BN(cellPrice * 1000000)).mul(new BN(PRECISION)),
+            premium,
+            isDynamic
+          )
+          .signAndSend(
+            { signer: props.signer },
+            async (res) => {
+              console.log(res);
+              if (res.status.isFinalized) {
+                console.log("Room Creation Finalized", res, res.txHash.toHuman());
+                enqueueSnackbar("Transaction Finalized", {
+                  variant: "Success",
+                });
+              }
+            }
+          );
+      } catch (err) {
+        console.log("Failed on Submit", err);
+        enqueueSnackbar("Failed to Submit, \n " + err, { variant: "error" });
+      }
+      setPosting(false);
+    } else {
+      console.log("Connect your account");
+      enqueueSnackbar("Connect your account", { variant: "error" });
+    }
+  };
+
   const { canvasId } = useParams();
+
+  useEffect(() => {
+    const getCreationFee = async () => {
+      if (props.contract && props.activeAccount) {
+        console.log("Fetching Creation Fee");
+        await props.contract.query
+          .getGameDetails(props.activeAccount.address, {
+            value: 0,
+            gasLimit: -1,
+          })
+          .then((res) => {
+            if (!res.output.toHuman().Err) {
+              console.log("Successfully updated creation Fee");
+              setCreationFee(res.output.toHuman()[2]);
+            } else {
+              console.log("Error fetching Creation Fee", res.output.toHuman());
+            }
+          })
+          .catch((err) => {
+            console.log("Error while fetching Creation Fee: ", err);
+          });
+      }
+    };
+    getCreationFee();
+  }, [props.contract, props.activeAccount]);
 
   return (
     <Box
@@ -56,7 +189,7 @@ export default function CanvasForm(props) {
           align="left"
           variant="subtitle2"
         >
-          * Room creation fees:- 35EDG{" "}
+          {"* Room creation fees:- " + creationFee + " " + SYMBOL}
         </Typography>
         <TextField
           helperText="* Sets a title for the room"
@@ -64,6 +197,8 @@ export default function CanvasForm(props) {
           label="Room Title"
           fullWidth
           sx={{ margin: "5px 0" }}
+          value={title}
+          onChange={handleTitleChange}
         />
         <TextField
           helperText="* Sets a description for the room"
@@ -71,23 +206,32 @@ export default function CanvasForm(props) {
           label="Room Description"
           fullWidth
           sx={{ margin: "5px 0" }}
+          value={desc}
+          onChange={handleDescChange}
         />
         <TextField
-          helperText="* Sets a base cell price"
+          helperText="* You will get this amount when painters buy a cell"
           id="minPriceInput"
           label="Cell base price"
           fullWidth
+          type="number"
           sx={{ margin: "5px 0" }}
+          InputProps={{ inputProps: { min: 0 } }}
+          value={cellPrice}
+          onChange={handleCellPriceChange}
         />
         <TextField
           helperText="* Set premium percentage"
           id="premiumInput"
           label="Premium %"
           fullWidth
+          type="number"
           sx={{ margin: "5px 0" }}
+          InputProps={{ inputProps: { min: 5 } }}
+          value={premium}
+          onChange={handlePremiumChange}
         />
         <Box
-          fullWidth
           sx={{
             display: "flex",
             justifyContent: "space-between",
@@ -106,6 +250,7 @@ export default function CanvasForm(props) {
                 setStartTimeValue(newValue);
               }}
               sx={{ margin: "20px 0px 20px 0" }}
+              minDateTime={currentTime.subtract(1, "minute")}
             />
             <DateTimePicker
               renderInput={(props) => (
@@ -117,12 +262,12 @@ export default function CanvasForm(props) {
                 setEndTimeValue(newValue);
               }}
               sx={{ margin: "20px 0px 20px 0" }}
+              minDateTime={startTimeValue}
             />
           </LocalizationProvider>
         </Box>
 
         <Box
-          fullWidth
           sx={{
             display: "flex",
             justifyContent: "space-between",
@@ -131,15 +276,27 @@ export default function CanvasForm(props) {
           }}
         >
           <FormControlLabel
-            control={<Switch defaultChecked />}
+            control={<Switch />}
             label="Is Dynamic"
             sx={{ color: "rgba(0, 0, 0, 0.6)", font: "8px" }}
             labelPlacement="end"
-            fullWidth
+            checked={isDynamic}
+            onChange={(e) => setIsDynamic(e.target.checked)}
+            inputProps={{ "aria-label": "controlled" }}
           />
-          <Button sx={{ marginTop: "5px" }} variant="contained">
-            {props.isEdit ? "Edit" : "Create"}
-          </Button>
+          {!posting ? (
+            <Button
+              sx={{ marginTop: "5px" }}
+              variant="contained"
+              onClick={onSubmit}
+            >
+              {props.isEdit ? "Edit" : "Create"}
+            </Button>
+          ) : (
+            <Button sx={{ marginTop: "5px" }} variant="contained" disabled>
+              {props.isEdit ? "Editing" : "Creating"}
+            </Button>
+          )}
         </Box>
       </Paper>
     </Box>

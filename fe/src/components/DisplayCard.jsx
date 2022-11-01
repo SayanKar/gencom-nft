@@ -46,6 +46,8 @@ export default function DisplayCard(props) {
     return color;
   };
 
+  // Fetch canvasDetails and grid details
+
   return (
     <Box sx={{ position: "relative" }}>
       {props.isProfile && (

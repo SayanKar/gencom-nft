@@ -19,6 +19,10 @@ export default function HomePage(props) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Fetch gameDetails [0 , *1, 2]
+
+
   return (
     <Box component="div">
       <Box
@@ -133,7 +137,7 @@ export default function HomePage(props) {
           >
             Trending Rooms
           </Typography>
-          <CardList rows={2} isMain={true} ids={[1, 2, 3, 4, 5, 6]} />
+          <CardList rows={2} isMain={true} ids={[1, 2, 3, 4, 5, 6]} contract={props.contract} activeAccount={props.activeAccount}/>
           <VideoTutorial />
         </Box>
       </Box>

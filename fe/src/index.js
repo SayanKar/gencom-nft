@@ -8,6 +8,7 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import { SnackbarProvider } from "notistack";
+import SnackbarCloseButton from "./components/SnackbarCloseButton";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -17,7 +18,8 @@ root.render(
       maxSnack={5}
       TransitionProps={{ direction: "left" }}
       anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-      style={{ maxWidth: "400px", width: "fit-content"}}
+      style={{ maxWidth: "700px", width: "fit-content"}}
+      action={snackbarKey => <SnackbarCloseButton snackbarKey={snackbarKey} />}
     >
       <App />
     </SnackbarProvider>

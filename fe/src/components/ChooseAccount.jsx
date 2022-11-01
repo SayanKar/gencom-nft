@@ -16,10 +16,9 @@ export default function ChooseAccount(props) {
     async function tmp() {
       const allAcc = await getAllAccounts();
       setAllAccounts(allAcc);
-      console.log(allAcc);
     }
     tmp();
-  },[]);
+  },[props.open]);
   const handleSelectAccount = (acc) => {
     props.setActiveAccount(acc);
     props.handleClose();

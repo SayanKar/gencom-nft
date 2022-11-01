@@ -19,6 +19,7 @@ import Navbar from "./Navbar";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
+import Loading from "./Loading";
 export default function CanvasRoom(props) {
   const { canvasId } = useParams();
   const [canvasDetails, setCanvasDetails] = useState({
@@ -47,6 +48,7 @@ export default function CanvasRoom(props) {
             fontFamily: "'Fredoka One', cursive",
             width: "500px",
             margin: "0 auto",
+            marginTop: "20px",
           }}
         >
           {canvasDetails.title}
