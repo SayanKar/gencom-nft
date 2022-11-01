@@ -4,7 +4,7 @@
 use ink_lang as ink;
 use ink_storage::traits::{PackedLayout, SpreadLayout};
 
-#[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode)]
+#[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Copy, Clone)]
 #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
 pub enum Colors {
     White,
@@ -88,6 +88,42 @@ mod creative_nft {
         #[ink(topic)]
         operator: AccountId,
         approved: bool,
+    }
+
+    #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode)]
+    #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
+    pub enum State {
+        New(AccountId),
+        Edited,
+        Minted(AccountId),
+    }
+
+    /// Event emitted when a new canvas is created|edited|minted
+    #[ink(event)]
+    pub struct CanvasStatus {
+        #[ink(topic)]
+        canvas_id: CanvasId,
+        state: State,
+    }
+
+    /// Event emitted when the color of token_id is updated
+    #[ink(event)]
+    pub struct TokenColor {
+        #[ink(topic)]
+        token_id: TokenId,
+        color: Colors,
+    }
+
+    /// Event emitted when a user outbids earlier owner and becomes the new owner
+    #[ink(event)]
+    pub struct TokenCaptured {
+        #[ink(topic)]
+        token_id: TokenId,
+        #[ink(topic)]
+        from: AccountId,
+        #[ink(topic)]
+        by: AccountId,
+        color: Option<Colors>,
     }
 
     #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Copy, Clone)]
@@ -233,6 +269,11 @@ mod creative_nft {
             spent += self.env().transferred_value();
             self.cash_flow.insert(&caller, &(spent, receive));
 
+            self.env().emit_event(CanvasStatus {
+                canvas_id,
+                state: State::New(caller),
+            });
+
             canvas_id
         }
 
@@ -267,6 +308,11 @@ mod creative_nft {
             };
 
             self.canvas_details.insert(&canvas_id, &ncanvas);
+
+            self.env().emit_event(CanvasStatus {
+                canvas_id,
+                state: State::Edited,
+            });
         }
 
         #[ink(message)]
@@ -303,6 +349,11 @@ mod creative_nft {
 
             stats.minted = true;
             self.canvas_analytics.insert(&canvas_id, &stats);
+
+            self.env().emit_event(CanvasStatus {
+                canvas_id,
+                state: State::Minted(self.env().caller()),
+            });
         }
 
         #[ink(message, payable)]
@@ -351,8 +402,16 @@ mod creative_nft {
             };
 
             self.canvas_analytics.insert(&canvas_id, &stats);
-            self.grids
-                .insert(&encode(canvas_id, cord_x, cord_y), &ncell);
+
+            let token_id = encode(canvas_id, cord_x, cord_y);
+            self.grids.insert(&token_id, &ncell);
+
+            self.env().emit_event(TokenCaptured {
+                token_id,
+                from: cell.owner,
+                by: caller,
+                color,
+            });
         }
 
         fn _change_cell_color(
@@ -366,7 +425,13 @@ mod creative_nft {
             assert!(self.env().caller() == cell.owner, "Not Authorised");
 
             cell.color = Colors::color_code(new_color);
-            self.grids.insert(&encode(canvas_id, cord_x, cord_y), &cell);
+            let token_id = encode(canvas_id, cord_x, cord_y);
+            self.grids.insert(&token_id, &cell);
+
+            self.env().emit_event(TokenColor {
+                token_id,
+                color: *new_color,
+            });
         }
 
         #[ink(message)]
