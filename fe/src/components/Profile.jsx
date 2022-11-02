@@ -160,6 +160,8 @@ export default function Profile(props) {
           title={"Your NFTs"}
           isNFT={true}
           isProfile={true}
+          contract={props.contract}
+          activeAccount={props.activeAccount}
         />
         <CardList
           ids={userCreatedCanvasIds}
@@ -169,6 +171,7 @@ export default function Profile(props) {
           isEdit={true}
           contract={props.contract}
           activeAccount={props.activeAccount}
+          
         />
         <CardList
           ids={userParticipatedCanvasIds}

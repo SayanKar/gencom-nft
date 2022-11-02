@@ -2,12 +2,9 @@ import {
   Box,
   Card,
   CardActionArea,
-  CardContent,
   Typography,
   Stack,
-  Paper,
   Skeleton,
-  Badge,
   Tooltip,
 } from "@mui/material";
 import Circle from "@mui/icons-material/Circle";
@@ -17,7 +14,6 @@ import { Link } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import { promisify } from "@polkadot/util";
 
 export default function DisplayCard(props) {
   const { width = "352px", height = "300px" } = props;
@@ -50,7 +46,6 @@ export default function DisplayCard(props) {
     return color;
   };
 
-  // Fetch canvasDetails and grid details
   const [canvasDetails, setCanvasDetails] = useState(null);
   const [roomStatus, setRoomStatus] = useState("0");
 
@@ -66,11 +61,11 @@ export default function DisplayCard(props) {
           props.id
         )
         .then((res) => {
-          if (!res.output.toHuman().Err) {
+          if (!res.result.toHuman().Err) {
             console.log('Successfully fetched canvas ' + props.id + ' details');
             setCanvasDetails(res.output.toHuman());
           } else {
-            console.log('Error fetching canvas details', res.output.toHuman());
+            console.log('Error fetching canvas details', res.result.toHuman());
           }
         })
         .catch((err) => {
@@ -89,10 +84,8 @@ export default function DisplayCard(props) {
       }
       console.log("setting room status");
       const now = dayjs();
-      //console.log(parseInt(canvasDetails.startTime), canvasDetails.startTime.replace(/,/g,""));
       const startTime = dayjs.unix(parseInt(canvasDetails.startTime.replace(/,/g,"")));
       const endTime = dayjs.unix(parseInt(canvasDetails.endTime.replace(/,/g,"")));
-      console.log(now, startTime, endTime);
       if (now.isBefore(startTime)) {
         setRoomStatus("0");
       }
@@ -103,7 +96,6 @@ export default function DisplayCard(props) {
         setRoomStatus("1");
       }
     };
-    console.log(roomStatus);
     getRoomStatus();
   }, [canvasDetails]);
 
