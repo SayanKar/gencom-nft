@@ -17,7 +17,8 @@ import { useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { PRECISION, SYMBOL } from "../constants";
 import { useEffect } from "react";
-
+import { Keyring } from '@polkadot/api';
+const keyring = new Keyring({ type: 'sr25519' });
 export default function CanvasForm(props) {
   const BN = require("bn.js");
   const [currentTime] = useState(dayjs());
@@ -31,6 +32,8 @@ export default function CanvasForm(props) {
   const [posting, setPosting] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
   const [creationFee, setCreationFee] = useState(0);
+  const [isOwner, setIsOwner] = useState(false);
+  const { canvasId } = useParams();
 
   const handleTitleChange = (e) => {
     setTitle(e.target.value);
@@ -79,7 +82,15 @@ export default function CanvasForm(props) {
     setCellPrice(0);
     setPremium(0);
   };
-  const onSubmit = async () => {
+  const onSubmit = () => {
+    if (props.isEdit) {
+      editRoom();
+    } else {
+      createRoom();
+    }
+  };
+  const editRoom = async () => {};
+  const createRoom = async () => {
     if (props.contract && props.activeAccount && props.signer) {
       if (isInvalid()) return;
       setPosting(true);
@@ -157,8 +168,49 @@ export default function CanvasForm(props) {
       enqueueSnackbar("Connect your account", { variant: "error" });
     }
   };
-
-  const { canvasId } = useParams();
+  function changeAddressEncoding(address, toNetworkPrefix=42){
+    if(!address) {
+        return null;
+    }
+    const pubKey = keyring.decodeAddress(address);
+    const encodedAddress = keyring.encodeAddress(pubKey, toNetworkPrefix);
+    return encodedAddress;
+  }
+  useEffect(() => {
+    const canvasDetails = async () => {
+      if (props.activeAccount && props.contract && props.isEdit) {
+        console.log('Fetching Canvas Details')
+        await props.contract.query.getCanvasDetails(
+          props.activeAccount.address,
+          {
+            value: 0,
+            gasLimit: -1,
+          },
+          canvasId
+        ).then((res) => {
+          if(!res.result?.toHuman()?.Err)
+          { console.log("res output result",res, res.output?.toHuman(), res.result?.toHuman())
+            res = res.output?.toHuman();
+            if(props.activeAccount.address !== changeAddressEncoding(res.creator)) {
+              setIsOwner(true);
+              console.log("You are not the owner");
+            } else {
+              setTitle(res.title);
+              setDesc(res.desc);
+              setPremium(res.premium);
+              setIsDynamic(res.isDynamic);
+            }
+          }
+          else {
+            console.log("Error fetching canvas Details,", res.result?.toHuman()?.Err);
+          }
+        }).catch((err) => {
+          console.log("Error on calling canvas details", err);
+        })
+      }
+    };
+    canvasDetails();
+  }, [props.activeAccount, props.contract]);
 
   useEffect(() => {
     const getCreationFee = async () => {
@@ -210,7 +262,20 @@ export default function CanvasForm(props) {
         >
           {props.isEdit ? "Edit Canvas #" + canvasId : "Create a Room"}
         </Typography>
-        <Divider sx={{ marginBottom: "20px" }} />
+        <Divider sx={{ marginBottom: "20px" }} />{ isOwner &&
+          <Typography
+          sx={{
+            width: "100%",
+            fontWeight: "500",
+            color: "red",
+            marginBottom: "10px",
+          }}
+          align="left"
+          variant="subtitle2"
+        >
+          {"You are not the creator, you don't have Edit Access"}
+        </Typography>
+        }
         <Typography
           sx={{
             width: "100%",
@@ -231,6 +296,7 @@ export default function CanvasForm(props) {
           sx={{ margin: "5px 0" }}
           value={title}
           onChange={handleTitleChange}
+          disabled={isOwner}
         />
         <TextField
           helperText="* Sets a description for the room"
@@ -240,9 +306,10 @@ export default function CanvasForm(props) {
           sx={{ margin: "5px 0" }}
           value={desc}
           onChange={handleDescChange}
+          disabled={isOwner}
         />
         <TextField
-          helperText="* You will get this amount when painters buy a cell"
+          helperText={"* You will get this amount when painters buy a cell." + props.isEdit ? " Not Editable":""}
           id="minPriceInput"
           label="Cell base price"
           fullWidth
@@ -251,6 +318,7 @@ export default function CanvasForm(props) {
           InputProps={{ inputProps: { min: 0 } }}
           value={cellPrice}
           onChange={handleCellPriceChange}
+          disabled={props.isEdit}
         />
         <TextField
           helperText="* Set premium percentage"
@@ -262,6 +330,7 @@ export default function CanvasForm(props) {
           InputProps={{ inputProps: { min: 5 } }}
           value={premium}
           onChange={handlePremiumChange}
+          disabled={isOwner}
         />
         <Box
           sx={{
@@ -283,6 +352,7 @@ export default function CanvasForm(props) {
               }}
               sx={{ margin: "20px 0px 20px 0" }}
               minDateTime={currentTime.subtract(1, "minute")}
+              disabled={isOwner}
             />
             <DateTimePicker
               renderInput={(props) => (
@@ -295,6 +365,7 @@ export default function CanvasForm(props) {
               }}
               sx={{ margin: "20px 0px 20px 0" }}
               minDateTime={startTimeValue}
+              disabled={isOwner}
             />
           </LocalizationProvider>
         </Box>
@@ -315,17 +386,19 @@ export default function CanvasForm(props) {
             checked={isDynamic}
             onChange={(e) => setIsDynamic(e.target.checked)}
             inputProps={{ "aria-label": "controlled" }}
+            disabled={isOwner}
           />
           {!posting ? (
             <Button
               sx={{ marginTop: "5px" }}
               variant="contained"
               onClick={onSubmit}
+              disabled={isOwner}
             >
               {props.isEdit ? "Edit" : "Create"}
             </Button>
           ) : (
-            <Button sx={{ marginTop: "5px" }} variant="contained" disabled>
+            <Button sx={{ marginTop: "5px" }} variant="contained" disabled={true}>
               {props.isEdit ? "Editing" : "Creating"}
             </Button>
           )}
