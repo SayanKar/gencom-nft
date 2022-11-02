@@ -178,25 +178,43 @@ mod creative_nft {
     #[ink(storage)]
     #[derive(SpreadAllocate)]
     pub struct CreativeNft {
+        /// Account id which deployed the contract.
+        /// It has access to withdraw the fees collected from canvas creation
         owner: AccountId,
+        /// It is the minimum fees a user needs to pay to create a new canvas
         creation_fees: Balance,
+        /// It is the number of canvases created so far
         canvas_nonce: CanvasId,
+        /// Mapping from `canvas_id` to its readonly metadata.
+        /// @note It can be updated before the auction starts
         canvas_details: Mapping<CanvasId, Canvas>,
+        /// It stores the participation data and status of each canvas
         canvas_analytics: Mapping<CanvasId, CanvasStats>,
+        /// Mapping from `token_id` to its data (owner, color, value)
         grids: Mapping<TokenId, Cell>,
+        /// It stores whether an accounts has participated in a given canvas auction
         participants: Mapping<(CanvasId, AccountId), ()>,
-        cash_flow: Mapping<AccountId, (Balance, Balance)>, // (spent, received)
+        /// Mapping of users to their cumulative value of monetary
+        /// interactions on our platform. Value: (spent, received)
+        cash_flow: Mapping<AccountId, (Balance, Balance)>,
+        /// Mapping from owner to list of owned tokens.
+        /// @dev (owner, 0) stores the count of owned tokens
         owned_tokens: Mapping<(AccountId, u128), TokenId>,
+        /// Mapping from token to the index of the owner tokens list
         owned_tokens_index: Mapping<TokenId, u128>,
+        /// Mapping from token to approved account
         token_approvals: Mapping<TokenId, AccountId>,
+        /// Mapping from owner to operator approvals
         operator_approvals: Mapping<(AccountId, AccountId), ()>,
     }
 
+    /// Concats (canvas_id, cord_x, cord_y) and store it as TokenId (u128)
     #[inline]
     fn encode(canvas_id: CanvasId, cord_x: u8, cord_y: u8) -> TokenId {
         1_000_000 * TokenId::from(canvas_id) + 1000 * TokenId::from(cord_x) + TokenId::from(cord_y)
     }
 
+    /// Breaks the token id into (CanvasId, cord_X, cord_Y)
     fn decode(id: TokenId) -> (CanvasId, u8, u8) {
         let canvas_id: CanvasId = (id / 1_000_000).try_into().unwrap();
         let cord_x: u8 = ((id / 1000) % 1000).try_into().unwrap();
@@ -205,6 +223,7 @@ mod creative_nft {
     }
 
     impl CreativeNft {
+        /// Creates a new auction place with the minimum canvas creation fees as @fees
         #[ink(constructor)]
         pub fn new(fees: Balance) -> Self {
             ink_lang::utils::initialize_contract(|contract: &mut Self| {
@@ -213,6 +232,7 @@ mod creative_nft {
             })
         }
 
+        /// PRIVILEGED Call. Owner can change the min. fees for future canvases
         #[ink(message)]
         pub fn update_creation_fees(&mut self, new_fees: Balance) -> Result<()> {
             self.only_owner()?;
@@ -220,6 +240,7 @@ mod creative_nft {
             Ok(())
         }
 
+        /// PRIVILEGED Call. Owner can claim some portion of fees collected so far
         #[ink(message)]
         pub fn collect_fees(&mut self, acc: AccountId, val: Balance) -> Result<()> {
             self.only_owner()?;
@@ -230,6 +251,7 @@ mod creative_nft {
             Ok(())
         }
 
+        /// PAYABLE Call. Creates a new canvas room.
         #[ink(message, payable)]
         pub fn create_canvas(
             &mut self,
@@ -279,6 +301,7 @@ mod creative_nft {
             }
             self.canvas_nonce += 1;
 
+            // update the spending of caller to account for the canvas creation fees
             let (mut spent, receive) = self.cash_flow.get(&caller).unwrap_or_default();
             spent += self.env().transferred_value();
             self.cash_flow.insert(&caller, &(spent, receive));
@@ -291,6 +314,7 @@ mod creative_nft {
             Ok(canvas_id)
         }
 
+        /// Creator can make changes in the contract metadata before the start_time of auction
         #[ink(message)]
         pub fn edit_canvas(
             &mut self,
@@ -475,6 +499,7 @@ mod creative_nft {
             Ok(())
         }
 
+        /// returns [contractOwner, canvasNonce, creationFees]
         #[ink(message)]
         pub fn get_game_details(&self) -> (AccountId, CanvasId, Balance) {
             (self.owner, self.canvas_nonce, self.creation_fees)
@@ -542,6 +567,8 @@ mod creative_nft {
                 .collect()
         }
 
+        /// returns (spent, received) of the given user. It is the cumulative value of
+        /// monetary interactions done by a given user on the platform
         #[ink(message)]
         pub fn get_user_cash_flow(&self, acc: AccountId) -> (Balance, Balance) {
             self.cash_flow.get(&acc).unwrap_or_default()
