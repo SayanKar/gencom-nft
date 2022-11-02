@@ -20,7 +20,7 @@ import { useEffect } from "react";
 
 export default function CanvasForm(props) {
   const BN = require("bn.js");
-  const [currentTime,] = useState(dayjs());
+  const [currentTime] = useState(dayjs());
   const [startTimeValue, setStartTimeValue] = useState(currentTime);
   const [endTimeValue, setEndTimeValue] = useState(currentTime.add(6, "hour"));
   const [title, setTitle] = useState("");
@@ -50,71 +50,103 @@ export default function CanvasForm(props) {
     }
   };
 
+  const isInvalid = () => {
+    if (title === "" || desc === "") {
+      enqueueSnackbar("Title, Description cannot be empty", {
+        variant: "error",
+      });
+      return true;
+    }
+    if (cellPrice < 0.000001 && cellPrice > 0) {
+      enqueueSnackbar("Precision is upto 6 decimal places", {
+        variant: "error",
+      });
+      return true;
+    }
+    if (cellPrice === "" || premium === "" || isNaN(premium)) {
+      enqueueSnackbar("Cell base price and Premium cannot be empty", {
+        variant: "error",
+      });
+      return true;
+    }
+    return false;
+  };
+
+  const resetStates = () => {
+    setTitle("");
+    setDesc("");
+    setIsDynamic(false);
+    setCellPrice(0);
+    setPremium(0);
+  };
   const onSubmit = async () => {
     if (props.contract && props.activeAccount && props.signer) {
-      if (title === "" || desc === "") {
-        enqueueSnackbar("Title, Description cannot be empty", {
-          variant: "error",
-        });
-        return;
-      }
-      if (cellPrice < 0.000001 && cellPrice > 0) {
-        enqueueSnackbar("Precision is upto 6 decimal places", {
-          variant: "error",
-        });
-        return;
-      }
-      if(cellPrice === "" || premium === "") {
-        enqueueSnackbar("Cell base price and Premium cannot be empty", {
-          variant: "error",
-        });
-        return;
-      }
+      if (isInvalid()) return;
       setPosting(true);
       try {
-        console.log('Creating Room');
-        await props.contract.query.createCanvas(
-          props.activeAccount.address,
-          {
-            value: 0,
-            gasLimit: 300000n * 1000000n,
-          },
-          title,
-          desc,
-          [32, 32],
-          startTimeValue.unix(),
-          endTimeValue.unix(),
-          (new BN(cellPrice * 1000000)).mul(new BN(PRECISION)),
-          premium,
-          isDynamic
-        ).then((res) => console.log(res));
-        await props.contract.tx
+        console.log("Creating Room");
+        await props.contract.query
           .createCanvas(
+            props.activeAccount.address,
             {
               value: 0,
-              gasLimit: 300000n * 1000000n,
+              gasLimit: -1,
             },
             title,
             desc,
             [32, 32],
             startTimeValue.unix(),
             endTimeValue.unix(),
-            (new BN(cellPrice * 1000000)).mul(new BN(PRECISION)),
+            new BN(cellPrice * 1000000).mul(new BN(PRECISION)),
             premium,
             isDynamic
           )
-          .signAndSend(
-            { signer: props.signer },
-            async (res) => {
-              console.log(res);
-              if (res.status.isFinalized) {
-                console.log("Room Creation Finalized", res, res.txHash.toHuman());
-                enqueueSnackbar("Transaction Finalized", {
-                  variant: "Success",
-                });
-              }
+          .then((res) => {
+            if (res.result.toHuman().Err?.Module?.message)
+              throw new Error(res.result.toHuman().Err.Module.message);
+            else return res.output.toHuman();
+          })
+          .then(async (res) => {
+            if (!res.Err) {
+              await props.contract.tx
+                .createCanvas(
+                  {
+                    value: 0,
+                    gasLimit: 300000n * 1000000n,
+                  },
+                  title,
+                  desc,
+                  [32, 32],
+                  startTimeValue.unix(),
+                  endTimeValue.unix(),
+                  new BN(cellPrice * 1000000).mul(new BN(PRECISION)),
+                  premium,
+                  isDynamic
+                )
+                .signAndSend(
+                  props.activeAccount.address,
+                  { signer: props.signer },
+                  async (res) => {
+                    if (res.status.isFinalized) {
+                      console.log("Room Creation Finalized", res);
+                      enqueueSnackbar("Transaction Finalized", {
+                        variant: "Success",
+                      });
+                    }
+                  }
+                );
+              resetStates();
+              console.log("Room Creation Tx Submitted");
+              enqueueSnackbar("Transaction Submitted", {
+                variant: "Success",
+              });
+            } else {
+              console.log("Failed on Submit ->", res.Err);
+              enqueueSnackbar("Failed to Submit -> \n " + res.Err, {
+                variant: "error",
+              });
             }
-          );
+          });
       } catch (err) {
         console.log("Failed on Submit", err);
         enqueueSnackbar("Failed to Submit, \n " + err, { variant: "error" });
@@ -138,7 +170,7 @@ export default function CanvasForm(props) {
             gasLimit: -1,
           })
           .then((res) => {
-            if (!res.output.toHuman().Err) {
+            if (!res.result?.toHuman()?.Err) {
               console.log("Successfully updated creation Fee");
               setCreationFee(res.output.toHuman()[2]);
             } else {
