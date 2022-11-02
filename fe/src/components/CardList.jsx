@@ -18,7 +18,7 @@ export default function CardList(props) {
           }}
           key={id}
         >
-          <DisplayCard id={id} isNFT={props.isNFT} isProfile={props.isProfile} isEdit={props.isEdit}/>
+          <DisplayCard id={id} isNFT={props.isNFT} isProfile={props.isProfile} isEdit={props.isEdit} contract={props.contract} activeAccount={props.activeAccount}/>
         </Grid>
       );
     });
