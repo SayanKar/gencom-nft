@@ -14,13 +14,59 @@ import { Link } from "react-router-dom";
 import "../App.css";
 import CardList from "./CardList";
 import VideoTutorial from "./VideoTutorial";
+import { useState } from "react";
+
 
 export default function HomePage(props) {
+
+  const [highestRoomId, setHighestRoomId] = useState(null);
+  const [trendingRoomList, setTrendingRoomList] = useState([]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   // Fetch gameDetails [0 , *1, 2]
+  useEffect(() => {
+    const getRoomList = async () => {
+      if (props.contract && props.activeAccount) {
+        console.log("Fetching Room list");
+        await props.contract.query.getGameDetails(
+          props.activeAccount.address, {
+            value: 0,
+            gasLimit: -1,
+          })
+          .then((res) => {
+            if (!res.output.toHuman().Err) {
+              console.log('Successfully fetched room list!!');
+              console.log(res.output.toHuman()); // remove later
+              setHighestRoomId(parseInt(res.output.toHuman()[1]));
+            } else {
+              console.log("Error fetching room ", res.output.toHuman().Err);
+            }
+          })
+          .catch((err) => {
+            console.log('Error while fetching room list: ', err);
+          });
+      }
+    };
+    getRoomList();
+  }, [props.contract, props.activeAccount]);
+
+
+  useEffect(() =>{
+    let temp = []
+    for (let i = highestRoomId-1; i>highestRoomId-7; i--) {
+      if (i>=0) {
+        temp.push(i);
+      } else {
+        break;
+      }
+    }
+    setTrendingRoomList(temp);
+    console.log("Trending room ids: ") // To be removed later
+    console.log(temp); //to be removed later
+  }, [highestRoomId]);
 
 
   return (
@@ -137,7 +183,7 @@ export default function HomePage(props) {
           >
             Trending Rooms
           </Typography>
-          <CardList rows={2} isMain={true} ids={[1, 2, 3, 4, 5, 6]} contract={props.contract} activeAccount={props.activeAccount}/>
+          <CardList rows={2} isMain={true} ids={trendingRoomList} contract={props.contract} activeAccount={props.activeAccount}/>
           <VideoTutorial />
         </Box>
       </Box>

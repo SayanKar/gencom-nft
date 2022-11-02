@@ -15,6 +15,8 @@ import { colors } from "../constants";
 import GridSVG from "./GridSVG";
 import { Link } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
+import { useEffect, useState } from "react";
+
 export default function DisplayCard(props) {
   const { width = "352px", height = "300px" } = props;
   const bottomStripColor = {
@@ -47,7 +49,7 @@ export default function DisplayCard(props) {
   };
 
   // Fetch canvasDetails and grid details
-
+  
   return (
     <Box sx={{ position: "relative" }}>
       {props.isProfile && (
