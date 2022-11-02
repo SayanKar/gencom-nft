@@ -17,8 +17,8 @@ import { useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { PRECISION, SYMBOL } from "../constants";
 import { useEffect } from "react";
-import { Keyring } from '@polkadot/api';
-const keyring = new Keyring({ type: 'sr25519' });
+import { Keyring } from "@polkadot/api";
+const keyring = new Keyring({ type: "sr25519" });
 export default function CanvasForm(props) {
   const BN = require("bn.js");
   const [currentTime] = useState(dayjs());
@@ -34,7 +34,7 @@ export default function CanvasForm(props) {
   const [creationFee, setCreationFee] = useState(0);
   const [isOwner, setIsOwner] = useState(false);
   const { canvasId } = useParams();
-
+  const [isInvalidId, setIsInvalidId] = useState(false);
   const handleTitleChange = (e) => {
     setTitle(e.target.value);
   };
@@ -89,7 +89,93 @@ export default function CanvasForm(props) {
       createRoom();
     }
   };
-  const editRoom = async () => {};
+  const editRoom = async () => {
+    if (props.contract && props.activeAccount && props.signer) {
+      if (isInvalid()) return;
+      setPosting(true);
+      try {
+        console.log("Creating Room");
+        await props.contract.query
+          .editCanvas(
+            props.activeAccount.address,
+            {
+              value: 0,
+              gasLimit: -1,
+            },
+            canvasId,
+            title,
+            desc,
+            startTimeValue.unix(),
+            endTimeValue.unix(),
+            premium,
+            isDynamic
+          )
+          .then((res) => {
+            console.log("Edit query res", res);
+            if (!res.result.toHuman().Ok)
+              throw new Error(res.result?.toHuman()?.Err?.Module?.message);
+            else
+              return res.output ? res.output.toHuman() : res.result.toHuman();
+          })
+          .then(async (res) => {
+            if (!res.Err) {
+              await props.contract.tx
+                .editCanvas(
+                  {
+                    value: 0,
+                    gasLimit: 300000n * 1000000n,
+                  },
+                  canvasId,
+                  title,
+                  desc,
+                  startTimeValue.unix(),
+                  endTimeValue.unix(),
+                  premium,
+                  isDynamic
+                )
+                .signAndSend(
+                  props.activeAccount.address,
+                  { signer: props.signer },
+                  async (res) => {
+                    if (res.status.isFinalized) {
+                      console.log("Room Creation Finalized", res);
+                      enqueueSnackbar(
+                        <a
+                          href={"/canvas/" + canvasId}
+                          style={{ textDecoration: "none", color: "white" }}
+                        >
+                          {" Transaction Finalized, Click to go to canvas #" +
+                            canvasId}
+                        </a>,
+                        {
+                          variant: "Success",
+                        }
+                      );
+                    }
+                  }
+                );
+              resetStates();
+              console.log("Room Edit Tx Submitted");
+              enqueueSnackbar("Transaction Submitted", {
+                variant: "Success",
+              });
+            } else {
+              console.log("Failed on Edit ->", res.Err);
+              enqueueSnackbar("Failed to Edit -> \n " + res.Err, {
+                variant: "error",
+              });
+            }
+          });
+      } catch (err) {
+        console.log("Failed on Edit", err);
+        enqueueSnackbar("Failed to Edit, \n " + err, { variant: "error" });
+      }
+      setPosting(false);
+    } else {
+      console.log("Connect your account");
+      enqueueSnackbar("Connect your account", { variant: "error" });
+    }
+  };
   const createRoom = async () => {
     if (props.contract && props.activeAccount && props.signer) {
       if (isInvalid()) return;
@@ -113,7 +199,7 @@ export default function CanvasForm(props) {
             isDynamic
           )
           .then((res) => {
-            if (res.result.toHuman().Err?.Module?.message)
+            if (res.result?.toHuman()?.Err?.Module?.message)
               throw new Error(res.result.toHuman().Err.Module.message);
             else return res.output.toHuman();
           })
@@ -140,7 +226,7 @@ export default function CanvasForm(props) {
                   async (res) => {
                     if (res.status.isFinalized) {
                       console.log("Room Creation Finalized", res);
-                      enqueueSnackbar("Transaction Finalized", {
+                      enqueueSnackbar(<>"Transaction Finalized"</>, {
                         variant: "Success",
                       });
                     }
@@ -168,9 +254,9 @@ export default function CanvasForm(props) {
       enqueueSnackbar("Connect your account", { variant: "error" });
     }
   };
-  function changeAddressEncoding(address, toNetworkPrefix=42){
-    if(!address) {
-        return null;
+  function changeAddressEncoding(address, toNetworkPrefix = 42) {
+    if (!address) {
+      return null;
     }
     const pubKey = keyring.decodeAddress(address);
     const encodedAddress = keyring.encodeAddress(pubKey, toNetworkPrefix);
@@ -179,38 +265,59 @@ export default function CanvasForm(props) {
   useEffect(() => {
     const canvasDetails = async () => {
       if (props.activeAccount && props.contract && props.isEdit) {
-        console.log('Fetching Canvas Details')
-        await props.contract.query.getCanvasDetails(
-          props.activeAccount.address,
-          {
-            value: 0,
-            gasLimit: -1,
-          },
-          canvasId
-        ).then((res) => {
-          if(!res.result?.toHuman()?.Err)
-          { console.log("res output result",res, res.output?.toHuman(), res.result?.toHuman())
-            res = res.output?.toHuman();
-            if(props.activeAccount.address !== changeAddressEncoding(res.creator)) {
-              setIsOwner(true);
-              console.log("You are not the owner");
+        console.log("Fetching Canvas Details");
+        await props.contract.query
+          .getCanvasDetails(
+            props.activeAccount.address,
+            {
+              value: 0,
+              gasLimit: -1,
+            },
+            canvasId
+          )
+          .then((res) => {
+            console.log(res.output.toHuman());
+            if (!res.result?.toHuman()?.Err) {
+              res = res.output?.toHuman();
+              if (res === null) {
+                setIsInvalidId(true);
+              } else if (
+                props.activeAccount.address !==
+                changeAddressEncoding(res.creator)
+              ) {
+                setIsOwner(true);
+                console.log("You are not the owner");
+              } else {
+                setTitle(res.title);
+                setDesc(res.desc);
+                setPremium(res.premium);
+                setIsDynamic(res.isDynamic);
+                setStartTimeValue(dayjs.unix(res.startTime.replace(/,/g, "")));
+                setEndTimeValue(dayjs.unix(res.endTime.replace(/,/g, "")));
+              }
             } else {
-              setTitle(res.title);
-              setDesc(res.desc);
-              setPremium(res.premium);
-              setIsDynamic(res.isDynamic);
+              console.log(
+                "Error fetching canvas Details,",
+                res.result?.toHuman()?.Err
+              );
             }
-          }
-          else {
-            console.log("Error fetching canvas Details,", res.result?.toHuman()?.Err);
-          }
-        }).catch((err) => {
-          console.log("Error on calling canvas details", err);
-        })
+          })
+          .catch((err) => {
+            console.log("Error on calling canvas details", err);
+          });
+      } else {
+        setTitle("");
+        setDesc("");
+        setPremium(0);
+        setIsDynamic(false);
+        setStartTimeValue(currentTime);
+        setEndTimeValue(currentTime.add(6, "hour"));
+        setCellPrice(0);
+        setIsInvalidId(false);
       }
     };
     canvasDetails();
-  }, [props.activeAccount, props.contract]);
+  }, [props.activeAccount, props.contract, props.isEdit]);
 
   useEffect(() => {
     const getCreationFee = async () => {
@@ -246,164 +353,216 @@ export default function CanvasForm(props) {
         justifyContent: "center",
       }}
     >
-      <Paper
-        sx={{
-          width: "400px",
-          height: "fit-content",
-          padding: "40px",
-          margin: "140px 0px",
-        }}
-        elevation={10}
-      >
-        <Typography
-          sx={{ width: "100%", fontWeight: "500", color: "#333652" }}
-          align="left"
-          variant="h5"
+      {!props.activeAccount ? (
+        <Paper
+          sx={{
+            width: "400px",
+            height: "fit-content",
+            padding: "40px",
+            margin: "140px 0px",
+          }}
+          elevation={10}
         >
-          {props.isEdit ? "Edit Canvas #" + canvasId : "Create a Room"}
-        </Typography>
-        <Divider sx={{ marginBottom: "20px" }} />{ isOwner &&
           <Typography
+            sx={{ width: "100%", fontWeight: "500", color: "#333652" }}
+            align="center"
+            variant="h5"
+          >
+            Connect your wallet
+          </Typography>
+        </Paper>
+      ) : props.isEdit && isInvalidId ? (
+        <Paper
           sx={{
-            width: "100%",
-            fontWeight: "500",
-            color: "red",
-            marginBottom: "10px",
+            width: "400px",
+            height: "fit-content",
+            padding: "40px",
+            margin: "140px 0px",
           }}
-          align="left"
-          variant="subtitle2"
+          elevation={10}
         >
-          {"You are not the creator, you don't have Edit Access"}
-        </Typography>
-        }
-        <Typography
+          <Typography
+            sx={{ width: "100%", fontWeight: "500", color: "#333652" }}
+            align="center"
+            variant="h5"
+          >
+            Invalid canvas room Id
+          </Typography>
+        </Paper>
+      ) : (
+        <Paper
           sx={{
-            width: "100%",
-            fontWeight: "500",
-            color: "#333652",
-            marginBottom: "10px",
+            width: "400px",
+            height: "fit-content",
+            padding: "40px",
+            margin: "140px 0px",
           }}
-          align="left"
-          variant="subtitle2"
+          elevation={10}
         >
-          {"* Room creation fees:- " + creationFee + " " + SYMBOL}
-        </Typography>
-        <TextField
-          helperText="* Sets a title for the room"
-          id="titleInput"
-          label="Room Title"
-          fullWidth
-          sx={{ margin: "5px 0" }}
-          value={title}
-          onChange={handleTitleChange}
-          disabled={isOwner}
-        />
-        <TextField
-          helperText="* Sets a description for the room"
-          id="descInput"
-          label="Room Description"
-          fullWidth
-          sx={{ margin: "5px 0" }}
-          value={desc}
-          onChange={handleDescChange}
-          disabled={isOwner}
-        />
-        <TextField
-          helperText={"* You will get this amount when painters buy a cell." + props.isEdit ? " Not Editable":""}
-          id="minPriceInput"
-          label="Cell base price"
-          fullWidth
-          type="number"
-          sx={{ margin: "5px 0" }}
-          InputProps={{ inputProps: { min: 0 } }}
-          value={cellPrice}
-          onChange={handleCellPriceChange}
-          disabled={props.isEdit}
-        />
-        <TextField
-          helperText="* Set premium percentage"
-          id="premiumInput"
-          label="Premium %"
-          fullWidth
-          type="number"
-          sx={{ margin: "5px 0" }}
-          InputProps={{ inputProps: { min: 5 } }}
-          value={premium}
-          onChange={handlePremiumChange}
-          disabled={isOwner}
-        />
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            margin: "10px 0",
-            flexWrap: "wrap",
-          }}
-        >
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateTimePicker
-              renderInput={(props) => (
-                <TextField {...props} sx={{ width: "48%" }} />
-              )}
-              label="Room Start Time"
-              value={startTimeValue}
-              onChange={(newValue) => {
-                setStartTimeValue(newValue);
+          <Typography
+            sx={{ width: "100%", fontWeight: "500", color: "#333652" }}
+            align="left"
+            variant="h5"
+          >
+            {props.isEdit ? "Edit Canvas #" + canvasId : "Create a Room"}
+          </Typography>
+          <Divider sx={{ marginBottom: "20px" }} />
+          {isOwner && (
+            <Typography
+              sx={{
+                width: "100%",
+                fontWeight: "500",
+                color: "red",
+                marginBottom: "10px",
               }}
-              sx={{ margin: "20px 0px 20px 0" }}
-              minDateTime={currentTime.subtract(1, "minute")}
-              disabled={isOwner}
-            />
-            <DateTimePicker
-              renderInput={(props) => (
-                <TextField {...props} sx={{ width: "48%" }} />
-              )}
-              label="Room End Time"
-              value={endTimeValue}
-              onChange={(newValue) => {
-                setEndTimeValue(newValue);
-              }}
-              sx={{ margin: "20px 0px 20px 0" }}
-              minDateTime={startTimeValue}
-              disabled={isOwner}
-            />
-          </LocalizationProvider>
-        </Box>
-
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            margin: "10px 0",
-            flexWrap: "wrap",
-          }}
-        >
-          <FormControlLabel
-            control={<Switch />}
-            label="Is Dynamic"
-            sx={{ color: "rgba(0, 0, 0, 0.6)", font: "8px" }}
-            labelPlacement="end"
-            checked={isDynamic}
-            onChange={(e) => setIsDynamic(e.target.checked)}
-            inputProps={{ "aria-label": "controlled" }}
+              align="left"
+              variant="subtitle2"
+            >
+              {"You are not the creator, you don't have Edit Access"}
+            </Typography>
+          )}
+          <Typography
+            sx={{
+              width: "100%",
+              fontWeight: "500",
+              color: "#333652",
+              marginBottom: "10px",
+            }}
+            align="left"
+            variant="subtitle2"
+          >
+            {"* Room creation fees:- " + creationFee + " " + SYMBOL}
+          </Typography>
+          <TextField
+            helperText="* Sets a title for the room"
+            id="titleInput"
+            label="Room Title"
+            fullWidth
+            sx={{ margin: "5px 0" }}
+            value={title}
+            onChange={handleTitleChange}
             disabled={isOwner}
           />
-          {!posting ? (
-            <Button
-              sx={{ marginTop: "5px" }}
-              variant="contained"
-              onClick={onSubmit}
-              disabled={isOwner}
-            >
-              {props.isEdit ? "Edit" : "Create"}
-            </Button>
-          ) : (
-            <Button sx={{ marginTop: "5px" }} variant="contained" disabled={true}>
-              {props.isEdit ? "Editing" : "Creating"}
-            </Button>
+          <TextField
+            helperText="* Sets a description for the room"
+            id="descInput"
+            label="Room Description"
+            fullWidth
+            sx={{ margin: "5px 0" }}
+            value={desc}
+            onChange={handleDescChange}
+            disabled={isOwner}
+          />
+          {!props.isEdit && (
+            <TextField
+              helperText={
+                "* You will get this amount when painters buy a cell." +
+                (props.isEdit ? " Not Editable" : "")
+              }
+              id="minPriceInput"
+              label="Cell base price"
+              fullWidth
+              type="number"
+              sx={{ margin: "5px 0" }}
+              InputProps={{ inputProps: { min: 0 } }}
+              value={cellPrice}
+              onChange={handleCellPriceChange}
+              disabled={props.isEdit}
+            />
           )}
-        </Box>
-      </Paper>
+          <TextField
+            helperText="* Set premium percentage"
+            id="premiumInput"
+            label="Premium %"
+            fullWidth
+            type="number"
+            sx={{ margin: "5px 0" }}
+            InputProps={{ inputProps: { min: 5 } }}
+            value={premium}
+            onChange={handlePremiumChange}
+            disabled={isOwner}
+          />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              margin: "10px 0",
+              flexWrap: "wrap",
+            }}
+          >
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DateTimePicker
+                renderInput={(props) => (
+                  <TextField {...props} sx={{ width: "48%" }} />
+                )}
+                label="Room Start Time"
+                value={startTimeValue}
+                onChange={(newValue) => {
+                  setStartTimeValue(newValue);
+                }}
+                sx={{ margin: "20px 0px 20px 0" }}
+                minDateTime={
+                  props.isEdit
+                    ? startTimeValue.subtract(1, "minute")
+                    : currentTime.subtract(1, "minute")
+                }
+                disabled={isOwner}
+              />
+              <DateTimePicker
+                renderInput={(props) => (
+                  <TextField {...props} sx={{ width: "48%" }} />
+                )}
+                label="Room End Time"
+                value={endTimeValue}
+                onChange={(newValue) => {
+                  setEndTimeValue(newValue);
+                }}
+                sx={{ margin: "20px 0px 20px 0" }}
+                minDateTime={startTimeValue}
+                disabled={isOwner}
+              />
+            </LocalizationProvider>
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              margin: "10px 0",
+              flexWrap: "wrap",
+            }}
+          >
+            <FormControlLabel
+              control={<Switch />}
+              label="Is Dynamic"
+              sx={{ color: "rgba(0, 0, 0, 0.6)", font: "8px" }}
+              labelPlacement="end"
+              checked={isDynamic}
+              onChange={(e) => setIsDynamic(e.target.checked)}
+              inputProps={{ "aria-label": "controlled" }}
+              disabled={isOwner}
+            />
+            {!posting ? (
+              <Button
+                sx={{ marginTop: "5px" }}
+                variant="contained"
+                onClick={onSubmit}
+                disabled={isOwner}
+              >
+                {props.isEdit ? "Edit" : "Create"}
+              </Button>
+            ) : (
+              <Button
+                sx={{ marginTop: "5px" }}
+                variant="contained"
+                disabled={true}
+              >
+                {props.isEdit ? "Editing" : "Creating"}
+              </Button>
+            )}
+          </Box>
+        </Paper>
+      )}
     </Box>
   );
 }
