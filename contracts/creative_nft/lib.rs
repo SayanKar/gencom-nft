@@ -54,8 +54,8 @@ mod creative_nft {
     use ink_prelude::{string::String, vec::Vec};
     use ink_storage::{traits::SpreadAllocate, Mapping};
 
-    type CanvasId = u64;
-    type TokenId = u128;
+    type CanvasId = u32;
+    type TokenId = u64;
     type Result<T> = core::result::Result<T, Error>;
 
     /// Event emitted when a token transfer occurs.
@@ -199,9 +199,9 @@ mod creative_nft {
         cash_flow: Mapping<AccountId, (Balance, Balance)>,
         /// Mapping from owner to list of owned tokens.
         /// @dev (owner, 0) stores the count of owned tokens
-        owned_tokens: Mapping<(AccountId, u128), TokenId>,
+        owned_tokens: Mapping<(AccountId, u64), TokenId>,
         /// Mapping from token to the index of the owner tokens list
-        owned_tokens_index: Mapping<TokenId, u128>,
+        owned_tokens_index: Mapping<TokenId, u64>,
         /// Mapping from token to approved account
         token_approvals: Mapping<TokenId, AccountId>,
         /// Mapping from owner to operator approvals
@@ -218,7 +218,7 @@ mod creative_nft {
     fn decode(id: TokenId) -> (CanvasId, u8, u8) {
         let canvas_id: CanvasId = (id / 1_000_000).try_into().unwrap();
         let cord_x: u8 = ((id / 1000) % 1000).try_into().unwrap();
-        let cord_y: u8 = (id / 1000).try_into().unwrap();
+        let cord_y: u8 = (id % 1000).try_into().unwrap();
         (canvas_id, cord_x, cord_y)
     }
 
@@ -367,11 +367,9 @@ mod creative_nft {
                 return Err(Error::NotAllowed);
             }
 
-            let grid = self.get_grid_details(canvas_id)?;
-            grid.iter().enumerate().for_each(|(x, row)| {
-                let x: u8 = x.try_into().unwrap();
-                row.iter().enumerate().for_each(|(y, cell)| {
-                    let y: u8 = y.try_into().unwrap();
+            for x in 0..canvas.dimensions.0 {
+                for y in 0..canvas.dimensions.1 {
+                    let cell = self.get_cell_details(canvas_id, x, y)?;
                     let owner = cell.owner;
                     let idx = self.owned_tokens.get(&(owner, 0)).unwrap_or_default() + 1;
                     let token_id = encode(canvas_id, x, y);
@@ -380,13 +378,13 @@ mod creative_nft {
                     self.owned_tokens.insert(&(owner, idx), &token_id);
                     self.owned_tokens_index.insert(&token_id, &idx);
 
-                    self.env().emit_event(Transfer {
-                        from: Some(AccountId::from([0x0; 32])),
-                        to: Some(owner),
-                        id: token_id,
-                    });
-                });
-            });
+                    // self.env().emit_event(Transfer {
+                    //     from: Some(AccountId::from([0x0; 32])),
+                    //     to: Some(owner),
+                    //     id: token_id,
+                    // });
+                }
+            }
 
             stats.minted = true;
             self.canvas_analytics.insert(&canvas_id, &stats);
@@ -537,6 +535,25 @@ mod creative_nft {
         }
 
         #[ink(message)]
+        pub fn get_colored_grid(&self, canvas_id: CanvasId) -> Result<Vec<Vec<u32>>> {
+            let canvas = self.get_canvas_details(canvas_id)?;
+
+            let mut grid: Vec<Vec<u32>> = Vec::new();
+            grid.reserve_exact(canvas.dimensions.0.into());
+
+            for x in 0..canvas.dimensions.0 {
+                let mut row: Vec<u32> = Vec::new();
+                row.reserve_exact(canvas.dimensions.1.into());
+                for y in 0..canvas.dimensions.1 {
+                    let color = self.get_cell_details(canvas_id, x, y)?.color;
+                    row.push(color);
+                }
+                grid.push(row);
+            }
+            Ok(grid)
+        }
+
+        #[ink(message)]
         pub fn get_cell_details(
             &self,
             canvas_id: CanvasId,
@@ -575,12 +592,12 @@ mod creative_nft {
         }
 
         #[ink(message)]
-        pub fn get_user_nfts(&self, acc: AccountId) -> Vec<(CanvasId, u8, u8)> {
+        pub fn get_user_nfts(&self, acc: AccountId) -> Vec<TokenId> {
             let count = self.owned_tokens.get(&(acc, 0)).unwrap_or_default();
 
             (1..=count)
                 .into_iter()
-                .map(|x| decode(self.owned_tokens.get(&(acc, x)).unwrap()))
+                .map(|x| (self.owned_tokens.get(&(acc, x)).unwrap()))
                 .collect()
         }
 
@@ -617,7 +634,7 @@ mod creative_nft {
     /// ERC721 standard implemented here
     impl CreativeNft {
         #[ink(message)]
-        pub fn balance_of(&self, owner: AccountId) -> u128 {
+        pub fn balance_of(&self, owner: AccountId) -> u64 {
             self.owned_tokens.get(&(owner, 0)).unwrap_or_default()
         }
 
