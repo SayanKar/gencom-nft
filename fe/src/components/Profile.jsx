@@ -6,11 +6,13 @@ import CardList from "./CardList";
 import { useEffect, useState } from "react";
 export default function Profile(props) {
   const { address } = useParams();
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
 
   const [userCreatedCanvasIds, setUserCreatedCanvasIds] = useState([]);
   const [userParticipatedCanvasIds, setUserParticipatedCanvasIds] = useState([]);
-
+  useEffect(() => {
+    window.scrollTo(0,0);
+}, []);
   useEffect(() => {
     const getUserCreatedCanvasIds = async () => {
       if (props.contract && props.activeAccount) {

@@ -1,13 +1,5 @@
 import Circle from "@mui/icons-material/Circle";
-import {
-  Box,
-  Paper,
-  Typography,
-  Grid,
-  Tooltip,
-  Avatar,
-  Divider,
-} from "@mui/material";
+import { Box, Paper, Typography, Tooltip } from "@mui/material";
 import dayjs from "dayjs";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
@@ -18,120 +10,229 @@ import CanvasBox from "./CanvasBox";
 import Navbar from "./Navbar";
 import { useState } from "react";
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Loading from "./Loading";
+import OwnershipGrid from "./OwnershipGrid";
+import EditIcon from "@mui/icons-material/Edit";
+import { Keyring } from "@polkadot/api";
+const keyring = new Keyring({ type: "sr25519" });
+
 export default function CanvasRoom(props) {
   const { canvasId } = useParams();
   const [canvasDetails, setCanvasDetails] = useState({
-    title: "Lets Rock the Party",
-    desc: "Ubiq is a business intelligence & reporting tool for small & medium businesses. Build business dashboards, charts & reports in minutes. Get insights from data quickly. Try it for free!",
-    endTime: 1666862999,
-    startTime: 1666825989,
-    participants: 23,
-    bids: 23,
-    creatorAddress: "5Gs5gfzHkBsRt97qgmvBW2qX6M7FPXP8cJkAj7T7kNFbGVvG",
+    title: "-----",
+    desc: "---- ---- ---- ---- ---- ---- ---- --- ---",
+    endTime: 1,
+    startTime: 0,
+    participants: 0,
+    bids: 0,
+    creatorAddress:
+      "---------------------------------------------------------------------",
     isDynamic: false,
     premiumPercentage: "0",
   });
+  const [isOwner, setIsOwner] = useState(false);
+  const [isInvalidId, setIsInvalidId] = useState(false);
+
+  function changeAddressEncoding(address, toNetworkPrefix = 42) {
+    if (!address) {
+      return null;
+    }
+    const pubKey = keyring.decodeAddress(address);
+    const encodedAddress = keyring.encodeAddress(pubKey, toNetworkPrefix);
+    return encodedAddress;
+  }
+
+  const getCanvasDetails = async () => {
+    if (props.activeAccount && props.contract) {
+      console.log("Fetching Canvas Details");
+      await props.contract.query
+        .getCanvasDetails(
+          props.activeAccount.address,
+          {
+            value: 0,
+            gasLimit: -1,
+          },
+          canvasId
+        )
+        .then((res) => {
+          console.log(res.output.toHuman());
+          if (!res.result?.toHuman()?.Err) {
+            res = res.output?.toHuman();
+            if (res === null) {
+              setIsInvalidId(true);
+            } else {
+              setCanvasDetails({
+                ...canvasDetails,
+                title: res.title,
+                desc: res.desc,
+                premiumPercentage: res.premium,
+                isDynamic: res.isDynamic,
+                startTime: res.startTime.replace(/,/g, ""),
+                endTime: res.endTime.replace(/,/g, ""),
+                creatorAddress: changeAddressEncoding(res.creator),
+              });
+              if (
+                props.activeAccount.address !==
+                changeAddressEncoding(res.creator)
+              ) {
+                setIsOwner(true);
+                console.log("User are not the owner");
+              }
+            }
+          } else {
+            console.log(
+              "Error fetching canvas Details,",
+              res.result?.toHuman()?.Err
+            );
+          }
+        })
+        .catch((err) => {
+          console.log("Error on calling canvas details", err);
+        });
+    }
+  };
 
   useEffect(() => {
-    window.scrollTo(0,0);
+    getCanvasDetails();
+  }, [props.contract, props.activeAccount]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
   }, []);
-  
+
   return (
     <Box component="div">
       <Box component="div" id="canvasBoxContainer">
-        <Typography
-          variant="h4"
-          id="roomTitle"
-          sx={{
-            fontFamily: "'Fredoka One', cursive",
-            width: "500px",
-            margin: "0 auto",
-            marginTop: "20px",
-          }}
-        >
-          {canvasDetails.title}
-        </Typography>
-        <Typography
-          variant="body1"
-          id="canvasDesc"
-          align="center"
-          sx={{
-            fontFamily: "'Ubuntu Condensed', sans-serif",
-            width: "500px",
-            margin: "0 auto",
-          }}
-        >
-          {canvasDetails.desc}
-        </Typography>
-        <Box
-          component="div"
-          sx={{
-            width: "100%",
-            paddingTop: "20px",
-            margin: "auto",
-            marginBottom: "20px",
-            maxWidth: "800px",
-            display: "flex",
-            justifyContent: "space-evenly",
-            flexWrap: "wrap",
-          }}
-        >
-          <RenderTimer
-            start={canvasDetails.startTime}
-            end={canvasDetails.endTime}
-          />
-          <Strip Text={"Canvas Id: " + canvasId} tooltip={"Canvas Id"} />
-          <Strip
-            Icon={
-              <PeopleAltIcon
-                sx={{ fontSize: "16px", margin: "0px 8px -3px 0px" }}
+        {!props.activeAccount || isInvalidId ? (
+          <Box
+            sx={{ width: "100%", display: "flex", justifyContent: "center" }}
+          >
+            <Paper
+              sx={{
+                width: "400px",
+                height: "fit-content",
+                padding: "40px",
+                margin: "140px 0px",
+              }}
+              elevation={10}
+            >
+              <Typography
+                sx={{ width: "100%", fontWeight: "500", color: "#333652" }}
+                align="center"
+                variant="h5"
+              >
+                {isInvalidId ? "Invalid Canvas Room Id" : "Connect your wallet"}
+              </Typography>
+            </Paper>
+          </Box>
+        ) : (
+          <>
+            <Typography
+              variant="h4"
+              id="roomTitle"
+              sx={{
+                fontFamily: "'Fredoka One', cursive",
+                width: "500px",
+                margin: "0 auto",
+                marginTop: "20px",
+              }}
+            >
+              {canvasDetails.title}
+            </Typography>
+            <Typography
+              variant="body1"
+              id="canvasDesc"
+              align="center"
+              sx={{
+                fontFamily: "'Ubuntu Condensed', sans-serif",
+                width: "500px",
+                margin: "0 auto",
+              }}
+            >
+              {canvasDetails.desc}
+            </Typography>
+            <Box
+              component="div"
+              sx={{
+                width: "100%",
+                paddingTop: "20px",
+                margin: "auto",
+                marginBottom: "20px",
+                maxWidth: "800px",
+                display: "flex",
+                justifyContent: "space-evenly",
+                flexWrap: "wrap",
+              }}
+            >
+              <RenderTimer
+                start={canvasDetails.startTime}
+                end={canvasDetails.endTime}
               />
-            }
-            tooltip={"Total Unique Bidders"}
-            Text={"Participants: " + canvasDetails.participants}
-          />
-          <Strip
-            Icon={
-              <HowToVoteIcon
-                sx={{ fontSize: "16px", margin: "0px 8px -3px 0px" }}
+              <Strip Text={"Canvas Id: " + canvasId} tooltip={"Canvas Id"} />
+              <Strip
+                Icon={
+                  <PeopleAltIcon
+                    sx={{ fontSize: "16px", margin: "0px 8px -3px 0px" }}
+                  />
+                }
+                tooltip={"Total Unique Bidders"}
+                Text={"Participants: " + canvasDetails.participants}
               />
-            }
-            Text={"Bids: " + canvasDetails.bids}
-            tooltip={"Total Bids"}
-          />
-          <Strip
-            Text={"5Gs5gfzHkBsRt97qgmvBW2qX6M7FPXP8cJkAj7T7kNFbGVvG"}
-            tooltip={"Creator Address"}
-          />
-          <Strip
-            Icon={
-              canvasDetails.isDynamic ? (
-                <CheckBoxIcon
-                  sx={{
-                    fontSize: "16px",
-                    margin: "0px 8px -3px 0px",
-                    color: "#02be01",
-                  }}
+              <Strip
+                Icon={
+                  <HowToVoteIcon
+                    sx={{ fontSize: "16px", margin: "0px 8px -3px 0px" }}
+                  />
+                }
+                Text={"Bids: " + canvasDetails.bids}
+                tooltip={"Total Bids"}
+              />
+              <Strip
+                Text={canvasDetails.creatorAddress}
+                tooltip={"Creator Address"}
+              />
+              <Strip
+                Icon={
+                  canvasDetails.isDynamic ? (
+                    <CheckBoxIcon
+                      sx={{
+                        fontSize: "16px",
+                        margin: "0px 8px -3px 0px",
+                        color: "#02be01",
+                      }}
+                    />
+                  ) : (
+                    <CancelIcon
+                      sx={{
+                        fontSize: "16px",
+                        margin: "0px 8px -3px 0px",
+                        color: "#f57c00",
+                      }}
+                    />
+                  )
+                }
+                Text={"Dynamic"}
+                tooltip={
+                  "Canvas cell owners can change cell color of NFT even after canvas expires"
+                }
+              />
+              <Link to={"/edit/" + canvasId}>
+                <Strip
+                  Icon={
+                    <EditIcon
+                      sx={{ fontSize: "16px", margin: "0px 8px -3px 0px" }}
+                    />
+                  }
+                  tooltip={"Edit room"}
+                  Text={"Edit room"}
                 />
-              ) : (
-                <CancelIcon
-                  sx={{
-                    fontSize: "16px",
-                    margin: "0px 8px -3px 0px",
-                    color: "#f57c00",
-                  }}
-                />
-              )
-            }
-            Text={"Dynamic"}
-            tooltip={
-              "Canvas cell owners can change cell color of NFT even after canvas expires"
-            }
-          />
-        </Box>
-        <CanvasBox />
+              </Link>
+            </Box>
+            <CanvasBox contract={props.contract} activeAccount={props.activeAccount} id={canvasId}/>
+            <OwnershipGrid />
+          </>
+        )}
       </Box>
     </Box>
   );
@@ -165,13 +266,15 @@ const Strip = (props) => {
 
 const RenderTimer = (props) => {
   const now = dayjs().unix();
-  const [time, setTime] = useState(props.end - now);
+  const [time, setTime] = useState(props.end - dayjs().unix());
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setTime(time - 1);
-    }, 1000);
-    return () => clearTimeout(timer);
-  });
+    if (now <= props.end && now >= props.start) {
+      const timer = setTimeout(() => {
+        setTime(time - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  },[time]);
   return (
     <Strip
       Icon={
@@ -179,7 +282,7 @@ const RenderTimer = (props) => {
           sx={{
             color:
               now >= props.start
-                ? time > 0
+                ? now <= props.end 
                   ? "#02be01"
                   : "#f57c00"
                 : "#42a5f5",
@@ -190,7 +293,7 @@ const RenderTimer = (props) => {
       }
       Text={
         now >= props.start
-          ? time > 0
+          ? now <= props.end
             ? `${Math.floor(time / 86400)} days : ${Math.floor(
                 (time % 86400) / 3600
               )} hrs : ${Math.floor(

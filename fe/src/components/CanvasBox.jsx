@@ -18,8 +18,11 @@ import SquareIcon from "@mui/icons-material/Square";
 import PaletteIcon from "@mui/icons-material/Palette";
 import CircleIcon from "@mui/icons-material/Circle";
 import GavelIcon from "@mui/icons-material/Gavel";
-import { colors } from "../constants";
+import { colors, SYMBOL } from "../constants";
 import { useState } from "react";
+import { useEffect } from "react";
+import { Keyring } from "@polkadot/api";
+const keyring = new Keyring({ type: "sr25519" });
 
 export default function CanvasBox(props) {
   const renderColorSelectionButtons = () => {
@@ -43,19 +46,61 @@ export default function CanvasBox(props) {
   };
 
   const [gridData, setGridData] = useState();
-
   const [selectedCell, setSelectedCell] = useState({
     row: 0,
     column: 0,
   });
-
+  const [transaction, setTransaction] = useState({ color: "0", bid: 0 });
   const [selectedCellDetails, setSelectedCellDetails] = useState({
-    owner: "5Gs5gfzHkBsRt97qgmvBW2qX6M7FPXP8cJkAj7T7kNFbGVvG",
-    bidPrice: "234 EDG",
-    color: "5",
+    owner: "----------------------------------------------------",
+    bidPrice: "0 " + SYMBOL,
+    color: "0",
   });
 
-  const [transaction, setTransaction] = useState({ color: "4", bid: 50.67 });
+  function changeAddressEncoding(address, toNetworkPrefix = 42) {
+    if (!address) {
+      return null;
+    }
+    const pubKey = keyring.decodeAddress(address);
+    const encodedAddress = keyring.encodeAddress(pubKey, toNetworkPrefix);
+    return encodedAddress;
+  }
+
+  const getCellDetails = async () => {
+    if(props.activeAccount && props.contract) {
+      console.log("Fetching cell details");
+      await props.contract.query.getCellDetails(
+        props.activeAccount.address,
+        {
+          value: 0,
+          gasLimit: -1,
+        },
+        props.Id,
+        selectedCell.row,
+        selectedCell.column
+      ).then((res) => {
+        if(!res.result.toHuman().Err) {
+          res = res.output?.toHuman();
+          console.log(res);
+          setSelectedCellDetails({
+            ...selectedCellDetails,
+            owner: res.creator,
+            bidPrice: "",
+            color: "",
+          })
+        } else {
+          console.log("Error on get cell details", res.result.toHuman());
+        }
+      }).catch((err) => {
+        console.log("Error calling cell details");
+      })
+    }
+  }
+
+  useEffect(() => {
+    getCellDetails();
+  }, [selectedCell]);
+
 
   return (
     <Box component="div" id="canvasBoxWrapperContainer">

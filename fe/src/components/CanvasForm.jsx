@@ -35,6 +35,9 @@ export default function CanvasForm(props) {
   const [isOwner, setIsOwner] = useState(false);
   const { canvasId } = useParams();
   const [isInvalidId, setIsInvalidId] = useState(false);
+  useEffect(() => {
+    window.scrollTo(0,0);
+}, []);
   const handleTitleChange = (e) => {
     setTitle(e.target.value);
   };
