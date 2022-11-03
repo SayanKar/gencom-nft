@@ -102,35 +102,24 @@ export default function DisplayCard(props) {
 
   return (
     <Box sx={{ position: "relative" }}>
-      {props.isProfile && (
-        <Tooltip arrow title={props.isNFT ? "You have 5 NFTs" : "Edit Canvas"}>
+      {props.isProfile && (parseInt(roomStatus) !== 2) && (
+        <Tooltip arrow title={parseInt(roomStatus) ? "Room is live" : "Edit Canvas"}>
           <Box
             sx={{
-              width: "30px",
-              height: "30px",
+              width: "27px",
+              height: "27px",
               borderRadius: "50%",
               position: "absolute",
               top: "-10px",
               right: "-5px",
-              background: props.isNFT ? "red" : "#E8E8E8",
+              background: parseInt(roomStatus) ? "green" : "#E8E8E8",
               zIndex: 3,
               display: "flex",
               alignItems: "center",
               cursor: "pointer",
             }}
           >
-            {props.isNFT && (
-              <Typography
-                sx={{
-                  width: "30px",
-                  color: "white",
-                  fontFamily: "'Fredoka One', cursive",
-                }}
-              >
-                {"1" <= 9 ? "1" : "9+"}
-              </Typography>
-            )}
-            {props.isEdit && (
+            {!parseInt(roomStatus) && (
               <Link to={"/edit/" + props.id} style={{ fontSize: "20px", margin: "0 auto" }}>
                 <EditIcon sx={{ fontSize: "20px", margin: "0 auto" }} />
               </Link>
