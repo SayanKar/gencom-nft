@@ -218,7 +218,7 @@ mod creative_nft {
     }
 
     /// Breaks the token id into (CanvasId, cord_X, cord_Y)
-    fn decode(id: TokenId) -> (CanvasId, u8, u8) {
+    fn decode(id: &TokenId) -> (CanvasId, u8, u8) {
         let canvas_id: CanvasId = (id / 1_000_000).try_into().unwrap();
         let cord_x: u8 = ((id / 1000) % 1000).try_into().unwrap();
         let cord_y: u8 = (id % 1000).try_into().unwrap();
@@ -303,8 +303,9 @@ mod creative_nft {
                 for y in 0..dimensions.1 {
                     let token_id = encode(canvas_id, x, y);
                     idx += 1;
-                    self.grids.insert(&encode(canvas_id, x, y), &cell);
-                    self.owned_tokens.insert(&(caller, canvas_id, idx), &token_id);
+                    self.grids.insert(&token_id, &cell);
+                    self.owned_tokens
+                        .insert(&(caller, canvas_id, idx), &token_id);
                     self.owned_tokens_index.insert(&token_id, &(canvas_id, idx));
                 }
             }
@@ -369,21 +370,16 @@ mod creative_nft {
         }
 
         #[ink(message, payable)]
-        pub fn capture_cell(
-            &mut self,
-            canvas_id: CanvasId,
-            cord_x: u8,
-            cord_y: u8,
-            color: Option<Colors>,
-        ) -> Result<()> {
+        pub fn capture_cell(&mut self, token_id: TokenId, color: Option<Colors>) -> Result<()> {
             let caller = self.env().caller();
+            let (canvas_id, _, _) = decode(&token_id);
             let canvas = self.get_canvas_details(canvas_id)?;
 
             if self.env().block_timestamp() > canvas.end_time {
                 return Err(Error::NotAllowed);
             }
 
-            let cell = self.get_cell_details(canvas_id, cord_x, cord_y)?;
+            let cell = self.get_cell_details(token_id)?;
             let price = cell.value * (100 + canvas.premium as u128) / 100;
             let bid = self.env().transferred_value();
 
@@ -446,7 +442,7 @@ mod creative_nft {
             if !canvas.is_dynamic && self.env().block_timestamp() > canvas.end_time {
                 return Err(Error::NotAllowed);
             }
-            self.change_color(canvas_id, cord_x, cord_y, &new_color);
+            self.change_color(&canvas_id, &cord_x, &cord_y, &new_color);
             Ok(())
         }
 
@@ -463,7 +459,7 @@ mod creative_nft {
             }
 
             data.iter().for_each(|(cord_x, cord_y, new_color)| {
-                self.change_color(canvas_id, *cord_x, *cord_y, new_color);
+                self.change_color(&canvas_id, cord_x, cord_y, new_color);
             });
             Ok(())
         }
@@ -496,7 +492,8 @@ mod creative_nft {
             for x in 0..canvas.dimensions.0 {
                 let mut row: Vec<Cell> = Vec::with_capacity(canvas.dimensions.1.into());
                 for y in 0..canvas.dimensions.1 {
-                    let cell = self.get_cell_details(canvas_id, x, y)?;
+                    let token_id = encode(canvas_id, x, y);
+                    let cell = self.get_cell_details(token_id)?;
                     row.push(cell);
                 }
                 grid.push(row);
@@ -516,7 +513,8 @@ mod creative_nft {
                 let mut row: Vec<u32> = Vec::new();
                 row.reserve_exact(canvas.dimensions.1.into());
                 for y in 0..canvas.dimensions.1 {
-                    let color = self.get_cell_details(canvas_id, x, y)?.color;
+                    let token_id = encode(canvas_id, x, y);
+                    let color = self.get_cell_details(token_id)?.color;
                     row.push(color);
                 }
                 grid.push(row);
@@ -525,15 +523,8 @@ mod creative_nft {
         }
 
         #[ink(message)]
-        pub fn get_cell_details(
-            &self,
-            canvas_id: CanvasId,
-            cord_x: u8,
-            cord_y: u8,
-        ) -> Result<Cell> {
-            self.grids
-                .get(&encode(canvas_id, cord_x, cord_y))
-                .ok_or(Error::TokenNotFound)
+        pub fn get_cell_details(&self, token_id: TokenId) -> Result<Cell> {
+            self.grids.get(&token_id).ok_or(Error::TokenNotFound)
         }
 
         #[ink(message)]
@@ -564,7 +555,10 @@ mod creative_nft {
 
         #[ink(message)]
         pub fn get_user_nfts(&self, acc: AccountId, canvas_id: CanvasId) -> Vec<TokenId> {
-            let count = self.owned_tokens.get(&(acc, canvas_id, 0)).unwrap_or_default();
+            let count = self
+                .owned_tokens
+                .get(&(acc, canvas_id, 0))
+                .unwrap_or_default();
 
             (1..=count)
                 .into_iter()
@@ -586,18 +580,16 @@ mod creative_nft {
 
         fn change_color(
             &mut self,
-            canvas_id: CanvasId,
-            cord_x: u8,
-            cord_y: u8,
+            canvas_id: &CanvasId,
+            cord_x: &u8,
+            cord_y: &u8,
             new_color: &Colors,
         ) {
-            let mut cell = self
-                .get_cell_details(canvas_id, cord_x, cord_y)
-                .expect("cell not found");
+            let token_id = encode(*canvas_id, *cord_x, *cord_y);
+            let mut cell = self.get_cell_details(token_id).expect("cell not found");
             assert!(self.env().caller() == cell.owner, "Not Authorised");
 
             cell.color = Colors::color_code(new_color);
-            let token_id = encode(canvas_id, cord_x, cord_y);
             self.grids.insert(&token_id, &cell);
 
             self.env().emit_event(TokenColor {
@@ -616,8 +608,7 @@ mod creative_nft {
 
         #[ink(message)]
         pub fn owner_of(&self, id: TokenId) -> Option<AccountId> {
-            let (canvas_id, cord_x, cord_y) = decode(id);
-            match self.get_cell_details(canvas_id, cord_x, cord_y) {
+            match self.get_cell_details(id) {
                 Ok(cell) => Some(cell.owner),
                 Err(_) => None,
             }
@@ -694,9 +685,7 @@ mod creative_nft {
             self.remove_token_from(&id, &from);
             self.add_token_to(&id, &to);
 
-            // 3. Update grid
-            let (canvas_id, cord_x, cord_y) = decode(id);
-            let mut cell = self.get_cell_details(canvas_id, cord_x, cord_y)?;
+            let mut cell = self.get_cell_details(id)?;
             cell.owner = to;
             self.grids.insert(&id, &cell);
 
@@ -714,8 +703,10 @@ mod creative_nft {
 
             if idx != count {
                 let last_token_id = self.owned_tokens.get((from, canvas_id, count)).unwrap();
-                self.owned_tokens_index.insert(&last_token_id, &(canvas_id, idx));
-                self.owned_tokens.insert((from, canvas_id, idx), &last_token_id);
+                self.owned_tokens_index
+                    .insert(&last_token_id, &(canvas_id, idx));
+                self.owned_tokens
+                    .insert((from, canvas_id, idx), &last_token_id);
             }
             self.owned_tokens.remove((from, canvas_id, count));
             self.owned_tokens.insert((from, canvas_id, 0), &(count - 1));
@@ -724,10 +715,14 @@ mod creative_nft {
 
         fn add_token_to(&mut self, token_id: &TokenId, to: &AccountId) {
             let (canvas_id, _, _) = decode(token_id);
-            let pos = self.owned_tokens.get((to, canvas_id, 0)).unwrap_or_default() + 1;
+            let pos = self
+                .owned_tokens
+                .get((to, canvas_id, 0))
+                .unwrap_or_default()
+                + 1;
             self.owned_tokens_index.insert(&token_id, &(canvas_id, pos));
             self.owned_tokens.insert((to, canvas_id, pos), token_id);
-            self.update_balance(&to, &1, &false);   // See if it should be included or kept outside
+            self.update_balance(&to, &1, &false); // See if it should be included or kept outside
         }
 
         fn approved_or_owner(&self, caller: &AccountId, id: &TokenId) -> Result<()> {
