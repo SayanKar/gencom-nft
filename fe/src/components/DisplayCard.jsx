@@ -48,6 +48,8 @@ export default function DisplayCard(props) {
 
   const [canvasDetails, setCanvasDetails] = useState(null);
   const [roomStatus, setRoomStatus] = useState("0");
+  const [totalBids, setTotalBids] = useState(0);
+  const [totalParticipants, setTotalParticipants] = useState(0);
 
   useEffect(() => {
     const getCanvasDetails = async () => {
@@ -55,22 +57,22 @@ export default function DisplayCard(props) {
         console.log("Fetching Canvas Details: ", props.id);
         await props.contract.query.getCanvasDetails(
           props.activeAccount.address, {
-            value: 0,
-            gasLimit: -1,
-          },
+          value: 0,
+          gasLimit: -1,
+        },
           props.id
         )
-        .then((res) => {
-          if (!res.result.toHuman().Err) {
-            console.log('Successfully fetched canvas ' + props.id + ' details');
-            setCanvasDetails(res.output.toHuman().Ok);
-          } else {
-            console.log('Error fetching canvas details', res.result.toHuman());
-          }
-        })
-        .catch((err) => {
-          console.log("Error while fetching canvas details: ", err);
-        });
+          .then((res) => {
+            if (!res.result.toHuman().Err) {
+              console.log('Successfully fetched canvas ' + props.id + ' details');
+              setCanvasDetails(res.output.toHuman().Ok);
+            } else {
+              console.log('Error fetching canvas details', res.result.toHuman());
+            }
+          })
+          .catch((err) => {
+            console.log("Error while fetching canvas details: ", err);
+          });
       }
     };
     getCanvasDetails();
@@ -84,8 +86,8 @@ export default function DisplayCard(props) {
       }
       console.log("setting room status");
       const now = dayjs();
-      const startTime = dayjs.unix(parseInt(canvasDetails.startTime.replace(/,/g,"")));
-      const endTime = dayjs.unix(parseInt(canvasDetails.endTime.replace(/,/g,"")));
+      const startTime = dayjs.unix(parseInt(canvasDetails.startTime.replace(/,/g, "")));
+      const endTime = dayjs.unix(parseInt(canvasDetails.endTime.replace(/,/g, "")));
       if (now.isBefore(startTime)) {
         setRoomStatus("0");
       }
@@ -99,6 +101,34 @@ export default function DisplayCard(props) {
     getRoomStatus();
   }, [canvasDetails]);
 
+
+  useEffect(() => {
+    const getCanvasStats = async () => {
+      if (props.contract && props.activeAccount) {
+        console.log("Fetching Canvas stats: ", props.id);
+        await props.contract.query.getCanvasStats(
+          props.activeAccount.address, {
+          value: 0,
+          gasLimit: -1,
+        },
+          props.id
+        )
+          .then((res) => {
+            if (!res.result.toHuman().Err) {
+              console.log('Successfully fetched canvas ' + props.id + ' stats');
+              setTotalBids(res.output.toHuman().totalBids);
+              setTotalParticipants(res.output.toHuman().totalParticipants);
+            } else {
+              console.log('Error fetching canvas stats', res.result.toHuman().Err);
+            }
+          })
+          .catch((err) => {
+            console.log("Error while fetching canvas stats: ", err);
+          });
+      }
+    };
+    getCanvasStats();
+  }, [props.contract, props.activeAccount]);
 
   return (
     <Box sx={{ position: "relative" }}>
@@ -188,7 +218,7 @@ export default function DisplayCard(props) {
                   variant="subtitle1"
                   align="right"
                 >
-                  100 Bids
+                  {totalBids} Bids
                 </Typography>
                 <Circle sx={{ margin: "14px 5px", fontSize: "9px" }} />
                 <Typography
@@ -203,7 +233,7 @@ export default function DisplayCard(props) {
                   variant="subtitle1"
                   align="left"
                 >
-                  100 Bids
+                  {totalParticipants} Bidders
                 </Typography>
               </Stack>
               <Typography
