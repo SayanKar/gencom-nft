@@ -189,7 +189,7 @@ export default function CanvasForm(props) {
           .createCanvas(
             props.activeAccount.address,
             {
-              value: 0,
+              value: new BN(creationFee * 1000000).mul(new BN(PRECISION)),
               gasLimit: -1,
             },
             title,
@@ -211,7 +211,7 @@ export default function CanvasForm(props) {
               await props.contract.tx
                 .createCanvas(
                   {
-                    value: 0,
+                    value:  new BN(creationFee * 1000000).mul(new BN(PRECISION)),
                     gasLimit: 300000n * 1000000n,
                   },
                   title,
@@ -279,8 +279,8 @@ export default function CanvasForm(props) {
             canvasId
           )
           .then((res) => {
-            console.log(res.output.toHuman());
-            if (!res.result?.toHuman()?.Err) {
+            console.log(res.output.toHuman())
+            if (!res.output?.toHuman()?.Err) {
               res = res.output?.toHuman();
               if (res === null) {
                 setIsInvalidId(true);
@@ -297,12 +297,17 @@ export default function CanvasForm(props) {
                 setIsDynamic(res.isDynamic);
                 setStartTimeValue(dayjs.unix(res.startTime.replace(/,/g, "")));
                 setEndTimeValue(dayjs.unix(res.endTime.replace(/,/g, "")));
+                setIsOwner(false);
+                setIsInvalidId(false);
               }
             } else {
               console.log(
                 "Error fetching canvas Details,",
-                res.result?.toHuman()?.Err
+                res.output?.toHuman()?.Err
               );
+              if(res.output?.toHuman()?.Err === 'CanvasNotFound') {
+                setIsInvalidId(true);
+              }
             }
           })
           .catch((err) => {
@@ -334,7 +339,7 @@ export default function CanvasForm(props) {
           .then((res) => {
             if (!res.result?.toHuman()?.Err) {
               console.log("Successfully updated creation Fee");
-              setCreationFee(res.output.toHuman()[2]);
+              setCreationFee((new BN(res.output.toHuman()[2].replace(/,/g, "")).div(new BN(PRECISION))).toNumber() / 1000_000);
             } else {
               console.log("Error fetching Creation Fee", res.output.toHuman());
             }

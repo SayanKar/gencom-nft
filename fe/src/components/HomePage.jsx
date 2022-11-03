@@ -26,7 +26,6 @@ export default function HomePage(props) {
     window.scrollTo(0, 0);
   }, []);
 
-  // Fetch gameDetails [0 , *1, 2]
   useEffect(() => {
     const getRoomList = async () => {
       if (props.contract && props.activeAccount) {
@@ -37,12 +36,12 @@ export default function HomePage(props) {
             gasLimit: -1,
           })
           .then((res) => {
-            if (!res.output.toHuman().Err) {
+            if (!res.result.toHuman().Err) {
               console.log('Successfully fetched room list!!');
-              console.log(res.output.toHuman()); // remove later
+              console.log(res.output.toHuman());
               setHighestRoomId(parseInt(res.output.toHuman()[1]));
             } else {
-              console.log("Error fetching room ", res.output.toHuman().Err);
+              console.log("Error fetching room ", res.result.toHuman().Err);
             }
           })
           .catch((err) => {

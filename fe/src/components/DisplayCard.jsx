@@ -63,7 +63,7 @@ export default function DisplayCard(props) {
         .then((res) => {
           if (!res.result.toHuman().Err) {
             console.log('Successfully fetched canvas ' + props.id + ' details');
-            setCanvasDetails(res.output.toHuman());
+            setCanvasDetails(res.output.toHuman().Ok);
           } else {
             console.log('Error fetching canvas details', res.result.toHuman());
           }
