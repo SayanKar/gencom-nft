@@ -4,12 +4,18 @@ import { useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import CardList from "./CardList";
 import { useEffect, useState } from "react";
+import { PRECISION, SYMBOL } from "../constants";
 export default function Profile(props) {
   const { address } = useParams();
   const { enqueueSnackbar } = useSnackbar();
+  const BN = require("bn.js");
 
   const [userCreatedCanvasIds, setUserCreatedCanvasIds] = useState([]);
   const [userParticipatedCanvasIds, setUserParticipatedCanvasIds] = useState([]);
+  const [totalSpent, setTotalSpent] = useState(0);
+  const [totalReceived, setTotalReceived] = useState(0);
+  const [userNFTCount, setUserNFTCount] = useState(0);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -66,6 +72,62 @@ export default function Profile(props) {
       }
     };
     getUserParticipatedCanvasIds();
+  }, [props.contract, props.activeAccount]);
+
+  useEffect(() => {
+    const getUserCashFlow = async () => {
+      if (props.contract && props.activeAccount) {
+        console.log("Fetching user cash flow..");
+        await props.contract.query.getUserCashFlow(
+          props.activeAccount.address, {
+          value: 0,
+          gasLimit: -1,
+        },
+          props.activeAccount.address
+        )
+          .then((res) => {
+            if (!res.result.toHuman().Err) {
+              console.log("Successfully fetched user cash flow data...");
+              setTotalSpent((new BN(res.output.toHuman()[0].replace(/,/g, "")).div(new BN(PRECISION))).toNumber() / 1000_000);
+              setTotalReceived((new BN(res.output.toHuman()[1].replace(/,/g, "")).div(new BN(PRECISION))).toNumber() / 1000_000);
+            } else {
+              console.log("Error fetching user cash flow data", res.result.toHuman().Err);
+            }
+          })
+          .catch((err) => {
+            console.log("Error while fetching user cash flow data: ", err);
+          });
+      }
+    };
+    getUserCashFlow();
+  }, [props.contract, props.activeAccount]);
+
+  useEffect(() => {
+    const getUserNFTCount = async () => {
+      if (props.contract && props.activeAccount) {
+        console.log("Fetching user NFT count..");
+        await props.contract.query.balanceOf(
+          props.activeAccount.address, {
+          value: 0,
+          gasLimit: -1,
+        },
+          props.activeAccount.address
+        )
+          .then((res) => {
+            if (!res.result.toHuman().Err) {
+              console.log("Successfully fetched user NFT count...");
+              setUserNFTCount(res.output.toHuman());
+
+            } else {
+              console.log("Error fetching user NFT count", res.result.toHuman().Err);
+            }
+          })
+          .catch((err) => {
+            console.log("Error while fetching user NFT count: ", err);
+          });
+      }
+    };
+    getUserNFTCount();
   }, [props.contract, props.activeAccount]);
 
   return (
@@ -130,7 +192,7 @@ export default function Profile(props) {
               fontWeight: "700",
             }}
           >
-            NFTs: 15
+            NFTs: {userNFTCount}
           </Typography>
           <Typography
             variant="subtitle1"
@@ -142,7 +204,7 @@ export default function Profile(props) {
               fontWeight: "700",
             }}
           >
-            Total Spent: 5 EDG
+            Total Spent: {totalSpent} EDG
           </Typography>
           <Typography
             variant="subtitle1"
@@ -154,7 +216,7 @@ export default function Profile(props) {
               fontWeight: "700",
             }}
           >
-            Received: 50EDG
+            Received: {totalReceived} EDG
           </Typography>
         </Box>
         <CardList
