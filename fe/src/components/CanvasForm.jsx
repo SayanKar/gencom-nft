@@ -35,6 +35,7 @@ export default function CanvasForm(props) {
   const [isOwner, setIsOwner] = useState(false);
   const { canvasId } = useParams();
   const [isInvalidId, setIsInvalidId] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   useEffect(() => {
     window.scrollTo(0,0);
 }, []);
@@ -257,6 +258,7 @@ export default function CanvasForm(props) {
       enqueueSnackbar("Connect your account", { variant: "error" });
     }
   };
+
   function changeAddressEncoding(address, toNetworkPrefix = 42) {
     if (!address) {
       return null;
@@ -265,6 +267,7 @@ export default function CanvasForm(props) {
     const encodedAddress = keyring.encodeAddress(pubKey, toNetworkPrefix);
     return encodedAddress;
   }
+
   useEffect(() => {
     const canvasDetails = async () => {
       if (props.activeAccount && props.contract && props.isEdit) {
@@ -279,9 +282,8 @@ export default function CanvasForm(props) {
             canvasId
           )
           .then((res) => {
-            console.log(res.output.toHuman())
             if (!res.output?.toHuman()?.Err) {
-              res = res.output?.toHuman();
+              res = res.output?.toHuman().Ok;
               if (res === null) {
                 setIsInvalidId(true);
               } else if (
@@ -290,7 +292,9 @@ export default function CanvasForm(props) {
               ) {
                 setIsOwner(true);
                 console.log("You are not the owner");
-              } else {
+              } else if(dayjs().isAfter(dayjs.unix(res.startTime.replace(/,/g, "")))) {
+                setHasStarted(true);
+              }else {
                 setTitle(res.title);
                 setDesc(res.desc);
                 setPremium(res.premium);
@@ -299,6 +303,7 @@ export default function CanvasForm(props) {
                 setEndTimeValue(dayjs.unix(res.endTime.replace(/,/g, "")));
                 setIsOwner(false);
                 setIsInvalidId(false);
+                setHasStarted(false);
               }
             } else {
               console.log(
@@ -322,6 +327,8 @@ export default function CanvasForm(props) {
         setEndTimeValue(currentTime.add(6, "hour"));
         setCellPrice(0);
         setIsInvalidId(false);
+        setHasStarted(false);
+        setIsOwner(false);
       }
     };
     canvasDetails();
@@ -361,7 +368,7 @@ export default function CanvasForm(props) {
         justifyContent: "center",
       }}
     >
-      {!props.activeAccount ? (
+      {!props.activeAccount || (props.isEdit && isInvalidId ) || hasStarted ? (
         <Paper
           sx={{
             width: "400px",
@@ -376,25 +383,9 @@ export default function CanvasForm(props) {
             align="center"
             variant="h5"
           >
-            Connect your wallet
-          </Typography>
-        </Paper>
-      ) : props.isEdit && isInvalidId ? (
-        <Paper
-          sx={{
-            width: "400px",
-            height: "fit-content",
-            padding: "40px",
-            margin: "140px 0px",
-          }}
-          elevation={10}
-        >
-          <Typography
-            sx={{ width: "100%", fontWeight: "500", color: "#333652" }}
-            align="center"
-            variant="h5"
-          >
-            Invalid canvas room Id
+            {
+              !props.activeAccount ? "Connect your wallet" : (props.isEdit && isInvalidId ) ? "Invalid canvas room Id" : "Cannot edit canvas once started"
+            }
           </Typography>
         </Paper>
       ) : (
