@@ -91,20 +91,19 @@ mod creative_nft {
         approved: bool,
     }
 
-    #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode)]
-    #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
-    pub enum State {
-        New(AccountId),
-        Edited,
-        Minted(AccountId),
-    }
-
-    /// Event emitted when a new canvas is created|edited|minted
+    /// Event emitted when a new canvas is created
     #[ink(event)]
-    pub struct CanvasStatus {
+    pub struct CanvasCreated {
         #[ink(topic)]
         canvas_id: CanvasId,
-        state: State,
+        #[ink(topic)]
+        creator: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct CanvasEdited {
+        #[ink(topic)]
+        canvas_id: CanvasId,
     }
 
     /// Event emitted when the color of token_id is updated
@@ -148,7 +147,7 @@ mod creative_nft {
         TokenLocked,
     }
 
-    #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Clone)]
+    #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Clone, Default)]
     #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
     pub struct Cell {
         owner: AccountId,
@@ -165,6 +164,7 @@ mod creative_nft {
         dimensions: (u8, u8),
         start_time: u64,
         end_time: u64,
+        base_price: Balance,
         premium: u8,
         is_dynamic: bool,
     }
@@ -174,7 +174,6 @@ mod creative_nft {
     pub struct CanvasStats {
         total_bids: u32,
         total_participants: u32,
-        minted: bool,
     }
 
     #[ink(storage)]
@@ -208,6 +207,7 @@ mod creative_nft {
         token_approvals: Mapping<TokenId, AccountId>,
         /// Mapping from owner to operator approvals
         operator_approvals: Mapping<(AccountId, AccountId), ()>,
+        /// Mapping from owner to number of owned token
         balance: Mapping<AccountId, u64>,
     }
 
@@ -287,40 +287,19 @@ mod creative_nft {
                 dimensions,
                 start_time,
                 end_time,
+                base_price,
                 premium,
                 is_dynamic,
             };
             self.canvas_details.insert(&canvas_id, &canvas);
-
-            let cell = Cell {
-                owner: caller,
-                color: Colors::color_code(&Colors::White),
-                value: base_price,
-            };
-
-            let mut idx = 0;
-            for x in 0..dimensions.0 {
-                for y in 0..dimensions.1 {
-                    let token_id = encode(canvas_id, x, y);
-                    idx += 1;
-                    self.grids.insert(&token_id, &cell);
-                    self.owned_tokens
-                        .insert(&(caller, canvas_id, idx), &token_id);
-                    self.owned_tokens_index.insert(&token_id, &(canvas_id, idx));
-                }
-            }
-            self.owned_tokens.insert(&(caller, canvas_id, 0), &idx);
-            self.update_balance(&caller, &idx, &false);
             self.canvas_nonce += 1;
 
-            // update the spending of caller to account for the canvas creation fees
-            let (mut spent, receive) = self.cash_flow.get(&caller).unwrap_or_default();
-            spent += self.env().transferred_value();
-            self.cash_flow.insert(&caller, &(spent, receive));
+            let fees = self.env().transferred_value();
+            self.update_cash_flow(&caller, &None, &fees);
 
-            self.env().emit_event(CanvasStatus {
+            self.env().emit_event(CanvasCreated {
                 canvas_id,
-                state: State::New(caller),
+                creator: caller,
             });
 
             Ok(canvas_id)
@@ -335,6 +314,7 @@ mod creative_nft {
             desc: Option<String>,
             new_start_time: Option<u64>,
             new_end_time: Option<u64>,
+            base_price: Option<Balance>,
             premium: Option<u8>,
             is_dynamic: Option<bool>,
         ) -> Result<()> {
@@ -353,6 +333,7 @@ mod creative_nft {
             let ncanvas = Canvas {
                 title: title.unwrap_or(canvas.title),
                 desc: desc.unwrap_or(canvas.desc),
+                base_price: base_price.unwrap_or(canvas.base_price),
                 premium: premium.unwrap_or(canvas.premium),
                 is_dynamic: is_dynamic.unwrap_or(canvas.is_dynamic),
                 start_time,
@@ -362,16 +343,18 @@ mod creative_nft {
 
             self.canvas_details.insert(&canvas_id, &ncanvas);
 
-            self.env().emit_event(CanvasStatus {
-                canvas_id,
-                state: State::Edited,
-            });
+            self.env().emit_event(CanvasEdited { canvas_id });
             Ok(())
         }
 
         #[ink(message, payable)]
         pub fn capture_cell(&mut self, token_id: TokenId, color: Option<Colors>) -> Result<()> {
             let caller = self.env().caller();
+            let cell = match self.get_cell_details(token_id) {
+                Ok(cell) => cell,
+                Err(_) => return self.mint(&token_id, &caller, &color),
+            };
+
             let (canvas_id, _, _) = decode(&token_id);
             let canvas = self.get_canvas_details(canvas_id)?;
 
@@ -379,7 +362,6 @@ mod creative_nft {
                 return Err(Error::NotAllowed);
             }
 
-            let cell = self.get_cell_details(token_id)?;
             let price = cell.value * (100 + canvas.premium as u128) / 100;
             let bid = self.env().transferred_value();
 
@@ -401,24 +383,8 @@ mod creative_nft {
             };
             self.grids.insert(&token_id, &ncell);
 
-            let (mut spent, receive) = self.cash_flow.get(&caller).unwrap_or_default();
-            spent += bid;
-            self.cash_flow.insert(&caller, &(spent, receive));
-
-            let (spent, mut receive) = self.cash_flow.get(&cell.owner).unwrap_or_default();
-            receive += bid;
-            self.cash_flow.insert(&caller, &(spent, receive));
-
-            let mut stats = self.canvas_analytics.get(&canvas_id).unwrap_or_default();
-            stats.total_bids += 1;
-            stats.total_participants += match self
-                .participants
-                .insert_return_size(&(canvas_id, caller), &())
-            {
-                Some(_) => 0,
-                None => 1,
-            };
-            self.canvas_analytics.insert(&canvas_id, &stats);
+            self.update_cash_flow(&caller, &Some(cell.owner), &bid);
+            self.update_canvas_analytics(&canvas_id, &caller);
 
             self.env().emit_event(TokenCaptured {
                 token_id,
@@ -493,7 +459,7 @@ mod creative_nft {
                 let mut row: Vec<Cell> = Vec::with_capacity(canvas.dimensions.1.into());
                 for y in 0..canvas.dimensions.1 {
                     let token_id = encode(canvas_id, x, y);
-                    let cell = self.get_cell_details(token_id)?;
+                    let cell = self.get_cell_details(token_id).unwrap_or_default();
                     row.push(cell);
                 }
                 grid.push(row);
@@ -514,7 +480,10 @@ mod creative_nft {
                 row.reserve_exact(canvas.dimensions.1.into());
                 for y in 0..canvas.dimensions.1 {
                     let token_id = encode(canvas_id, x, y);
-                    let color = self.get_cell_details(token_id)?.color;
+                    let color = match self.get_cell_details(token_id) {
+                        Ok(cell) => cell.color,
+                        Err(_) => Colors::color_code(&Colors::White),
+                    };
                     row.push(color);
                 }
                 grid.push(row);
@@ -596,6 +565,74 @@ mod creative_nft {
                 token_id,
                 color: *new_color,
             });
+        }
+
+        fn mint(
+            &mut self,
+            token_id: &TokenId,
+            owner: &AccountId,
+            color: &Option<Colors>,
+        ) -> Result<()> {
+            let (canvas_id, cord_x, cord_y) = decode(&token_id);
+            let canvas = self.get_canvas_details(canvas_id)?;
+
+            let time = self.env().block_timestamp();
+            if time < canvas.start_time || time > canvas.end_time {
+                return Err(Error::NotAllowed);
+            }
+            if cord_x >= canvas.dimensions.0 || cord_y >= canvas.dimensions.1 {
+                return Err(Error::TokenNotFound);
+            }
+
+            let bid = self.env().transferred_value();
+            if bid < canvas.base_price {
+                return Err(Error::InsufficientFunds);
+            }
+
+            self.env()
+                .transfer(canvas.creator, bid)
+                .expect("transfer failed");
+
+            let cell = Cell {
+                owner: *owner,
+                value: bid,
+                color: color.unwrap_or(Colors::White).color_code(),
+            };
+            self.grids.insert(&token_id, &cell);
+
+            self.add_token_to(&token_id, &owner);
+            self.update_cash_flow(&owner, &Some(canvas.creator), &bid);
+            self.update_canvas_analytics(&canvas_id, &owner);
+
+            self.env().emit_event(Transfer {
+                from: None,
+                to: Some(*owner),
+                id: *token_id,
+            });
+            Ok(())
+        }
+
+        fn update_cash_flow(&mut self, from: &AccountId, to: &Option<AccountId>, val: &Balance) {
+            let (mut spent, receive) = self.cash_flow.get(&from).unwrap_or_default();
+            spent += val;
+            self.cash_flow.insert(&from, &(spent, receive));
+
+            if let Some(to) = to {
+                let (spent, mut receive) = self.cash_flow.get(&to).unwrap_or_default();
+                receive += val;
+                self.cash_flow.insert(&to, &(spent, receive));
+            }
+        }
+
+        fn update_canvas_analytics(&mut self, canvas_id: &CanvasId, user: &AccountId) {
+            let mut stats = self.canvas_analytics.get(canvas_id).unwrap_or_default();
+            stats.total_bids += 1;
+            stats.total_participants +=
+                match self.participants.insert_return_size((canvas_id, user), &()) {
+                    Some(_) => 0,
+                    None => 1,
+                };
+            self.canvas_analytics.insert(&canvas_id, &stats);
         }
     }
 
@@ -685,7 +722,7 @@ mod creative_nft {
             self.remove_token_from(&id, &from);
             self.add_token_to(&id, &to);
 
-            let mut cell = self.get_cell_details(id)?;
+            let mut cell = self.get_cell_details(id).unwrap();
             cell.owner = to;
             self.grids.insert(&id, &cell);
 
@@ -722,6 +759,7 @@ mod creative_nft {
                 + 1;
             self.owned_tokens_index.insert(&token_id, &(canvas_id, pos));
             self.owned_tokens.insert((to, canvas_id, pos), token_id);
+            self.owned_tokens.insert((to, canvas_id, 0), &pos);
             self.update_balance(&to, &1, &false); // See if it should be included or kept outside
         }
 
@@ -752,7 +790,7 @@ mod creative_nft {
         }
 
         fn update_balance(&mut self, acc: &AccountId, amt: &u64, negative: &bool) {
-            let mut balance = self.balance.get(acc).unwrap();
+            let mut balance = self.balance.get(acc).unwrap_or(0);
             if *negative {
                 assert!(*amt <= balance, "underflow");
                 balance -= amt;
