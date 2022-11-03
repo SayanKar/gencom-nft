@@ -11,8 +11,9 @@ export default function Profile(props) {
   const [userCreatedCanvasIds, setUserCreatedCanvasIds] = useState([]);
   const [userParticipatedCanvasIds, setUserParticipatedCanvasIds] = useState([]);
   useEffect(() => {
-    window.scrollTo(0,0);
-}, []);
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     const getUserCreatedCanvasIds = async () => {
       if (props.contract && props.activeAccount) {
@@ -22,19 +23,19 @@ export default function Profile(props) {
           value: 0,
           gasLimit: -1,
         },
-        props.activeAccount.address
+          props.activeAccount.address
         )
-        .then((res) => {
-          if (!res.output.toHuman().Err) {
-            console.log('Succesfully fetched user created canvas ids');
-            setUserCreatedCanvasIds(res.output.toHuman());
-          } else {
-            console.log("Error fetching user created canvas ids", res.output.toHuman());
-          }
-        })
-        .catch((err) => {
-          console.log('Error while fetching user created canvas ids: ', err);
-        });
+          .then((res) => {
+            if (!res.output.toHuman().Err) {
+              console.log('Succesfully fetched user created canvas ids');
+              setUserCreatedCanvasIds(res.output.toHuman());
+            } else {
+              console.log("Error fetching user created canvas ids", res.output.toHuman());
+            }
+          })
+          .catch((err) => {
+            console.log('Error while fetching user created canvas ids: ', err);
+          });
       }
     };
     getUserCreatedCanvasIds();
@@ -49,19 +50,19 @@ export default function Profile(props) {
           value: 0,
           gasLimit: -1,
         },
-        props.activeAccount.address
+          props.activeAccount.address
         )
-        .then((res) => {
-          if (!res.output.toHuman().Err) {
-            console.log('Succesfully fetched user participated canvas ids');
-            setUserParticipatedCanvasIds(res.output.toHuman());
-          } else {
-            console.log("Error fetching user participated canvas ids", res.output.toHuman());
-          }
-        })
-        .catch((err) => {
-          console.log('Error while fetching user participated canvas ids: ', err);
-        });
+          .then((res) => {
+            if (!res.output.toHuman().Err) {
+              console.log('Succesfully fetched user participated canvas ids');
+              setUserParticipatedCanvasIds(res.output.toHuman());
+            } else {
+              console.log("Error fetching user participated canvas ids", res.output.toHuman());
+            }
+          })
+          .catch((err) => {
+            console.log('Error while fetching user participated canvas ids: ', err);
+          });
       }
     };
     getUserParticipatedCanvasIds();
@@ -157,15 +158,6 @@ export default function Profile(props) {
           </Typography>
         </Box>
         <CardList
-          ids={[1, 2, 3, 4, 5, 6, 7, 8]}
-          rows={2}
-          title={"Your NFTs"}
-          isNFT={true}
-          isProfile={true}
-          contract={props.contract}
-          activeAccount={props.activeAccount}
-        />
-        <CardList
           ids={userCreatedCanvasIds}
           rows={2}
           title={"Created Canvas"}
@@ -173,7 +165,7 @@ export default function Profile(props) {
           isEdit={true}
           contract={props.contract}
           activeAccount={props.activeAccount}
-          
+
         />
         <CardList
           ids={userParticipatedCanvasIds}
