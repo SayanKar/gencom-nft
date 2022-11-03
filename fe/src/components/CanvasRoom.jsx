@@ -56,9 +56,8 @@ export default function CanvasRoom(props) {
           canvasId
         )
         .then((res) => {
-          console.log(res.output.toHuman());
-          if (!res.result?.toHuman()?.Err) {
-            res = res.output?.toHuman();
+          if (!res.output?.toHuman()?.Err) {
+            res = res.output?.toHuman()?.Ok;
             if (res === null) {
               setIsInvalidId(true);
             } else {
@@ -83,7 +82,7 @@ export default function CanvasRoom(props) {
           } else {
             console.log(
               "Error fetching canvas Details,",
-              res.result?.toHuman()?.Err
+              res.output?.toHuman()?.Err
             );
           }
         })
@@ -93,8 +92,25 @@ export default function CanvasRoom(props) {
     }
   };
 
+  const getCanvasStats = async () => {
+    if(props.activeAccount && props.contract) {
+      console.log("Fetching Canvas Stats");
+      await props.contract.query.getCanvasStats(
+        props.activeAccount.address,
+        {
+          value: 0,
+          gasLimit: -1,
+        },
+        canvasId,
+      ).then((res) => {
+        console.log(res.output.toHuman(), res.result.toHuman());
+      });
+    }
+  }
+
   useEffect(() => {
     getCanvasDetails();
+    getCanvasStats();
   }, [props.contract, props.activeAccount]);
 
   useEffect(() => {
@@ -266,7 +282,7 @@ const Strip = (props) => {
 
 const RenderTimer = (props) => {
   const now = dayjs().unix();
-  const [time, setTime] = useState(props.end - dayjs().unix());
+  const [time, setTime] = useState(props.end - now);
   useEffect(() => {
     if (now <= props.end && now >= props.start) {
       const timer = setTimeout(() => {

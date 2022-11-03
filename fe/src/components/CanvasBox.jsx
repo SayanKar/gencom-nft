@@ -18,12 +18,12 @@ import SquareIcon from "@mui/icons-material/Square";
 import PaletteIcon from "@mui/icons-material/Palette";
 import CircleIcon from "@mui/icons-material/Circle";
 import GavelIcon from "@mui/icons-material/Gavel";
-import { colors, SYMBOL } from "../constants";
+import { colors, PRECISION, SYMBOL } from "../constants";
 import { useState } from "react";
 import { useEffect } from "react";
 import { Keyring } from "@polkadot/api";
 const keyring = new Keyring({ type: "sr25519" });
-
+const BN = require("bn.js");
 export default function CanvasBox(props) {
   const renderColorSelectionButtons = () => {
     let list = [];
@@ -53,7 +53,7 @@ export default function CanvasBox(props) {
   const [transaction, setTransaction] = useState({ color: "0", bid: 0 });
   const [selectedCellDetails, setSelectedCellDetails] = useState({
     owner: "----------------------------------------------------",
-    bidPrice: "0 " + SYMBOL,
+    bidPrice: "0 ",
     color: "0",
   });
 
@@ -79,20 +79,21 @@ export default function CanvasBox(props) {
         selectedCell.row,
         selectedCell.column
       ).then((res) => {
-        if(!res.result.toHuman().Err) {
-          res = res.output?.toHuman();
+        console.log(res);
+        if(!res.output.toHuman().Err) {
+          res = res.output?.toHuman().Ok;
           console.log(res);
           setSelectedCellDetails({
             ...selectedCellDetails,
-            owner: res.creator,
-            bidPrice: "",
-            color: "",
+            owner: changeAddressEncoding(res.owner),
+            bidPrice: (new BN(res.value.replace(/,/g, "")).div(new BN(PRECISION))).toNumber() / 1000_000,
+            color: "#"+parseInt(res.color.replace(/,/g,"")).toString(16),
           })
         } else {
-          console.log("Error on get cell details", res.result.toHuman());
+          console.log("Error on get cell details", res.output.toHuman().Err);
         }
       }).catch((err) => {
-        console.log("Error calling cell details");
+        console.log("Error calling cell details", err);
       })
     }
   }
@@ -188,7 +189,7 @@ export default function CanvasBox(props) {
                     style={{ color: "rgba(143,151,163,1)", fontSize: "12px" }}
                   >
                     {" "}
-                    {selectedCellDetails.bidPrice}
+                    {selectedCellDetails.bidPrice + " " +SYMBOL}
                   </span>
                 </Typography>
               </Box>
@@ -202,12 +203,12 @@ export default function CanvasBox(props) {
                   <span
                     style={{ color: "rgba(143,151,163,1)", fontSize: "12px" }}
                   >
-                    {colors[selectedCellDetails.color]}
+                    {selectedCellDetails.color}
                   </span>
                 </Typography>
                 <Typography sx={{ width: "30px" }}>
                   <SquareIcon
-                    sx={{ color: colors[selectedCellDetails.color] }}
+                    sx={{ color: selectedCellDetails.color }}
                   />
                 </Typography>
               </Box>

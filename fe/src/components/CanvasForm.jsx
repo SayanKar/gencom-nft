@@ -230,7 +230,7 @@ export default function CanvasForm(props) {
                   async (res) => {
                     if (res.status.isFinalized) {
                       console.log("Room Creation Finalized", res);
-                      enqueueSnackbar(<>"Transaction Finalized"</>, {
+                      enqueueSnackbar("Transaction Finalized", {
                         variant: "Success",
                       });
                     }

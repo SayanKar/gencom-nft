@@ -18,10 +18,10 @@ export const colors = {
 }
 export const PRECISION = 1000_000_000_000n;
 export const SYMBOL = 'SBY';
-export const CONTRACT_ADDRESS = "YXbb8Ued9rR6m6MxetymAcPMdDsNvuVNwfwoNZqzMnB6foV";
+export const CONTRACT_ADDRESS = "XXUeqhG8Cr24T7j2rqyvj1RZRE8rhMDZcpQwS69jF23uZ9L";
 export const metadata = {
   "source": {
-    "hash": "0xc7fd5fd45ccfea9d42912de889cf401cf4cf9f4548457ec77d0e84cebe2a4341",
+    "hash": "0x67a4c1b66c7bed9a00918e44ff08677ae7bf6be1c6855b2e420befe5476f59de",
     "language": "ink! 3.4.0",
     "compiler": "rustc 1.65.0-nightly"
   },
@@ -67,7 +67,7 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 48
+                "type": 51
               }
             },
             {
@@ -78,7 +78,7 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 48
+                "type": 51
               }
             },
             {
@@ -196,20 +196,37 @@ export const metadata = {
             },
             {
               "docs": [],
-              "indexed": false,
-              "label": "state",
+              "indexed": true,
+              "label": "creator",
               "type": {
                 "displayName": [
-                  "State"
+                  "AccountId"
                 ],
-                "type": 49
+                "type": 0
               }
             }
           ],
           "docs": [
-            " Event emitted when a new canvas is created|edited|minted"
+            " Event emitted when a new canvas is created"
           ],
-          "label": "CanvasStatus"
+          "label": "CanvasCreated"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "canvas_id",
+              "type": {
+                "displayName": [
+                  "CanvasId"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [],
+          "label": "CanvasEdited"
         },
         {
           "args": [
@@ -232,7 +249,7 @@ export const metadata = {
                 "displayName": [
                   "Colors"
                 ],
-                "type": 35
+                "type": 38
               }
             }
           ],
@@ -284,7 +301,7 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 34
+                "type": 37
               }
             }
           ],
@@ -317,7 +334,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 27
+            "type": 29
           },
           "selector": "0x8fccae97"
         },
@@ -352,7 +369,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 27
+            "type": 29
           },
           "selector": "0x940af456"
         },
@@ -439,7 +456,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 29
+            "type": 31
           },
           "selector": "0xd57688e4"
         },
@@ -460,7 +477,7 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 30
+                "type": 32
               }
             },
             {
@@ -469,7 +486,7 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 30
+                "type": 32
               }
             },
             {
@@ -478,7 +495,7 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 31
+                "type": 33
               }
             },
             {
@@ -487,7 +504,16 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 31
+                "type": 33
+              }
+            },
+            {
+              "label": "base_price",
+              "type": {
+                "displayName": [
+                  "Option"
+                ],
+                "type": 34
               }
             },
             {
@@ -496,7 +522,7 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 32
+                "type": 35
               }
             },
             {
@@ -505,7 +531,7 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 33
+                "type": 36
               }
             }
           ],
@@ -519,61 +545,19 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 27
+            "type": 29
           },
           "selector": "0x1c0753f8"
         },
         {
           "args": [
             {
-              "label": "canvas_id",
+              "label": "token_id",
               "type": {
                 "displayName": [
-                  "CanvasId"
+                  "TokenId"
                 ],
-                "type": 4
-              }
-            }
-          ],
-          "docs": [],
-          "label": "mint_canvas",
-          "mutates": true,
-          "payable": false,
-          "returnType": {
-            "displayName": [
-              "Result"
-            ],
-            "type": 27
-          },
-          "selector": "0x21ccd077"
-        },
-        {
-          "args": [
-            {
-              "label": "canvas_id",
-              "type": {
-                "displayName": [
-                  "CanvasId"
-                ],
-                "type": 4
-              }
-            },
-            {
-              "label": "cord_x",
-              "type": {
-                "displayName": [
-                  "u8"
-                ],
-                "type": 2
-              }
-            },
-            {
-              "label": "cord_y",
-              "type": {
-                "displayName": [
-                  "u8"
-                ],
-                "type": 2
+                "type": 9
               }
             },
             {
@@ -582,7 +566,7 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 34
+                "type": 37
               }
             }
           ],
@@ -594,7 +578,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 27
+            "type": 29
           },
           "selector": "0xe9e4767d"
         },
@@ -633,7 +617,7 @@ export const metadata = {
                 "displayName": [
                   "Colors"
                 ],
-                "type": 35
+                "type": 38
               }
             }
           ],
@@ -645,7 +629,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 27
+            "type": 29
           },
           "selector": "0x7786ff36"
         },
@@ -666,7 +650,7 @@ export const metadata = {
                 "displayName": [
                   "Vec"
                 ],
-                "type": 36
+                "type": 39
               }
             }
           ],
@@ -678,7 +662,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 27
+            "type": 29
           },
           "selector": "0x6f2c6883"
         },
@@ -692,7 +676,7 @@ export const metadata = {
           "payable": false,
           "returnType": {
             "displayName": [],
-            "type": 38
+            "type": 41
           },
           "selector": "0x5f6f09fd"
         },
@@ -716,7 +700,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 39
+            "type": 42
           },
           "selector": "0x508a25eb"
         },
@@ -764,7 +748,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 40
+            "type": 43
           },
           "selector": "0xe05d2a18"
         },
@@ -788,37 +772,19 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 43
+            "type": 46
           },
           "selector": "0xa7d8a4ce"
         },
         {
           "args": [
             {
-              "label": "canvas_id",
+              "label": "token_id",
               "type": {
                 "displayName": [
-                  "CanvasId"
+                  "TokenId"
                 ],
-                "type": 4
-              }
-            },
-            {
-              "label": "cord_x",
-              "type": {
-                "displayName": [
-                  "u8"
-                ],
-                "type": 2
-              }
-            },
-            {
-              "label": "cord_y",
-              "type": {
-                "displayName": [
-                  "u8"
-                ],
-                "type": 2
+                "type": 9
               }
             }
           ],
@@ -830,7 +796,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 46
+            "type": 49
           },
           "selector": "0xec956ac1"
         },
@@ -854,7 +820,7 @@ export const metadata = {
             "displayName": [
               "Vec"
             ],
-            "type": 45
+            "type": 48
           },
           "selector": "0x0eb06662"
         },
@@ -878,7 +844,7 @@ export const metadata = {
             "displayName": [
               "Vec"
             ],
-            "type": 45
+            "type": 48
           },
           "selector": "0x50e01608"
         },
@@ -917,6 +883,15 @@ export const metadata = {
                 ],
                 "type": 0
               }
+            },
+            {
+              "label": "canvas_id",
+              "type": {
+                "displayName": [
+                  "CanvasId"
+                ],
+                "type": 4
+              }
             }
           ],
           "docs": [],
@@ -927,9 +902,42 @@ export const metadata = {
             "displayName": [
               "Vec"
             ],
-            "type": 47
+            "type": 50
           },
           "selector": "0x75b82d34"
+        },
+        {
+          "args": [
+            {
+              "label": "acc",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            },
+            {
+              "label": "canvas_id",
+              "type": {
+                "displayName": [
+                  "CanvasId"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [],
+          "label": "get_user_nft_count",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "u64"
+            ],
+            "type": 9
+          },
+          "selector": "0x595ffb34"
         },
         {
           "args": [
@@ -949,9 +957,9 @@ export const metadata = {
           "payable": false,
           "returnType": {
             "displayName": [
-              "u128"
+              "u64"
             ],
-            "type": 3
+            "type": 9
           },
           "selector": "0x0f755a56"
         },
@@ -975,7 +983,7 @@ export const metadata = {
             "displayName": [
               "Option"
             ],
-            "type": 48
+            "type": 51
           },
           "selector": "0x99720c1e"
         },
@@ -999,7 +1007,7 @@ export const metadata = {
             "displayName": [
               "Option"
             ],
-            "type": 48
+            "type": 51
           },
           "selector": "0x27592dea"
         },
@@ -1065,7 +1073,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 27
+            "type": 29
           },
           "selector": "0xcfd0c27b"
         },
@@ -1098,9 +1106,84 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 27
+            "type": 29
           },
           "selector": "0x681266a0"
+        },
+        {
+          "args": [
+            {
+              "label": "destination",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            },
+            {
+              "label": "id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [],
+          "label": "transfer",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 29
+          },
+          "selector": "0x84a15da1"
+        },
+        {
+          "args": [
+            {
+              "label": "from",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            },
+            {
+              "label": "to",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            },
+            {
+              "label": "id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [],
+          "label": "transfer_from",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 29
+          },
+          "selector": "0x0b396f18"
         }
       ]
     },
@@ -1201,7 +1284,7 @@ export const metadata = {
             "layout": {
               "cell": {
                 "key": "0x0a00000000000000000000000000000000000000000000000000000000000000",
-                "ty": 24
+                "ty": 25
               }
             },
             "name": "token_approvals"
@@ -1210,10 +1293,19 @@ export const metadata = {
             "layout": {
               "cell": {
                 "key": "0x0b00000000000000000000000000000000000000000000000000000000000000",
-                "ty": 25
+                "ty": 26
               }
             },
             "name": "operator_approvals"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0c00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 28
+              }
+            },
+            "name": "balance"
           }
         ]
       }
@@ -1343,6 +1435,11 @@ export const metadata = {
                   "typeName": "u64"
                 },
                 {
+                  "name": "base_price",
+                  "type": 3,
+                  "typeName": "Balance"
+                },
+                {
                   "name": "premium",
                   "type": 2,
                   "typeName": "u8"
@@ -1456,18 +1553,13 @@ export const metadata = {
               "fields": [
                 {
                   "name": "total_bids",
-                  "type": 3,
-                  "typeName": "u128"
+                  "type": 4,
+                  "typeName": "u32"
                 },
                 {
                   "name": "total_participants",
-                  "type": 3,
-                  "typeName": "u128"
-                },
-                {
-                  "name": "minted",
-                  "type": 10,
-                  "typeName": "bool"
+                  "type": 4,
+                  "typeName": "u32"
                 }
               ]
             }
@@ -1674,6 +1766,7 @@ export const metadata = {
           "def": {
             "tuple": [
               0,
+              4,
               9
             ]
           }
@@ -1700,7 +1793,7 @@ export const metadata = {
             },
             {
               "name": "V",
-              "type": 9
+              "type": 24
             }
           ],
           "path": [
@@ -1713,6 +1806,17 @@ export const metadata = {
       },
       {
         "id": 24,
+        "type": {
+          "def": {
+            "tuple": [
+              4,
+              9
+            ]
+          }
+        }
+      },
+      {
+        "id": 25,
         "type": {
           "def": {
             "composite": {
@@ -1744,7 +1848,7 @@ export const metadata = {
         }
       },
       {
-        "id": 25,
+        "id": 26,
         "type": {
           "def": {
             "composite": {
@@ -1760,7 +1864,7 @@ export const metadata = {
           "params": [
             {
               "name": "K",
-              "type": 26
+              "type": 27
             },
             {
               "name": "V",
@@ -1776,7 +1880,7 @@ export const metadata = {
         }
       },
       {
-        "id": 26,
+        "id": 27,
         "type": {
           "def": {
             "tuple": [
@@ -1787,7 +1891,39 @@ export const metadata = {
         }
       },
       {
-        "id": 27,
+        "id": 28,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 11,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 0
+            },
+            {
+              "name": "V",
+              "type": 9
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 29,
         "type": {
           "def": {
             "variant": {
@@ -1804,7 +1940,7 @@ export const metadata = {
                 {
                   "fields": [
                     {
-                      "type": 28
+                      "type": 30
                     }
                   ],
                   "index": 1,
@@ -1820,7 +1956,7 @@ export const metadata = {
             },
             {
               "name": "E",
-              "type": 28
+              "type": 30
             }
           ],
           "path": [
@@ -1829,7 +1965,7 @@ export const metadata = {
         }
       },
       {
-        "id": 28,
+        "id": 30,
         "type": {
           "def": {
             "variant": {
@@ -1861,6 +1997,10 @@ export const metadata = {
                 {
                   "index": 6,
                   "name": "ZeroDimensions"
+                },
+                {
+                  "index": 7,
+                  "name": "TokenLocked"
                 }
               ]
             }
@@ -1873,7 +2013,7 @@ export const metadata = {
         }
       },
       {
-        "id": 29,
+        "id": 31,
         "type": {
           "def": {
             "variant": {
@@ -1890,7 +2030,7 @@ export const metadata = {
                 {
                   "fields": [
                     {
-                      "type": 28
+                      "type": 30
                     }
                   ],
                   "index": 1,
@@ -1906,7 +2046,7 @@ export const metadata = {
             },
             {
               "name": "E",
-              "type": 28
+              "type": 30
             }
           ],
           "path": [
@@ -1915,7 +2055,7 @@ export const metadata = {
         }
       },
       {
-        "id": 30,
+        "id": 32,
         "type": {
           "def": {
             "variant": {
@@ -1948,7 +2088,7 @@ export const metadata = {
         }
       },
       {
-        "id": 31,
+        "id": 33,
         "type": {
           "def": {
             "variant": {
@@ -1981,7 +2121,40 @@ export const metadata = {
         }
       },
       {
-        "id": 32,
+        "id": 34,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "index": 0,
+                  "name": "None"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 3
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Some"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 3
+            }
+          ],
+          "path": [
+            "Option"
+          ]
+        }
+      },
+      {
+        "id": 35,
         "type": {
           "def": {
             "variant": {
@@ -2014,7 +2187,7 @@ export const metadata = {
         }
       },
       {
-        "id": 33,
+        "id": 36,
         "type": {
           "def": {
             "variant": {
@@ -2047,7 +2220,7 @@ export const metadata = {
         }
       },
       {
-        "id": 34,
+        "id": 37,
         "type": {
           "def": {
             "variant": {
@@ -2059,7 +2232,7 @@ export const metadata = {
                 {
                   "fields": [
                     {
-                      "type": 35
+                      "type": 38
                     }
                   ],
                   "index": 1,
@@ -2071,7 +2244,7 @@ export const metadata = {
           "params": [
             {
               "name": "T",
-              "type": 35
+              "type": 38
             }
           ],
           "path": [
@@ -2080,7 +2253,7 @@ export const metadata = {
         }
       },
       {
-        "id": 35,
+        "id": 38,
         "type": {
           "def": {
             "variant": {
@@ -2159,29 +2332,29 @@ export const metadata = {
         }
       },
       {
-        "id": 36,
+        "id": 39,
         "type": {
           "def": {
             "sequence": {
-              "type": 37
+              "type": 40
             }
           }
         }
       },
       {
-        "id": 37,
+        "id": 40,
         "type": {
           "def": {
             "tuple": [
               2,
               2,
-              35
+              38
             ]
           }
         }
       },
       {
-        "id": 38,
+        "id": 41,
         "type": {
           "def": {
             "tuple": [
@@ -2193,7 +2366,7 @@ export const metadata = {
         }
       },
       {
-        "id": 39,
+        "id": 42,
         "type": {
           "def": {
             "variant": {
@@ -2210,7 +2383,7 @@ export const metadata = {
                 {
                   "fields": [
                     {
-                      "type": 28
+                      "type": 30
                     }
                   ],
                   "index": 1,
@@ -2226,74 +2399,12 @@ export const metadata = {
             },
             {
               "name": "E",
-              "type": 28
+              "type": 30
             }
           ],
           "path": [
             "Result"
           ]
-        }
-      },
-      {
-        "id": 40,
-        "type": {
-          "def": {
-            "variant": {
-              "variants": [
-                {
-                  "fields": [
-                    {
-                      "type": 41
-                    }
-                  ],
-                  "index": 0,
-                  "name": "Ok"
-                },
-                {
-                  "fields": [
-                    {
-                      "type": 28
-                    }
-                  ],
-                  "index": 1,
-                  "name": "Err"
-                }
-              ]
-            }
-          },
-          "params": [
-            {
-              "name": "T",
-              "type": 41
-            },
-            {
-              "name": "E",
-              "type": 28
-            }
-          ],
-          "path": [
-            "Result"
-          ]
-        }
-      },
-      {
-        "id": 41,
-        "type": {
-          "def": {
-            "sequence": {
-              "type": 42
-            }
-          }
-        }
-      },
-      {
-        "id": 42,
-        "type": {
-          "def": {
-            "sequence": {
-              "type": 15
-            }
-          }
         }
       },
       {
@@ -2314,7 +2425,7 @@ export const metadata = {
                 {
                   "fields": [
                     {
-                      "type": 28
+                      "type": 30
                     }
                   ],
                   "index": 1,
@@ -2330,7 +2441,7 @@ export const metadata = {
             },
             {
               "name": "E",
-              "type": 28
+              "type": 30
             }
           ],
           "path": [
@@ -2353,13 +2464,75 @@ export const metadata = {
         "type": {
           "def": {
             "sequence": {
-              "type": 4
+              "type": 15
             }
           }
         }
       },
       {
         "id": 46,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "fields": [
+                    {
+                      "type": 47
+                    }
+                  ],
+                  "index": 0,
+                  "name": "Ok"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 30
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Err"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 47
+            },
+            {
+              "name": "E",
+              "type": 30
+            }
+          ],
+          "path": [
+            "Result"
+          ]
+        }
+      },
+      {
+        "id": 47,
+        "type": {
+          "def": {
+            "sequence": {
+              "type": 48
+            }
+          }
+        }
+      },
+      {
+        "id": 48,
+        "type": {
+          "def": {
+            "sequence": {
+              "type": 4
+            }
+          }
+        }
+      },
+      {
+        "id": 49,
         "type": {
           "def": {
             "variant": {
@@ -2376,7 +2549,7 @@ export const metadata = {
                 {
                   "fields": [
                     {
-                      "type": 28
+                      "type": 30
                     }
                   ],
                   "index": 1,
@@ -2392,7 +2565,7 @@ export const metadata = {
             },
             {
               "name": "E",
-              "type": 28
+              "type": 30
             }
           ],
           "path": [
@@ -2401,7 +2574,7 @@ export const metadata = {
         }
       },
       {
-        "id": 47,
+        "id": 50,
         "type": {
           "def": {
             "sequence": {
@@ -2411,7 +2584,7 @@ export const metadata = {
         }
       },
       {
-        "id": 48,
+        "id": 51,
         "type": {
           "def": {
             "variant": {
@@ -2440,46 +2613,6 @@ export const metadata = {
           ],
           "path": [
             "Option"
-          ]
-        }
-      },
-      {
-        "id": 49,
-        "type": {
-          "def": {
-            "variant": {
-              "variants": [
-                {
-                  "fields": [
-                    {
-                      "type": 0,
-                      "typeName": "AccountId"
-                    }
-                  ],
-                  "index": 0,
-                  "name": "New"
-                },
-                {
-                  "index": 1,
-                  "name": "Edited"
-                },
-                {
-                  "fields": [
-                    {
-                      "type": 0,
-                      "typeName": "AccountId"
-                    }
-                  ],
-                  "index": 2,
-                  "name": "Minted"
-                }
-              ]
-            }
-          },
-          "path": [
-            "creative_nft",
-            "creative_nft",
-            "State"
           ]
         }
       }
