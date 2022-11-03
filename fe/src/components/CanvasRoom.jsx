@@ -12,11 +12,10 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import Loading from "./Loading";
-import OwnershipGrid from "./OwnershipGrid";
 import EditIcon from "@mui/icons-material/Edit";
 import { Keyring } from "@polkadot/api";
 const keyring = new Keyring({ type: "sr25519" });
-
+const BN = require("bn.js");
 export default function CanvasRoom(props) {
   const { canvasId } = useParams();
   const [canvasDetails, setCanvasDetails] = useState({
@@ -24,13 +23,13 @@ export default function CanvasRoom(props) {
     desc: "---- ---- ---- ---- ---- ---- ---- --- ---",
     endTime: 1,
     startTime: 0,
-    participants: 0,
-    bids: 0,
     creatorAddress:
       "---------------------------------------------------------------------",
     isDynamic: false,
+    basePrice: 0,
     premiumPercentage: "0",
   });
+  const [canvasStats, setCanvasStats] = useState({ bids: 0, participants: 0 });
   const [isOwner, setIsOwner] = useState(false);
   const [isInvalidId, setIsInvalidId] = useState(false);
 
@@ -56,6 +55,7 @@ export default function CanvasRoom(props) {
           canvasId
         )
         .then((res) => {
+          console.log(res.output.toHuman().Ok);
           if (!res.output?.toHuman()?.Err) {
             res = res.output?.toHuman()?.Ok;
             if (res === null) {
@@ -70,6 +70,10 @@ export default function CanvasRoom(props) {
                 startTime: res.startTime.replace(/,/g, ""),
                 endTime: res.endTime.replace(/,/g, ""),
                 creatorAddress: changeAddressEncoding(res.creator),
+                basePrice:
+                  new BN(res.basePrice.replace(/,/g, ""))
+                    .div(new BN(1000_000_000_000))
+                    .toNumber() / 1000_000,
               });
               if (
                 props.activeAccount.address !==
@@ -78,6 +82,7 @@ export default function CanvasRoom(props) {
                 setIsOwner(true);
                 console.log("User are not the owner");
               }
+              console.log("Successfully set Canvas Details");
             }
           } else {
             console.log(
@@ -93,20 +98,35 @@ export default function CanvasRoom(props) {
   };
 
   const getCanvasStats = async () => {
-    if(props.activeAccount && props.contract) {
+    if (props.activeAccount && props.contract) {
       console.log("Fetching Canvas Stats");
-      await props.contract.query.getCanvasStats(
-        props.activeAccount.address,
-        {
-          value: 0,
-          gasLimit: -1,
-        },
-        canvasId,
-      ).then((res) => {
-        console.log(res.output.toHuman(), res.result.toHuman());
-      });
+      await props.contract.query
+        .getCanvasStats(
+          props.activeAccount.address,
+          {
+            value: 0,
+            gasLimit: -1,
+          },
+          canvasId
+        )
+        .then((res) => {
+          if (!res.result.toHuman().Err) {
+            res = res.output.toHuman();
+            setCanvasStats({
+              ...canvasStats,
+              bids: res.totalBids,
+              participants: res.totalParticipants,
+            });
+            console.log("Successfully set Canvas Stats");
+          } else {
+            console.log("Error on canvas stats", res.result.toHuman().Err);
+          }
+        })
+        .catch((err) => {
+          console.log("Error fetching canvas stats", err);
+        });
     }
-  }
+  };
 
   useEffect(() => {
     getCanvasDetails();
@@ -245,8 +265,15 @@ export default function CanvasRoom(props) {
                 />
               </Link>
             </Box>
-            <CanvasBox contract={props.contract} activeAccount={props.activeAccount} id={canvasId}/>
-            <OwnershipGrid />
+            <CanvasBox
+              contract={props.contract}
+              activeAccount={props.activeAccount}
+              id={canvasId}
+              basePrice={canvasDetails.basePrice}
+              premium={canvasDetails.premium}
+              start={props.startTime}
+              end={props.endTime}
+            />
           </>
         )}
       </Box>
@@ -281,8 +308,14 @@ const Strip = (props) => {
 };
 
 const RenderTimer = (props) => {
-  const now = dayjs().unix();
-  const [time, setTime] = useState(props.end - now);
+  const now = dayjs().unix()*1000;
+  const [time, setTime] = useState(0);
+
+  useEffect(() => {
+    const diff = props.end - dayjs().unix()*1000;
+    setTime(diff);
+  }, []);
+
   useEffect(() => {
     if (now <= props.end && now >= props.start) {
       const timer = setTimeout(() => {
@@ -290,7 +323,7 @@ const RenderTimer = (props) => {
       }, 1000);
       return () => clearTimeout(timer);
     }
-  },[time]);
+  }, [time]);
   return (
     <Strip
       Icon={
@@ -298,7 +331,7 @@ const RenderTimer = (props) => {
           sx={{
             color:
               now >= props.start
-                ? now <= props.end 
+                ? now <= props.end
                   ? "#02be01"
                   : "#f57c00"
                 : "#42a5f5",

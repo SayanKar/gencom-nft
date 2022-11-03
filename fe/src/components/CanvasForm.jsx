@@ -37,8 +37,8 @@ export default function CanvasForm(props) {
   const [isInvalidId, setIsInvalidId] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   useEffect(() => {
-    window.scrollTo(0,0);
-}, []);
+    window.scrollTo(0, 0);
+  }, []);
   const handleTitleChange = (e) => {
     setTitle(e.target.value);
   };
@@ -109,8 +109,9 @@ export default function CanvasForm(props) {
             canvasId,
             title,
             desc,
-            startTimeValue.unix(),
-            endTimeValue.unix(),
+            startTimeValue.unix()*1000,
+            endTimeValue.unix()*1000,
+            new BN(cellPrice * 1000000).mul(new BN(PRECISION)),
             premium,
             isDynamic
           )
@@ -132,8 +133,9 @@ export default function CanvasForm(props) {
                   canvasId,
                   title,
                   desc,
-                  startTimeValue.unix(),
-                  endTimeValue.unix(),
+                  startTimeValue.unix()*1000,
+                  endTimeValue.unix()*1000,
+                  new BN(cellPrice * 1000000).mul(new BN(PRECISION)),
                   premium,
                   isDynamic
                 )
@@ -196,8 +198,8 @@ export default function CanvasForm(props) {
             title,
             desc,
             [32, 32],
-            startTimeValue.unix(),
-            endTimeValue.unix(),
+            startTimeValue.unix()*1000,
+            endTimeValue.unix()*1000,
             new BN(cellPrice * 1000000).mul(new BN(PRECISION)),
             premium,
             isDynamic
@@ -212,14 +214,14 @@ export default function CanvasForm(props) {
               await props.contract.tx
                 .createCanvas(
                   {
-                    value:  new BN(creationFee * 1000000).mul(new BN(PRECISION)),
+                    value: new BN(creationFee * 1000000).mul(new BN(PRECISION)),
                     gasLimit: 300000n * 1000000n,
                   },
                   title,
                   desc,
                   [32, 32],
-                  startTimeValue.unix(),
-                  endTimeValue.unix(),
+                  startTimeValue.unix()*1000,
+                  endTimeValue.unix()*1000,
                   new BN(cellPrice * 1000000).mul(new BN(PRECISION)),
                   premium,
                   isDynamic
@@ -229,10 +231,20 @@ export default function CanvasForm(props) {
                   { signer: props.signer },
                   async (res) => {
                     if (res.status.isFinalized) {
-                      console.log("Room Creation Finalized", res);
-                      enqueueSnackbar("Transaction Finalized", {
-                        variant: "Success",
-                      });
+                      enqueueSnackbar(
+                        <a
+                          href={
+                            "/canvas/" + res.contractEvents[0].args[0].toHuman()
+                          }
+                          style={{ textDecoration: "none", color: "white" }}
+                        >
+                          {" Transaction Finalized, Click to go to canvas #" +
+                            res.contractEvents[0].args[0].toHuman()}
+                        </a>,
+                        {
+                          variant: "Success",
+                        }
+                      );
                     }
                   }
                 );
@@ -292,15 +304,22 @@ export default function CanvasForm(props) {
               ) {
                 setIsOwner(true);
                 console.log("You are not the owner");
-              } else if(dayjs().isAfter(dayjs.unix(res.startTime.replace(/,/g, "")))) {
+              } else if (
+                dayjs().isAfter(dayjs.unix(res.startTime.replace(/,/g, "")))
+              ) {
                 setHasStarted(true);
-              }else {
+              } else {
                 setTitle(res.title);
                 setDesc(res.desc);
                 setPremium(res.premium);
                 setIsDynamic(res.isDynamic);
-                setStartTimeValue(dayjs.unix(res.startTime.replace(/,/g, "")));
-                setEndTimeValue(dayjs.unix(res.endTime.replace(/,/g, "")));
+                setStartTimeValue(dayjs.unix(res.startTime.replace(/,/g, "")/1000));
+                setEndTimeValue(dayjs.unix(res.endTime.replace(/,/g, "")/1000));
+                setCellPrice(
+                  new BN(res.basePrice.replace(/,/g, ""))
+                    .div(new BN(1000_000_000_000))
+                    .toNumber() / 1000_000
+                );
                 setIsOwner(false);
                 setIsInvalidId(false);
                 setHasStarted(false);
@@ -310,7 +329,7 @@ export default function CanvasForm(props) {
                 "Error fetching canvas Details,",
                 res.output?.toHuman()?.Err
               );
-              if(res.output?.toHuman()?.Err === 'CanvasNotFound') {
+              if (res.output?.toHuman()?.Err === "CanvasNotFound") {
                 setIsInvalidId(true);
               }
             }
@@ -346,7 +365,11 @@ export default function CanvasForm(props) {
           .then((res) => {
             if (!res.result?.toHuman()?.Err) {
               console.log("Successfully updated creation Fee");
-              setCreationFee((new BN(res.output.toHuman()[2].replace(/,/g, "")).div(new BN(PRECISION))).toNumber() / 1000_000);
+              setCreationFee(
+                new BN(res.output.toHuman()[2].replace(/,/g, ""))
+                  .div(new BN(PRECISION))
+                  .toNumber() / 1000_000
+              );
             } else {
               console.log("Error fetching Creation Fee", res.output.toHuman());
             }
@@ -368,7 +391,7 @@ export default function CanvasForm(props) {
         justifyContent: "center",
       }}
     >
-      {!props.activeAccount || (props.isEdit && isInvalidId ) || hasStarted ? (
+      {!props.activeAccount || (props.isEdit && isInvalidId) || hasStarted ? (
         <Paper
           sx={{
             width: "400px",
@@ -383,9 +406,11 @@ export default function CanvasForm(props) {
             align="center"
             variant="h5"
           >
-            {
-              !props.activeAccount ? "Connect your wallet" : (props.isEdit && isInvalidId ) ? "Invalid canvas room Id" : "Cannot edit canvas once started"
-            }
+            {!props.activeAccount
+              ? "Connect your wallet"
+              : props.isEdit && isInvalidId
+              ? "Invalid canvas room Id"
+              : "Cannot edit canvas once started"}
           </Typography>
         </Paper>
       ) : (
@@ -452,23 +477,22 @@ export default function CanvasForm(props) {
             onChange={handleDescChange}
             disabled={isOwner}
           />
-          {!props.isEdit && (
-            <TextField
-              helperText={
-                "* You will get this amount when painters buy a cell." +
-                (props.isEdit ? " Not Editable" : "")
-              }
-              id="minPriceInput"
-              label="Cell base price"
-              fullWidth
-              type="number"
-              sx={{ margin: "5px 0" }}
-              InputProps={{ inputProps: { min: 0 } }}
-              value={cellPrice}
-              onChange={handleCellPriceChange}
-              disabled={props.isEdit}
-            />
-          )}
+
+          <TextField
+            helperText={
+              "* You will get this amount when painters buy a cell." 
+            }
+            id="minPriceInput"
+            label="Cell base price"
+            fullWidth
+            type="number"
+            sx={{ margin: "5px 0" }}
+            InputProps={{ inputProps: { min: 0 } }}
+            value={cellPrice}
+            onChange={handleCellPriceChange}
+            disabled={isOwner}
+          />
+
           <TextField
             helperText="* Set premium percentage"
             id="premiumInput"

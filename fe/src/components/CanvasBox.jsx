@@ -22,6 +22,9 @@ import { colors, PRECISION, SYMBOL } from "../constants";
 import { useState } from "react";
 import { useEffect } from "react";
 import { Keyring } from "@polkadot/api";
+import dayjs from "dayjs";
+import { useSnackbar } from "notistack";
+
 const keyring = new Keyring({ type: "sr25519" });
 const BN = require("bn.js");
 export default function CanvasBox(props) {
@@ -31,7 +34,10 @@ export default function CanvasBox(props) {
       if (colors.hasOwnProperty(key)) {
         list.push(
           <Tooltip title={`Color: ${colors[key]}`} key={key}>
-            <IconButton sx={{ marginRight: "8px" }} onClick={() => setTransaction({ ...transaction, color: key})}>
+            <IconButton
+              sx={{ marginRight: "8px" }}
+              onClick={() => setTransaction({ ...transaction, color: key })}
+            >
               <CircleIcon
                 sx={{
                   color: colors[key],
@@ -44,7 +50,7 @@ export default function CanvasBox(props) {
     }
     return list;
   };
-
+  const { enqueueSnackbar } = useSnackbar();
   const [gridData, setGridData] = useState();
   const [selectedCell, setSelectedCell] = useState({
     row: 0,
@@ -56,6 +62,7 @@ export default function CanvasBox(props) {
     bidPrice: "0 ",
     color: "0",
   });
+  const [now] = useState(dayjs().unix() * 1000);
 
   function changeAddressEncoding(address, toNetworkPrefix = 42) {
     if (!address) {
@@ -66,42 +73,117 @@ export default function CanvasBox(props) {
     return encodedAddress;
   }
 
+  const createTokenId = (canvasId, row, column) => {
+    console.log(
+      canvasId +
+        row.toString().padStart(3, "0") +
+        column.toString().padStart(3, "0")
+    );
+    return (
+      canvasId +
+      row.toString().padStart(3, "0") +
+      column.toString().padStart(3, "0")
+    );
+  };
+
   const getCellDetails = async () => {
-    if(props.activeAccount && props.contract) {
+    if (props.activeAccount && props.contract && props.id) {
       console.log("Fetching cell details");
-      await props.contract.query.getCellDetails(
-        props.activeAccount.address,
-        {
-          value: 0,
-          gasLimit: -1,
-        },
-        props.Id,
-        selectedCell.row,
-        selectedCell.column
-      ).then((res) => {
-        console.log(res);
-        if(!res.output.toHuman().Err) {
-          res = res.output?.toHuman().Ok;
+      await props.contract.query
+        .getCellDetails(
+          props.activeAccount.address,
+          {
+            value: 0,
+            gasLimit: -1,
+          },
+          createTokenId(props.id, selectedCell.row, selectedCell.column)
+        )
+        .then((res) => {
           console.log(res);
-          setSelectedCellDetails({
-            ...selectedCellDetails,
-            owner: changeAddressEncoding(res.owner),
-            bidPrice: (new BN(res.value.replace(/,/g, "")).div(new BN(PRECISION))).toNumber() / 1000_000,
-            color: "#"+parseInt(res.color.replace(/,/g,"")).toString(16),
-          })
-        } else {
-          console.log("Error on get cell details", res.output.toHuman().Err);
-        }
-      }).catch((err) => {
-        console.log("Error calling cell details", err);
-      })
+          if (!res.output.toHuman().Err) {
+            res = res.output?.toHuman().Ok;
+            console.log(res);
+            setSelectedCellDetails({
+              ...selectedCellDetails,
+              owner: changeAddressEncoding(res.owner),
+              bidPrice:
+                new BN(res.value.replace(/,/g, ""))
+                  .div(new BN(PRECISION))
+                  .toNumber() / 1000_000,
+              color: "#" + parseInt(res.color.replace(/,/g, "")).toString(16),
+            });
+          } else if (res.output?.toHuman()?.Err === "TokenNotFound") {
+            setSelectedCellDetails({
+              ...selectedCellDetails,
+              owner: "Be the first one to bid",
+              bidPrice: props.basePrice,
+              color: colors["0"],
+            });
+          } else {
+            console.log("Error on get cell details", res.output.toHuman().Err);
+          }
+        })
+        .catch((err) => {
+          console.log("Error calling cell details", err);
+        });
     }
-  }
+  };
+
+  const onBid = () => {
+    if (selectedCell.owner === props.activeAccount.address) {
+      changeCellColor();
+    } else {
+      captureCell();
+    }
+  };
+
+  const changeCellColor = async () => {
+    if (props.contract && props.activeAccount) {
+      await props.contract.query
+        .changeCellColor(
+          props.activeAccount.address,
+          {
+            value: 0,
+            gasLimit: -1,
+          },
+          props.id,
+          selectedCell.row,
+          selectedCell.column,
+          parseInt(colors[transaction.color].subString(1), 16)
+        )
+        .then((res) => {
+          console.log(res);
+        });
+    } else {
+      console.log("Connect your wallet");
+      enqueueSnackbar("Connect your wallet", { variant: "error" });
+    }
+  };
+
+  const captureCell = async () => {
+    if (props.contract && props.activeAccount) {
+      await props.contract.query
+        .captureCell(
+          props.activeAccount.address,
+          {
+            value: 0,
+            gasLimit: -1,
+          },
+          createTokenId(props.id, selectedCell.row, selectedCell.column),
+          parseInt(colors[transaction.color].subString(1), 16)
+        )
+        .then((res) => {
+          console.log(res);
+        });
+    } else {
+      console.log("Connect your wallet");
+      enqueueSnackbar("Connect your wallet", { variant: "error" });
+    }
+  };
 
   useEffect(() => {
     getCellDetails();
   }, [selectedCell]);
-
 
   return (
     <Box component="div" id="canvasBoxWrapperContainer">
@@ -189,7 +271,7 @@ export default function CanvasBox(props) {
                     style={{ color: "rgba(143,151,163,1)", fontSize: "12px" }}
                   >
                     {" "}
-                    {selectedCellDetails.bidPrice + " " +SYMBOL}
+                    {selectedCellDetails.bidPrice + " " + SYMBOL}
                   </span>
                 </Typography>
               </Box>
@@ -207,9 +289,7 @@ export default function CanvasBox(props) {
                   </span>
                 </Typography>
                 <Typography sx={{ width: "30px" }}>
-                  <SquareIcon
-                    sx={{ color: selectedCellDetails.color }}
-                  />
+                  <SquareIcon sx={{ color: selectedCellDetails.color }} />
                 </Typography>
               </Box>
             </Card>
@@ -287,18 +367,23 @@ export default function CanvasBox(props) {
                   Choose Bid Amount
                   <GavelIcon sx={{ margin: "0px 0px 0px 8px" }} />
                 </Typography>
-                <FormControl sx={{ m: 1, width: "400px" }}>
+                <FormControl
+                  sx={{ m: 1, width: "400px" }}
+                  disabled={selectedCell.owner === props.activeAccount.address}
+                >
                   <InputLabel htmlFor="bidding-price">Bid Amount</InputLabel>
                   <OutlinedInput
                     id="bidding-price"
                     startAdornment={
-                      <InputAdornment position="start">EDG</InputAdornment>
+                      <InputAdornment position="start">{SYMBOL}</InputAdornment>
                     }
                     label="Bid Amount"
                     value={transaction.bid}
                     onChange={(e) =>
                       setTransaction({ ...transaction, bid: e.target.value })
                     }
+                    type="number"
+                    InputProps={{ inputProps: { min: 0 } }}
                   />
                 </FormControl>
                 <Typography
@@ -306,15 +391,17 @@ export default function CanvasBox(props) {
                   sx={{ width: "384px", paddingLeft: "5px" }}
                   align="left"
                 >
-                  {transaction.bid && transaction.color && selectedCell.row ? (
+                  {transaction.bid && transaction.color ? (
                     <>
-                      * Bid {transaction.bid} for Cell in Row {selectedCell.row} and Column {selectedCell.column} with color 
+                      * Bid {transaction.bid + " " + SYMBOL} for Cell in Row{" "}
+                      {selectedCell.row + 1} and Column{" "}
+                      {selectedCell.column + 1} with color
                       <CircleIcon
                         sx={{
                           color: colors[transaction.color],
                           fontSize: "13px",
                           marginBottom: "-2px",
-                          marginLeft: "5px"
+                          marginLeft: "5px",
                         }}
                       />
                     </>
@@ -322,7 +409,12 @@ export default function CanvasBox(props) {
                     "* Select a color and bid price"
                   )}
                 </Typography>
-                <Button variant="contained" sx={{ marginTop: "10px" }}>
+                <Button
+                  variant="contained"
+                  sx={{ marginTop: "10px" }}
+                  onClick={() => onBid()}
+                  disabled={props.start > now || props.end < now}
+                >
                   Bid
                 </Button>
               </CardContent>

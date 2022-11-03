@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import GridSVG from "./GridSVG";
+import GridSVG from "../GridSVG";
 
 export default function OwnershipGrid(props) {
   return (
