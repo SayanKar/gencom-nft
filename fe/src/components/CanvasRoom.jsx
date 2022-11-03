@@ -55,7 +55,6 @@ export default function CanvasRoom(props) {
           canvasId
         )
         .then((res) => {
-          console.log(res.output.toHuman().Ok);
           if (!res.output?.toHuman()?.Err) {
             res = res.output?.toHuman()?.Ok;
             if (res === null) {
@@ -84,6 +83,8 @@ export default function CanvasRoom(props) {
               }
               console.log("Successfully set Canvas Details");
             }
+          } else if (res.output.toHuman().Err === "CanvasNotFound") {
+            setIsInvalidId(true);
           } else {
             console.log(
               "Error fetching canvas Details,",
@@ -213,7 +214,7 @@ export default function CanvasRoom(props) {
                   />
                 }
                 tooltip={"Total Unique Bidders"}
-                Text={"Participants: " + canvasDetails.participants}
+                Text={"Participants: " + canvasStats.participants}
               />
               <Strip
                 Icon={
@@ -221,7 +222,7 @@ export default function CanvasRoom(props) {
                     sx={{ fontSize: "16px", margin: "0px 8px -3px 0px" }}
                   />
                 }
-                Text={"Bids: " + canvasDetails.bids}
+                Text={"Bids: " + canvasStats.bids}
                 tooltip={"Total Bids"}
               />
               <Strip
@@ -270,9 +271,10 @@ export default function CanvasRoom(props) {
               activeAccount={props.activeAccount}
               id={canvasId}
               basePrice={canvasDetails.basePrice}
-              premium={canvasDetails.premium}
-              start={props.startTime}
-              end={props.endTime}
+              premium={canvasDetails.premiumPercentage}
+              start={canvasDetails.startTime}
+              end={canvasDetails.endTime}
+              signer={props.signer}
             />
           </>
         )}
@@ -308,16 +310,15 @@ const Strip = (props) => {
 };
 
 const RenderTimer = (props) => {
-  const now = dayjs().unix()*1000;
+  const now = dayjs().unix() * 1000;
   const [time, setTime] = useState(0);
-
   useEffect(() => {
-    const diff = props.end - dayjs().unix()*1000;
+    const diff = (props.end - dayjs().unix()*1000)/ 1000;
     setTime(diff);
-  }, []);
+  }, [props.end, props.start]);
 
   useEffect(() => {
-    if (now <= props.end && now >= props.start) {
+    if (now <= props.end && now >= props.start && time >= 0) {
       const timer = setTimeout(() => {
         setTime(time - 1);
       }, 1000);

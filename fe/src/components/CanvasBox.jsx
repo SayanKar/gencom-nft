@@ -18,7 +18,7 @@ import SquareIcon from "@mui/icons-material/Square";
 import PaletteIcon from "@mui/icons-material/Palette";
 import CircleIcon from "@mui/icons-material/Circle";
 import GavelIcon from "@mui/icons-material/Gavel";
-import { colors, PRECISION, SYMBOL } from "../constants";
+import { colors, PRECISION, SYMBOL, enumColors } from "../constants";
 import { useState } from "react";
 import { useEffect } from "react";
 import { Keyring } from "@polkadot/api";
@@ -56,6 +56,7 @@ export default function CanvasBox(props) {
     row: 0,
     column: 0,
   });
+  const [clicked, setClicked] = useState(false);
   const [transaction, setTransaction] = useState({ color: "0", bid: 0 });
   const [selectedCellDetails, setSelectedCellDetails] = useState({
     owner: "----------------------------------------------------",
@@ -99,7 +100,6 @@ export default function CanvasBox(props) {
           createTokenId(props.id, selectedCell.row, selectedCell.column)
         )
         .then((res) => {
-          console.log(res);
           if (!res.output.toHuman().Err) {
             res = res.output?.toHuman().Ok;
             console.log(res);
@@ -110,7 +110,7 @@ export default function CanvasBox(props) {
                 new BN(res.value.replace(/,/g, ""))
                   .div(new BN(PRECISION))
                   .toNumber() / 1000_000,
-              color: "#" + parseInt(res.color.replace(/,/g, "")).toString(16),
+              color: "#" + parseInt(res.color.replace(/,/g, "")).toString(16).padStart(6, "0"),
             });
           } else if (res.output?.toHuman()?.Err === "TokenNotFound") {
             setSelectedCellDetails({
@@ -149,7 +149,7 @@ export default function CanvasBox(props) {
           props.id,
           selectedCell.row,
           selectedCell.column,
-          parseInt(colors[transaction.color].subString(1), 16)
+          transaction.color
         )
         .then((res) => {
           console.log(res);
@@ -162,19 +162,94 @@ export default function CanvasBox(props) {
 
   const captureCell = async () => {
     if (props.contract && props.activeAccount) {
-      await props.contract.query
-        .captureCell(
-          props.activeAccount.address,
-          {
-            value: 0,
-            gasLimit: -1,
-          },
-          createTokenId(props.id, selectedCell.row, selectedCell.column),
-          parseInt(colors[transaction.color].subString(1), 16)
-        )
-        .then((res) => {
-          console.log(res);
+      if (!clicked) {
+        enqueueSnackbar("Select a cell first");
+      }
+      if (
+        transaction.bid <
+        (selectedCellDetails.bidPrice * (100 + parseInt(props.premium))) / 100
+      ) {
+        enqueueSnackbar(
+          "Must pay atleast " + props.premium + "% more of last bid price"
+        );
+      }
+
+      try {
+        await props.contract.query
+          .captureCell(
+            props.activeAccount.address,
+            {
+              value: new BN(transaction.bid * 1000_000_000_000).mul(
+                new BN(1000_000)
+              ),
+              gasLimit: -1,
+            },
+            createTokenId(props.id, selectedCell.row, selectedCell.column),
+            enumColors[transaction.color].name
+          )
+          .then((res) => {
+            if (res.result?.toHuman()?.Err?.Module?.message)
+              throw new Error(res.result.toHuman().Err.Module.message);
+            else return res.output.toHuman();
+          })
+          .then(async (res) => {
+            if (!res.Err) {
+              await props.contract.tx
+                .captureCell(
+                  {
+                    value: new BN(transaction.bid * 1000_000_000_000).mul(
+                      new BN(1000_000)
+                    ),
+                    gasLimit: 300000n * 1000000n,
+                  },
+                  createTokenId(
+                    props.id,
+                    selectedCell.row,
+                    selectedCell.column
+                  ),
+                  enumColors[transaction.color].name
+                )
+                .signAndSend(
+                  props.activeAccount.address,
+                  { signer: props.signer },
+                  async (res) => {
+                    console.log(res.contractEvents[0].event.args.toHuman());
+                    console.log(res.contractEvents[0].event.args[2].toHuman());
+
+                    if (res.status.isFinalized) {
+                      enqueueSnackbar(
+                        "Transaction Finalized, Cell captured successfully",
+                        {
+                          variant: "Success",
+                        }
+                      );
+                    }
+                  }
+                );
+              setTransaction({ color: "0", bid: 0 });
+              enqueueSnackbar(
+                "Transaction Submitted",
+                {
+                  variant: "Success",
+                }
+              );
+            } else {
+              console.log("Failed on capture cell ->", res.Err);
+              enqueueSnackbar("Failed to capture cell -> \n " + res.Err, {
+                variant: "error",
+              });
+            }
+          })
+          .catch((err) => {
+            console.log("Error capturing cell", err);
+            enqueueSnackbar("Error capturing cell" + err, { variant: "error" });
+          });
+      } catch (err) {
+        console.log("Error while capturing cell", err);
+        enqueueSnackbar("Error while capturing cell" + err, {
+          variant: "error",
         });
+      }
     } else {
       console.log("Connect your wallet");
       enqueueSnackbar("Connect your wallet", { variant: "error" });
@@ -203,12 +278,13 @@ export default function CanvasBox(props) {
               <CanvasGrid
                 rows={32}
                 columns={32}
-                setSelectedCell={(x, y) =>
+                setSelectedCell={(x, y) => {
+                  setClicked(true);
                   setSelectedCell({
                     row: x,
                     column: y,
-                  })
-                }
+                  });
+                }}
               />
               <Typography
                 variant="h6"
@@ -232,7 +308,7 @@ export default function CanvasBox(props) {
                 >
                   Row:{" "}
                   <span style={{ color: "rgba(143,151,163,1)" }}>
-                    {selectedCell.row + 1}
+                    {clicked ? selectedCell.row + 1 : "Select a cell"}
                   </span>
                 </Typography>
                 <Typography
@@ -242,7 +318,7 @@ export default function CanvasBox(props) {
                 >
                   Column:{" "}
                   <span style={{ color: "rgba(143,151,163,1)" }}>
-                    {selectedCell.column + 1}
+                    {clicked ? selectedCell.column + 1 : "Select a cell"}
                   </span>
                 </Typography>
               </Box>
@@ -256,7 +332,11 @@ export default function CanvasBox(props) {
                   <span
                     style={{ color: "rgba(143,151,163,1)", fontSize: "11px" }}
                   >
-                    {selectedCellDetails.owner}{" "}
+                    {props.start > now || props.end < now
+                      ? "Canvas Expired"
+                      : clicked
+                      ? selectedCellDetails.owner
+                      : "Select a cell"}{" "}
                   </span>
                 </Typography>
               </Box>
@@ -271,7 +351,9 @@ export default function CanvasBox(props) {
                     style={{ color: "rgba(143,151,163,1)", fontSize: "12px" }}
                   >
                     {" "}
-                    {selectedCellDetails.bidPrice + " " + SYMBOL}
+                    {clicked
+                      ? selectedCellDetails.bidPrice + " " + SYMBOL
+                      : "Select a cell"}
                   </span>
                 </Typography>
               </Box>
@@ -285,11 +367,15 @@ export default function CanvasBox(props) {
                   <span
                     style={{ color: "rgba(143,151,163,1)", fontSize: "12px" }}
                   >
-                    {selectedCellDetails.color}
+                    {clicked ? selectedCellDetails.color : "Select a cell"}
                   </span>
                 </Typography>
                 <Typography sx={{ width: "30px" }}>
-                  <SquareIcon sx={{ color: selectedCellDetails.color }} />
+                  <SquareIcon
+                    sx={{
+                      color: clicked ? selectedCellDetails.color : "white",
+                    }}
+                  />
                 </Typography>
               </Box>
             </Card>
@@ -369,7 +455,11 @@ export default function CanvasBox(props) {
                 </Typography>
                 <FormControl
                   sx={{ m: 1, width: "400px" }}
-                  disabled={selectedCell.owner === props.activeAccount.address}
+                  disabled={
+                    selectedCell.owner === props.activeAccount.address ||
+                    props.start > now ||
+                    props.end < now
+                  }
                 >
                   <InputLabel htmlFor="bidding-price">Bid Amount</InputLabel>
                   <OutlinedInput
@@ -379,11 +469,12 @@ export default function CanvasBox(props) {
                     }
                     label="Bid Amount"
                     value={transaction.bid}
-                    onChange={(e) =>
-                      setTransaction({ ...transaction, bid: e.target.value })
-                    }
+                    onChange={(e) => {
+                      if (e.target.value < 0) return;
+                      setTransaction({ ...transaction, bid: e.target.value });
+                    }}
                     type="number"
-                    InputProps={{ inputProps: { min: 0 } }}
+                    inputProps={{ inputProps: { min: 0 } }}
                   />
                 </FormControl>
                 <Typography
