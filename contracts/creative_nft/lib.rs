@@ -144,6 +144,8 @@ mod creative_nft {
         TokenNotFound,
         /// Dimension of canvas cannot be zero
         ZeroDimensions,
+        /// Tokens from active auctions are locked
+        TokenLocked,
     }
 
     #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Clone)]
@@ -170,8 +172,8 @@ mod creative_nft {
     #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Default)]
     #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
     pub struct CanvasStats {
-        total_bids: u128,
-        total_participants: u128,
+        total_bids: u32,
+        total_participants: u32,
         minted: bool,
     }
 
@@ -197,15 +199,16 @@ mod creative_nft {
         /// Mapping of users to their cumulative value of monetary
         /// interactions on our platform. Value: (spent, received)
         cash_flow: Mapping<AccountId, (Balance, Balance)>,
-        /// Mapping from owner to list of owned tokens.
-        /// @dev (owner, 0) stores the count of owned tokens
-        owned_tokens: Mapping<(AccountId, u64), TokenId>,
+        /// Mapping from owner to list of owned tokens in a given canvas
+        /// @dev (owner, canvas_id, 0) stores the count of owned tokens
+        owned_tokens: Mapping<(AccountId, CanvasId, u64), TokenId>,
         /// Mapping from token to the index of the owner tokens list
-        owned_tokens_index: Mapping<TokenId, u64>,
+        owned_tokens_index: Mapping<TokenId, (CanvasId, u64)>,
         /// Mapping from token to approved account
         token_approvals: Mapping<TokenId, AccountId>,
         /// Mapping from owner to operator approvals
         operator_approvals: Mapping<(AccountId, AccountId), ()>,
+        balance: Mapping<AccountId, u64>,
     }
 
     /// Concats (canvas_id, cord_x, cord_y) and store it as TokenId (u128)
@@ -294,11 +297,19 @@ mod creative_nft {
                 color: Colors::color_code(&Colors::White),
                 value: base_price,
             };
+
+            let mut idx = 0;
             for x in 0..dimensions.0 {
                 for y in 0..dimensions.1 {
+                    let token_id = encode(canvas_id, x, y);
+                    idx += 1;
                     self.grids.insert(&encode(canvas_id, x, y), &cell);
+                    self.owned_tokens.insert(&(caller, canvas_id, idx), &token_id);
+                    self.owned_tokens_index.insert(&token_id, &(canvas_id, idx));
                 }
             }
+            self.owned_tokens.insert(&(caller, canvas_id, 0), &idx);
+            self.update_balance(&caller, &idx, &false);
             self.canvas_nonce += 1;
 
             // update the spending of caller to account for the canvas creation fees
@@ -357,45 +368,6 @@ mod creative_nft {
             Ok(())
         }
 
-        #[ink(message)]
-        pub fn mint_canvas(&mut self, canvas_id: CanvasId) -> Result<()> {
-            let canvas = self.get_canvas_details(canvas_id)?;
-
-            let mut stats = self.canvas_analytics.get(&canvas_id).unwrap_or_default();
-
-            if stats.minted || canvas.end_time >= self.env().block_timestamp() {
-                return Err(Error::NotAllowed);
-            }
-
-            for x in 0..canvas.dimensions.0 {
-                for y in 0..canvas.dimensions.1 {
-                    let cell = self.get_cell_details(canvas_id, x, y)?;
-                    let owner = cell.owner;
-                    let idx = self.owned_tokens.get(&(owner, 0)).unwrap_or_default() + 1;
-                    let token_id = encode(canvas_id, x, y);
-
-                    self.owned_tokens.insert(&(owner, 0), &idx);
-                    self.owned_tokens.insert(&(owner, idx), &token_id);
-                    self.owned_tokens_index.insert(&token_id, &idx);
-
-                    // self.env().emit_event(Transfer {
-                    //     from: Some(AccountId::from([0x0; 32])),
-                    //     to: Some(owner),
-                    //     id: token_id,
-                    // });
-                }
-            }
-
-            stats.minted = true;
-            self.canvas_analytics.insert(&canvas_id, &stats);
-
-            self.env().emit_event(CanvasStatus {
-                canvas_id,
-                state: State::Minted(self.env().caller()),
-            });
-            Ok(())
-        }
-
         #[ink(message, payable)]
         pub fn capture_cell(
             &mut self,
@@ -423,6 +395,16 @@ mod creative_nft {
                 .transfer(cell.owner, bid)
                 .expect("transfer failed"); // Is Re-entrancy possible?
 
+            self.remove_token_from(&token_id, &cell.owner);
+            self.add_token_to(&token_id, &caller);
+
+            let ncell = Cell {
+                owner: caller,
+                value: bid,
+                color: color.map_or(cell.color, |c| Colors::color_code(&c)),
+            };
+            self.grids.insert(&token_id, &ncell);
+
             let (mut spent, receive) = self.cash_flow.get(&caller).unwrap_or_default();
             spent += bid;
             self.cash_flow.insert(&caller, &(spent, receive));
@@ -431,14 +413,7 @@ mod creative_nft {
             receive += bid;
             self.cash_flow.insert(&caller, &(spent, receive));
 
-            let ncell = Cell {
-                owner: caller,
-                value: bid,
-                color: color.map_or(cell.color, |c| Colors::color_code(&c)),
-            };
-
             let mut stats = self.canvas_analytics.get(&canvas_id).unwrap_or_default();
-
             stats.total_bids += 1;
             stats.total_participants += match self
                 .participants
@@ -447,11 +422,7 @@ mod creative_nft {
                 Some(_) => 0,
                 None => 1,
             };
-
             self.canvas_analytics.insert(&canvas_id, &stats);
-
-            let token_id = encode(canvas_id, cord_x, cord_y);
-            self.grids.insert(&token_id, &ncell);
 
             self.env().emit_event(TokenCaptured {
                 token_id,
@@ -592,13 +563,18 @@ mod creative_nft {
         }
 
         #[ink(message)]
-        pub fn get_user_nfts(&self, acc: AccountId) -> Vec<TokenId> {
-            let count = self.owned_tokens.get(&(acc, 0)).unwrap_or_default();
+        pub fn get_user_nfts(&self, acc: AccountId, canvas_id: CanvasId) -> Vec<TokenId> {
+            let count = self.owned_tokens.get(&(acc, canvas_id, 0)).unwrap_or_default();
 
             (1..=count)
                 .into_iter()
-                .map(|x| (self.owned_tokens.get(&(acc, x)).unwrap()))
+                .map(|x| (self.owned_tokens.get(&(acc, canvas_id, x)).unwrap()))
                 .collect()
+        }
+
+        #[ink(message)]
+        pub fn get_user_nft_count(&self, acc: AccountId, canvas_id: CanvasId) -> u64 {
+            self.owned_tokens.get(&(acc, canvas_id, 0)).unwrap_or(0)
         }
 
         fn only_owner(&self) -> Result<()> {
@@ -635,7 +611,7 @@ mod creative_nft {
     impl CreativeNft {
         #[ink(message)]
         pub fn balance_of(&self, owner: AccountId) -> u64 {
-            self.owned_tokens.get(&(owner, 0)).unwrap_or_default()
+            self.balance.get(&owner).unwrap_or(0)
         }
 
         #[ink(message)]
@@ -683,9 +659,7 @@ mod creative_nft {
         pub fn approve(&mut self, to: AccountId, id: TokenId) -> Result<()> {
             let caller = self.env().caller();
 
-            if !self.approved_or_owner(caller, id) {
-                return Err(Error::Unauthorised);
-            }
+            self.approved_or_owner(&caller, &id)?;
 
             if to == AccountId::from([0x0; 32]) {
                 self.token_approvals.remove(&id);
@@ -714,22 +688,11 @@ mod creative_nft {
         pub fn transfer_from(&mut self, from: AccountId, to: AccountId, id: TokenId) -> Result<()> {
             let caller = self.env().caller();
 
-            if !self.approved_or_owner(caller, id) {
-                return Err(Error::Unauthorised);
-            }
-
+            self.approved_or_owner(&caller, &id)?;
             self.token_approvals.remove(&id);
 
-            // 1. Remove token from current owner
-            let owner = self.owner_of(id).unwrap();
-            let idx = self.owned_tokens_index.get(&id).unwrap();
-            self.owned_tokens.remove(&(owner, idx));
-            self.owned_tokens.insert(&(owner, 0), &(idx - 1));
-
-            // 2. Add token to new owner
-            let pos = self.owned_tokens.get(&(to, 0)).unwrap_or_default() + 1;
-            self.owned_tokens_index.insert(&id, &pos);
-            self.owned_tokens.insert(&(to, pos), &id);
+            self.remove_token_from(&id, &from);
+            self.add_token_to(&id, &to);
 
             // 3. Update grid
             let (canvas_id, cord_x, cord_y) = decode(id);
@@ -745,19 +708,63 @@ mod creative_nft {
             Ok(())
         }
 
-        fn approved_or_owner(&self, caller: AccountId, id: TokenId) -> bool {
-            let owner = match self.owner_of(id) {
-                Some(a) => a,
-                None => return false,
-            };
+        fn remove_token_from(&mut self, token_id: &TokenId, from: &AccountId) {
+            let (canvas_id, idx) = self.owned_tokens_index.get(&token_id).unwrap();
+            let count = self.owned_tokens.get((from, canvas_id, 0)).unwrap();
 
-            if caller == AccountId::from([0x0; 32]) {
-                return false;
+            if idx != count {
+                let last_token_id = self.owned_tokens.get((from, canvas_id, count)).unwrap();
+                self.owned_tokens_index.insert(&last_token_id, &(canvas_id, idx));
+                self.owned_tokens.insert((from, canvas_id, idx), &last_token_id);
+            }
+            self.owned_tokens.remove((from, canvas_id, count));
+            self.owned_tokens.insert((from, canvas_id, 0), &(count - 1));
+            self.update_balance(from, &1, &true);
+        }
+
+        fn add_token_to(&mut self, token_id: &TokenId, to: &AccountId) {
+            let (canvas_id, _, _) = decode(token_id);
+            let pos = self.owned_tokens.get((to, canvas_id, 0)).unwrap_or_default() + 1;
+            self.owned_tokens_index.insert(&token_id, &(canvas_id, pos));
+            self.owned_tokens.insert((to, canvas_id, pos), token_id);
+            self.update_balance(&to, &1, &false);   // See if it should be included or kept outside
+        }
+
+        fn approved_or_owner(&self, caller: &AccountId, id: &TokenId) -> Result<()> {
+            let owner = match self.owner_of(*id) {
+                Some(a) => Ok(a),
+                None => Err(Error::TokenNotFound),
+            }?;
+
+            if caller == &AccountId::from([0x0; 32]) {
+                return Err(Error::NotAllowed);
             }
 
-            caller == owner
-                || self.token_approvals.get(&id) == Some(caller)
-                || self.is_approved_for_all(owner, caller)
+            let (canvas_id, _, _) = decode(id);
+            let canvas = self.get_canvas_details(canvas_id)?;
+
+            if self.env().block_timestamp() <= canvas.end_time {
+                return Err(Error::TokenLocked);
+            }
+
+            match *caller == owner
+                || self.token_approvals.get(id) == Some(*caller)
+                || self.is_approved_for_all(owner, *caller)
+            {
+                true => Ok(()),
+                false => Err(Error::Unauthorised),
+            }
+        }
+
+        fn update_balance(&mut self, acc: &AccountId, amt: &u64, negative: &bool) {
+            let mut balance = self.balance.get(acc).unwrap();
+            if *negative {
+                assert!(*amt <= balance, "underflow");
+                balance -= amt;
+            } else {
+                balance += amt;
+            }
+            self.balance.insert(&acc, &balance);
         }
     }
 }
