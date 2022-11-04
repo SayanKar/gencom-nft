@@ -35,17 +35,6 @@ export default function DisplayCard(props) {
     },
   };
 
-  const getColor = () => {
-    return colors[Math.floor(Math.random() * 16)];
-  };
-
-  const makeColor = () => {
-    let color = Array.from({ length: 32 }, () =>
-      Array.from({ length: 32 }, () => [getColor()])
-    );
-    return color;
-  };
-
   const [canvasDetails, setCanvasDetails] = useState(null);
   const [roomStatus, setRoomStatus] = useState("0");
   const [totalBids, setTotalBids] = useState(0);
@@ -87,7 +76,6 @@ export default function DisplayCard(props) {
       }
       console.log("setting room status");
       const now = dayjs().unix()*1000;
-      //console.log(canvasDetails.startTime, "---", canvasDetails.endTime);
       if (now < parseInt(canvasDetails.startTime.replace(/,/g,""))) {
         setRoomStatus("0");
       }
@@ -152,7 +140,6 @@ export default function DisplayCard(props) {
             for (let i = 0; i < 32; i++) {
               for (let j = 0; j < 32; j++) {
                 temp[i][j] = "#" + parseInt(res.output.toHuman().Ok[i][j].replace(/,/g,"")).toString(16).padStart(6, "0");
-                console.log(temp[i][j]);
               }
             }
             setGridColors(temp);

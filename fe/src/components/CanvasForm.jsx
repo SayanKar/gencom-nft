@@ -12,14 +12,17 @@ import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { PRECISION, SYMBOL } from "../constants";
 import { useEffect } from "react";
 import { Keyring } from "@polkadot/api";
+import { useNavigate } from "react-router-dom";
+
 const keyring = new Keyring({ type: "sr25519" });
 export default function CanvasForm(props) {
+  const navigate = useNavigate();
   const BN = require("bn.js");
   const [currentTime] = useState(dayjs());
   const [startTimeValue, setStartTimeValue] = useState(currentTime);
@@ -109,8 +112,9 @@ export default function CanvasForm(props) {
             canvasId,
             title,
             desc,
-            startTimeValue.unix()*1000,
-            endTimeValue.unix()*1000,
+            [32, 32],
+            startTimeValue.unix() * 1000,
+            endTimeValue.unix() * 1000,
             new BN(cellPrice * 1000000).mul(new BN(PRECISION)),
             premium,
             isDynamic
@@ -133,8 +137,9 @@ export default function CanvasForm(props) {
                   canvasId,
                   title,
                   desc,
-                  startTimeValue.unix()*1000,
-                  endTimeValue.unix()*1000,
+                  [32, 32],
+                  startTimeValue.unix() * 1000,
+                  endTimeValue.unix() * 1000,
                   new BN(cellPrice * 1000000).mul(new BN(PRECISION)),
                   premium,
                   isDynamic
@@ -146,13 +151,14 @@ export default function CanvasForm(props) {
                     if (res.status.isFinalized) {
                       console.log("Room Creation Finalized", res);
                       enqueueSnackbar(
-                        <a
-                          href={"/canvas/" + canvasId}
+                        <span
+                          // href={"/canvas/" + canvasId}
                           style={{ textDecoration: "none", color: "white" }}
+                          onClick={() => navigate("/canvas/" + canvasId)}
                         >
                           {" Transaction Finalized, Click to go to canvas #" +
                             canvasId}
-                        </a>,
+                        </span>,
                         {
                           variant: "Success",
                         }
@@ -198,8 +204,8 @@ export default function CanvasForm(props) {
             title,
             desc,
             [32, 32],
-            startTimeValue.unix()*1000,
-            endTimeValue.unix()*1000,
+            startTimeValue.unix() * 1000,
+            endTimeValue.unix() * 1000,
             new BN(cellPrice * 1000000).mul(new BN(PRECISION)),
             premium,
             isDynamic
@@ -220,8 +226,8 @@ export default function CanvasForm(props) {
                   title,
                   desc,
                   [32, 32],
-                  startTimeValue.unix()*1000,
-                  endTimeValue.unix()*1000,
+                  startTimeValue.unix() * 1000,
+                  endTimeValue.unix() * 1000,
                   new BN(cellPrice * 1000000).mul(new BN(PRECISION)),
                   premium,
                   isDynamic
@@ -232,15 +238,18 @@ export default function CanvasForm(props) {
                   async (res) => {
                     if (res.status.isFinalized) {
                       enqueueSnackbar(
-                        <a
-                          href={
-                            "/canvas/" + res.contractEvents[0].args[0].toHuman()
+                        <span
+                          onClick={() =>
+                            navigate(
+                              "/canvas/" +
+                                res.contractEvents[0].args[0].toHuman()
+                            )
                           }
                           style={{ textDecoration: "none", color: "white" }}
                         >
                           {" Transaction Finalized, Click to go to canvas #" +
                             res.contractEvents[0].args[0].toHuman()}
-                        </a>,
+                        </span>,
                         {
                           variant: "Success",
                         }
@@ -305,7 +314,9 @@ export default function CanvasForm(props) {
                 setIsOwner(true);
                 console.log("You are not the owner");
               } else if (
-                dayjs().isAfter(dayjs.unix(res.startTime.replace(/,/g, "")/1000))
+                dayjs().isAfter(
+                  dayjs.unix(res.startTime.replace(/,/g, "") / 1000)
+                )
               ) {
                 setHasStarted(true);
               } else {
@@ -313,8 +324,12 @@ export default function CanvasForm(props) {
                 setDesc(res.desc);
                 setPremium(res.premium);
                 setIsDynamic(res.isDynamic);
-                setStartTimeValue(dayjs.unix(res.startTime.replace(/,/g, "")/1000));
-                setEndTimeValue(dayjs.unix(res.endTime.replace(/,/g, "")/1000));
+                setStartTimeValue(
+                  dayjs.unix(res.startTime.replace(/,/g, "") / 1000)
+                );
+                setEndTimeValue(
+                  dayjs.unix(res.endTime.replace(/,/g, "") / 1000)
+                );
                 setCellPrice(
                   new BN(res.basePrice.replace(/,/g, ""))
                     .div(new BN(1000_000_000_000))
@@ -479,9 +494,7 @@ export default function CanvasForm(props) {
           />
 
           <TextField
-            helperText={
-              "* You will get this amount when painters buy a cell." 
-            }
+            helperText={"* You will get this amount when painters buy a cell."}
             id="minPriceInput"
             label="Cell base price"
             fullWidth

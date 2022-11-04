@@ -1,37 +1,75 @@
 import "../App.css";
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {colors} from "../constants";
-const getColor = () => {
-  return colors[Math.floor(Math.random() * 16)];
-};
+// const getColor = () => {
+//   return colors[Math.floor(Math.random() * 16)];
+// };
 
 export default function CanvasGrid(props) {
-  const makeColor = () => {
-    let color = Array.from({ length: props.rows }, () =>
-      Array.from({ length: props.columns }, () => [getColor()])
-    );
-    return color;
-  };
+  const [cellColor, setCellColor] = useState(new Array(32).fill(0).map(() => new Array(32).fill(colors["0"])));
+  useEffect(() => {
+    const getGridColors = async () => {
+      if (props.contract && props.activeAccount) {
+        console.log("Fetching grid color data...");
+        await props.contract.query.getColoredGrid(
+          props.activeAccount.address, {
+          value: 0,
+          gasLimit: -1,
+        },
+        props.id
+        )
+        .then((res) => {
+          if (!res.result.toHuman().Err) {
+            console.log("Successfully fetched grid color data");
+            let temp = new Array(32).fill(0).map(() => new Array(32).fill(0));
+            for (let i = 0; i < 32; i++) {
+              for (let j = 0; j < 32; j++) {
+                temp[i][j] = "#" + parseInt(res.output.toHuman().Ok[i][j].replace(/,/g,"")).toString(16).padStart(6, "0");
+              }
+            }
+            setCellColor(temp);
+          } else {
+            console.log("Error while fetching grid color data: ", res.result.toHuman().Err);
+          }
+        })
+        .catch((err) => {
+          console.log("Error while fetching grid color data:", err);
+        });
+      }
+    };
+    getGridColors();
+    const updateColors = setInterval(() => getGridColors(), 20000);
+    return () => clearInterval(updateColors);
+  }, [props.contract, props.activeAccount]);
 
-  const [cellColor, setCellColor] = useState(makeColor());
-
-  const setColor = (x, y, color) => {
-    let tmpColor = cellColor;
-    tmpColor[x][y] = color;
-    setCellColor(tmpColor);
-  };
+  // const getUserNfts = async () => {
+  //     if (props.contract && props.activeAccount) {
+  //       console.log("Fetching  owner ...");
+  //       await props.contract.query.getColoredGrid(
+  //         props.activeAccount.address, {
+  //         value: 0,
+  //         gasLimit: -1,
+  //       },
+  //       props.id
+  //       )
+  //       .then((res) => {})
+  //       .catch((err) => {
+  //         console.log("Error while fetching owner grid", err);
+  //       });
+  //     }
+  //   };
+  //     }
+  // }
 
   const renderGridRows = () => {
-    let rows = Array.from({ length: props.rows }, (_, i) => i);
-    return rows.map((row) => {
+    return cellColor.map((row, idx) => {
       return (
-        <tr key={row} id={"row-" + row}>
+        <tr key={idx} id={"row-" + idx}>
           <GridCell
-            row={row}
+            row={idx}
             {...props}
-            setColor={(x, y, color) => setColor(x, y, color)}
-            color={cellColor}
+            color={row}
           />
         </tr>
       );
@@ -47,17 +85,13 @@ export default function CanvasGrid(props) {
 }
 
 function GridCell(props) {
-  const createColor = (color) => {
-    return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-  };
-  let columns = Array.from({ length: props.columns }, (_, i) => i);
-  return columns.map((_, col) => (
-    <td id={"row-" + props.row + "-col-" + col} key={col} className="tableCell">
+  return props.color.map((color, idx) => (
+    <td id={"row-" + props.row + "-col-" + idx} key={idx} className="tableCell">
       <div
         className="cellBox"
         tabIndex={0}
-        style={{ background: props.color[props.row][col] }}
-        onClick={() => props.setSelectedCell(props.row, col)}
+        style={{ background: color ? color : colors["0"] }}
+        onClick={() => props.setSelectedCell(props.row, idx)}
       ></div>
     </td>
   ));

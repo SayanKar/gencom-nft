@@ -287,7 +287,7 @@ const Strip = (props) => {
   return (
     <Tooltip title={props.tooltip} arrow>
       <Paper
-        elevation="1"
+        elevation={1}
         sx={{
           borderRadius: "10px",
           width: "fit-content",

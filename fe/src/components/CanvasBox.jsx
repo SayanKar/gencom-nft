@@ -12,6 +12,8 @@ import {
   Button,
   IconButton,
   Tooltip,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import CanvasGrid from "./CanvasGrid";
 import SquareIcon from "@mui/icons-material/Square";
@@ -50,8 +52,8 @@ export default function CanvasBox(props) {
     }
     return list;
   };
+  const [posting, setPosting] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
-  const [gridData, setGridData] = useState();
   const [selectedCell, setSelectedCell] = useState({
     row: 0,
     column: 0,
@@ -64,6 +66,7 @@ export default function CanvasBox(props) {
     color: "0",
   });
   const [now] = useState(dayjs().unix() * 1000);
+  const [showOwnedCell, setShowOwnedCell] = useState(false);
 
   function changeAddressEncoding(address, toNetworkPrefix = 42) {
     if (!address) {
@@ -75,11 +78,6 @@ export default function CanvasBox(props) {
   }
 
   const createTokenId = (canvasId, row, column) => {
-    console.log(
-      canvasId +
-        row.toString().padStart(3, "0") +
-        column.toString().padStart(3, "0")
-    );
     return (
       canvasId +
       row.toString().padStart(3, "0") +
@@ -110,7 +108,11 @@ export default function CanvasBox(props) {
                 new BN(res.value.replace(/,/g, ""))
                   .div(new BN(PRECISION))
                   .toNumber() / 1000_000,
-              color: "#" + parseInt(res.color.replace(/,/g, "")).toString(16).padStart(6, "0"),
+              color:
+                "#" +
+                parseInt(res.color.replace(/,/g, ""))
+                  .toString(16)
+                  .padStart(6, "0"),
             });
           } else if (res.output?.toHuman()?.Err === "TokenNotFound") {
             setSelectedCellDetails({
@@ -130,7 +132,7 @@ export default function CanvasBox(props) {
   };
 
   const onBid = () => {
-    if (selectedCell.owner === props.activeAccount.address) {
+    if (selectedCellDetails.owner === props.activeAccount.address) {
       changeCellColor();
     } else {
       captureCell();
@@ -139,21 +141,83 @@ export default function CanvasBox(props) {
 
   const changeCellColor = async () => {
     if (props.contract && props.activeAccount) {
-      await props.contract.query
-        .changeCellColor(
-          props.activeAccount.address,
-          {
-            value: 0,
-            gasLimit: -1,
-          },
-          props.id,
-          selectedCell.row,
-          selectedCell.column,
-          transaction.color
-        )
-        .then((res) => {
-          console.log(res);
+      if (!clicked) {
+        enqueueSnackbar("Select a cell first");
+      }
+      try {
+        await props.contract.query
+          .changeCellColor(
+            props.activeAccount.address,
+            {
+              value: 0,
+              gasLimit: -1,
+            },
+            props.id,
+            selectedCell.row,
+            selectedCell.column,
+            enumColors[transaction.color].name
+          )
+          .then((res) => {
+            if (res.result?.toHuman()?.Err?.Module?.message)
+              throw new Error(res.result.toHuman().Err.Module.message);
+            else return res.output.toHuman();
+          })
+          .then(async (res) => {
+            if (!res.Err) {
+              await props.contract.tx
+                .changeCellColor(
+                  {
+                    value: 0,
+                    gasLimit: 300000n * 1000000n,
+                  },
+                  props.id,
+                  selectedCell.row,
+                  selectedCell.column,
+                  enumColors[transaction.color].name
+                )
+                .signAndSend(
+                  props.activeAccount.address,
+                  { signer: props.signer },
+                  async (res) => {
+                    if (res.status.isFinalized) {
+                      enqueueSnackbar(
+                        "Transaction Finalized, Cell color changed successfully",
+                        {
+                          variant: "Success",
+                        }
+                      );
+                    }
+                  }
+                );
+              setClicked(false);
+              setSelectedCellDetails({
+                owner: "----------------------------------------------------",
+                bidPrice: "0",
+                color: "0",
+              });
+              setTransaction({ color: "0", bid: 0 });
+              enqueueSnackbar("Transaction Submitted", {
+                variant: "Success",
+              });
+            } else {
+              console.log("Failed on cell color change ->", res.Err);
+              enqueueSnackbar("Failed to cellcolor change -> \n " + res.Err, {
+                variant: "error",
+              });
+            }
+          })
+          .catch((err) => {
+            console.log("Error changing cell color", err);
+            enqueueSnackbar("Error changing cell color" + err, {
+              variant: "error",
+            });
+          });
+      } catch (err) {
+        console.log("Error while chaning cell color", err);
+        enqueueSnackbar("Error while changing cell color" + err, {
+          variant: "error",
         });
+      }
     } else {
       console.log("Connect your wallet");
       enqueueSnackbar("Connect your wallet", { variant: "error" });
@@ -213,9 +277,6 @@ export default function CanvasBox(props) {
                   props.activeAccount.address,
                   { signer: props.signer },
                   async (res) => {
-                    console.log(res.contractEvents[0].event.args.toHuman());
-                    console.log(res.contractEvents[0].event.args[2].toHuman());
-
                     if (res.status.isFinalized) {
                       enqueueSnackbar(
                         "Transaction Finalized, Cell captured successfully",
@@ -226,13 +287,16 @@ export default function CanvasBox(props) {
                     }
                   }
                 );
+              setClicked(false);
               setTransaction({ color: "0", bid: 0 });
-              enqueueSnackbar(
-                "Transaction Submitted",
-                {
-                  variant: "Success",
-                }
-              );
+              enqueueSnackbar("Transaction Submitted", {
+                variant: "Success",
+              });
+              setSelectedCellDetails({
+                owner: "----------------------------------------------------",
+                bidPrice: "0",
+                color: "0",
+              });
             } else {
               console.log("Failed on capture cell ->", res.Err);
               enqueueSnackbar("Failed to capture cell -> \n " + res.Err, {
@@ -285,20 +349,39 @@ export default function CanvasBox(props) {
                     column: y,
                   });
                 }}
+                activeAccount={props.activeAccount}
+                contract={props.contract}
+                id={props.id}
               />
-              <Typography
-                variant="h6"
-                align="left"
-                id="selectionDetails"
+              <Box
                 sx={{
-                  width: "384px",
-                  color: "rgba(31, 38, 59, 1)",
+                  display: "flex",
+                  alignItems: "center",
                   margin: "30px 0px 5px 0px",
-                  fontWeight: "500",
                 }}
               >
-                Selection Details
-              </Typography>
+                <Typography
+                  variant="h6"
+                  align="left"
+                  id="selectionDetails"
+                  sx={{
+                    width: "264px",
+                    color: "rgba(31, 38, 59, 1)",
+                    fontWeight: "500",
+                  }}
+                >
+                  Selection Details
+                </Typography>
+                <FormControlLabel
+                  control={<Switch />}
+                  label="Your Cells"
+                  sx={{ color: "rgba(0, 0, 0, 0.6)", fontSize: "6px" }}
+                  labelPlacement="end"
+                  checked={showOwnedCell}
+                  onChange={(e) => setShowOwnedCell(e.target.checked)}
+                  inputProps={{ "aria-label": "controlled" }}
+                />
+              </Box>
               <Divider sx={{ width: "384px", marginBottom: "10px" }} />
               <Box component="div" className="cardDataRow">
                 <Typography
@@ -415,6 +498,20 @@ export default function CanvasBox(props) {
                   Choose and Bid
                 </Typography>
                 <Divider sx={{ width: "384px", marginBottom: "10px" }} />
+                {selectedCellDetails.owner === props.activeAccount.address && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      width: "384px",
+                      color: "rgba(31, 38, 59, 1)",
+                      marginBottom: "8px",
+                    }}
+                    align="left"
+                    fontWeight="500"
+                  >
+                    * You are the cell owner *
+                  </Typography>
+                )}
                 <Typography
                   variant="body1"
                   sx={{
@@ -456,7 +553,7 @@ export default function CanvasBox(props) {
                 <FormControl
                   sx={{ m: 1, width: "400px" }}
                   disabled={
-                    selectedCell.owner === props.activeAccount.address ||
+                    selectedCellDetails.owner === props.activeAccount.address ||
                     props.start > now ||
                     props.end < now
                   }
@@ -496,6 +593,24 @@ export default function CanvasBox(props) {
                         }}
                       />
                     </>
+                  ) : selectedCellDetails.owner ===
+                    props.activeAccount.address ? (
+                    transaction.color ? (
+                      <>
+                        * Change Cell color in Row {selectedCell.row + 1} and
+                        Column {selectedCell.column + 1} with to
+                        <CircleIcon
+                          sx={{
+                            color: colors[transaction.color],
+                            fontSize: "13px",
+                            marginBottom: "-2px",
+                            marginLeft: "5px",
+                          }}
+                        />
+                      </>
+                    ) : (
+                      "* Select a color to update cell"
+                    )
                   ) : (
                     "* Select a color and bid price"
                   )}
@@ -506,7 +621,13 @@ export default function CanvasBox(props) {
                   onClick={() => onBid()}
                   disabled={props.start > now || props.end < now}
                 >
-                  Bid
+                  {selectedCellDetails.owner === props.activeAccount.address
+                    ? !posting
+                      ? "Change Color"
+                      : "Changing"
+                    : !posting
+                    ? "Bid"
+                    : "Bidding"}
                 </Button>
               </CardContent>
             </Card>
