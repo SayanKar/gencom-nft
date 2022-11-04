@@ -1,3 +1,26 @@
+//! # Creative NFT
+//!
+//! It is an ERC721 compliant NFT contract where users/community can come together to create
+//! their own NFT Art in a collaborative fashion.
+//!
+//! ## Overview
+//!
+//! Users can create collections (called Canvas) by paying a small creation fees
+//! (which is controlled by the contract owner) and set its attributes.
+//!
+//! A canvas is a 2D grid of the individual cells (aka Token). Users can buy these
+//! tokens during the painting phase (A period set by the Canvas creator).
+//!
+//! A user can mint an unclaimed cell by paying atleast `base_price` amount (set by the creator).
+//! The value is transferred to the creator.
+//!
+//! A user can gain ownership of a token which is already claimed by another user by paying
+//! value (= last_bid_price + premium) which is transferred to the last owner. The premium percentage
+//! is set by the Canvas creator during initialisation phase.
+//!
+//! The owner of a token can change its color at any time during the painting phase and if the canvas
+//! was marked `Dynamic` by the creator then its color can be changed even after the painting phase!
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(is_some_with)]
 
@@ -199,7 +222,7 @@ mod creative_nft {
         /// Mapping from `canvas_id` to its readonly metadata.
         /// @note It can be updated before the auction starts
         canvas_details: Mapping<CanvasId, Canvas>,
-        /// It stores the participation data and status of each canvas
+        /// Mapping from `canvas_id` to its participation stats
         canvas_analytics: Mapping<CanvasId, CanvasStats>,
         /// Mapping from `token_id` to its data (owner, color, value)
         grids: Mapping<TokenId, Cell>,
@@ -264,7 +287,14 @@ mod creative_nft {
             Ok(())
         }
 
-        /// PAYABLE Call. Creates a new canvas room.
+        /// (PAYABLE) Creates a new canvas room.
+        ///
+        /// `premium` denotes the min % of additional value in addition to the last_price
+        /// a buyer needs to pay to gain ownership of a token during auction.
+        /// Its value can be from 0% - 255% (scale = 1)
+        ///
+        /// If `is_dynamic` is set to `true` then owners can change the color of their
+        /// token(cell) even after the auction period is over!
         #[ink(message, payable)]
         pub fn create_canvas(
             &mut self,
@@ -318,7 +348,7 @@ mod creative_nft {
             Ok(canvas_id)
         }
 
-        /// Creator can make changes in the contract metadata before the start_time of auction
+        /// Creator can make changes in the canvas metadata BEFORE the start_time of an auction
         #[ink(message)]
         pub fn edit_canvas(
             &mut self,
@@ -365,15 +395,21 @@ mod creative_nft {
             Ok(())
         }
 
+        /// (PAYABLE) Gain ownership of the given token_id by paying a premium over the
+        /// last bid value. Caller can optionally update the cell color to a different color.
         #[ink(message, payable)]
         pub fn capture_cell(&mut self, token_id: TokenId, color: Option<Colors>) -> Result<()> {
             let caller = self.env().caller();
+
+            // If the cell is not found, mint() function is called instead
             let cell = match self.get_cell_details(token_id) {
                 Ok(cell) => cell,
                 Err(_) => return self.mint(&token_id, &caller, &color),
             };
 
             if caller == cell.owner {
+                // It is done to prevent the owner from inflating the price of their cell
+                // while they receive back the fund to themselves.
                 return Err(Error::CannotCaptureOwnToken);
             }
 
@@ -422,6 +458,8 @@ mod creative_nft {
             Ok(())
         }
 
+        /// User can change the color of the cell they own; given either
+        /// the canvas is of dynamic type or the auction is still active.
         #[ink(message)]
         pub fn change_cell_color(
             &mut self,
@@ -439,6 +477,7 @@ mod creative_nft {
             Ok(())
         }
 
+        /// Same as [change_cell_color] but can update multiple tokens (belonging to the same canvas) at once.
         #[ink(message)]
         pub fn change_multiple_cells_color(
             &mut self,
@@ -457,12 +496,13 @@ mod creative_nft {
             Ok(())
         }
 
-        /// returns [contractOwner, canvasNonce, creationFees]
+        /// Returns (contractOwner, canvasNonce, creationFees)
         #[ink(message)]
         pub fn get_game_details(&self) -> (AccountId, CanvasId, Balance) {
             (self.owner, self.canvas_nonce, self.creation_fees)
         }
 
+        /// Get the metadata of the given canvas if it exists
         #[ink(message)]
         pub fn get_canvas_details(&self, canvas_id: CanvasId) -> Result<Canvas> {
             self.canvas_details
@@ -470,11 +510,15 @@ mod creative_nft {
                 .ok_or(Error::CanvasNotFound)
         }
 
+        /// @returns the participation record (total_bids, total_participants) of the given canvas
         #[ink(message)]
         pub fn get_canvas_stats(&self, canvas_id: CanvasId) -> CanvasStats {
             self.canvas_analytics.get(&canvas_id).unwrap_or_default()
         }
 
+        /// Get cell details of all the cells (whether minted or not) part of the canvas.
+        ///
+        /// @NOTE call is likely to fail if the dimensions of the grid is not small!
         #[ink(message)]
         pub fn get_grid_details(&self, canvas_id: CanvasId) -> Result<Vec<Vec<Cell>>> {
             let canvas = self.get_canvas_details(canvas_id)?;
@@ -495,6 +539,7 @@ mod creative_nft {
             Ok(grid)
         }
 
+        /// Get color of each cell in the given canvas. Cells not minted have color WHITE (0xf8f8f8) by default.
         #[ink(message)]
         pub fn get_colored_grid(&self, canvas_id: CanvasId) -> Result<Vec<Vec<u32>>> {
             let canvas = self.get_canvas_details(canvas_id)?;
@@ -518,6 +563,9 @@ mod creative_nft {
             Ok(grid)
         }
 
+        /// Returns the data (owner, color, value) of the cell if it exists.
+        /// Returns `Error::CellNotMinted` in the case the token_id is part of an existing canvas.
+        /// Otherwise returns `Error::TokenNotFound`
         #[ink(message)]
         pub fn get_cell_details(&self, token_id: TokenId) -> Result<Cell> {
             self.grids
@@ -528,6 +576,7 @@ mod creative_nft {
                 })
         }
 
+        /// Returns the list of CanvasIds which were the created by the given user account.
         #[ink(message)]
         pub fn get_user_created_canvas_ids(&self, acc: AccountId) -> Vec<CanvasId> {
             (0..self.canvas_nonce)
@@ -539,6 +588,7 @@ mod creative_nft {
                 .collect()
         }
 
+        /// Returns the list of CanvasIds in which user placed atleast one successful bid.
         #[ink(message)]
         pub fn get_user_participated_canvas_ids(&self, acc: AccountId) -> Vec<CanvasId> {
             (0..self.canvas_nonce)
@@ -547,13 +597,14 @@ mod creative_nft {
                 .collect()
         }
 
-        /// returns (spent, received) of the given user. It is the cumulative value of
+        /// @returns (spent, received) of the given user. It is the cumulative value of
         /// monetary interactions done by a given user on the platform
         #[ink(message)]
         pub fn get_user_cash_flow(&self, acc: AccountId) -> (Balance, Balance) {
             self.cash_flow.get(&acc).unwrap_or_default()
         }
 
+        /// Returns the list of tokenIds the user owns in the given canvas
         #[ink(message)]
         pub fn get_user_nfts(&self, acc: AccountId, canvas_id: CanvasId) -> Vec<TokenId> {
             let count = self
@@ -567,11 +618,13 @@ mod creative_nft {
                 .collect()
         }
 
+        /// Returns the count of NFTs (cell) a given user own in a given canvas
         #[ink(message)]
         pub fn get_user_nft_count(&self, acc: AccountId, canvas_id: CanvasId) -> u64 {
             self.owned_tokens.get(&(acc, canvas_id, 0)).unwrap_or(0)
         }
 
+        /// A helper function equivalent to onlyOwner modifier in Solidity
         fn only_owner(&self) -> Result<()> {
             if self.env().caller() != self.owner {
                 return Err(Error::Unauthorised);
@@ -579,6 +632,8 @@ mod creative_nft {
             Ok(())
         }
 
+        /// Updates the cell color after verifying the cell exists and the caller is its owner
+        // @dev: Should approved account be allowed to call it? and not just the owner.
         fn change_color(
             &mut self,
             canvas_id: &CanvasId,
@@ -599,6 +654,7 @@ mod creative_nft {
             });
         }
 
+        /// Mints a new token (part of a canvas) after veriying all the required conditions are met.
         fn mint(
             &mut self,
             token_id: &TokenId,
@@ -644,6 +700,7 @@ mod creative_nft {
             Ok(())
         }
 
+        /// Updates the internal storage tracking the cumulative (spending, earning) on the platform
         fn update_cash_flow(&mut self, from: &AccountId, to: &Option<AccountId>, val: &Balance) {
             let (mut spent, receive) = self.cash_flow.get(&from).unwrap_or_default();
             spent += val;
@@ -656,6 +713,8 @@ mod creative_nft {
             }
         }
 
+        /// Increments total_bid on a successfull bid. If this is the first interaction of the user
+        /// with given canvas room then total_participants is also incremented.
         fn update_canvas_analytics(&mut self, canvas_id: &CanvasId, user: &AccountId) {
             let mut stats = self.canvas_analytics.get(canvas_id).unwrap_or_default();
             stats.total_bids += 1;
@@ -667,6 +726,8 @@ mod creative_nft {
             self.canvas_analytics.insert(&canvas_id, &stats);
         }
 
+        /// Returns true if the token is a part of an existing canvas
+        /// grid (minted or not) otherwise returns false.
         fn is_valid_token_id(&self, token_id: &TokenId) -> bool {
             let (canvas_id, cord_x, cord_y) = decode(token_id);
             if let Ok(canvas) = self.get_canvas_details(canvas_id) {
@@ -679,11 +740,14 @@ mod creative_nft {
 
     /// ERC721 standard implemented here
     impl CreativeNft {
+        /// Returns the count of all tokens owned by the `owner` across all the canvases.
+        /// It also includes the tokens which are part of live auction rooms.
         #[ink(message)]
         pub fn balance_of(&self, owner: AccountId) -> u64 {
             self.balance.get(&owner).unwrap_or(0)
         }
 
+        /// Returns the owner of the token if the token exists
         #[ink(message)]
         pub fn owner_of(&self, id: TokenId) -> Option<AccountId> {
             match self.get_cell_details(id) {
@@ -692,16 +756,19 @@ mod creative_nft {
             }
         }
 
+        /// Returns the Account approved to manage the token `id` if set
         #[ink(message)]
         pub fn get_approved(&self, id: TokenId) -> Option<AccountId> {
             self.token_approvals.get(&id)
         }
 
+        /// Returns `true` if the operator is approved by the owner
         #[ink(message)]
         pub fn is_approved_for_all(&self, owner: AccountId, operator: AccountId) -> bool {
             self.operator_approvals.contains(&(owner, operator))
         }
 
+        /// Approves or disapproves the operator for all tokens of the caller
         #[ink(message)]
         pub fn set_approval_for_all(&mut self, to: AccountId, approved: bool) -> Result<()> {
             let caller = self.env().caller();
@@ -724,6 +791,7 @@ mod creative_nft {
             Ok(())
         }
 
+        /// Approves the account to transfer the given token on behalf of the caller
         #[ink(message)]
         pub fn approve(&mut self, to: AccountId, id: TokenId) -> Result<()> {
             let caller = self.env().caller();
@@ -747,12 +815,14 @@ mod creative_nft {
             Ok(())
         }
 
+        /// Transfers the token from the caller to the given destination
         #[ink(message)]
         pub fn transfer(&mut self, destination: AccountId, id: TokenId) -> Result<()> {
             let caller = self.env().caller();
             self.transfer_from(caller, destination, id)
         }
 
+        /// Transfer approved or owned token
         #[ink(message)]
         pub fn transfer_from(&mut self, from: AccountId, to: AccountId, id: TokenId) -> Result<()> {
             let caller = self.env().caller();
@@ -775,6 +845,7 @@ mod creative_nft {
             Ok(())
         }
 
+        /// Removes token `token_id` from the owner.
         fn remove_token_from(&mut self, token_id: &TokenId, from: &AccountId) {
             let (canvas_id, idx) = self.owned_tokens_index.get(&token_id).unwrap();
             let count = self.owned_tokens.get((from, canvas_id, 0)).unwrap();
@@ -791,6 +862,7 @@ mod creative_nft {
             self.update_balance(from, &1, &true);
         }
 
+        /// Adds the token `token_id` to the AccountID `to`
         fn add_token_to(&mut self, token_id: &TokenId, to: &AccountId) {
             let (canvas_id, _, _) = decode(token_id);
             let pos = self
@@ -804,6 +876,8 @@ mod creative_nft {
             self.update_balance(&to, &1, &false); // See if it should be included or kept outside
         }
 
+        /// Returns true if the AccountId `caller` is the owner of token `id`
+        /// or it has been approved on behalf of the token `id` owner.
         fn approved_or_owner(&self, caller: &AccountId, id: &TokenId) -> Result<()> {
             let owner = match self.owner_of(*id) {
                 Some(a) => Ok(a),
@@ -830,6 +904,8 @@ mod creative_nft {
             }
         }
 
+        /// Helper function to add/subtract value `amt` in the AccountId `acc` balance
+        // @dev negative = true implies subtraction otherwise addition
         fn update_balance(&mut self, acc: &AccountId, amt: &u64, negative: &bool) {
             let mut balance = self.balance.get(acc).unwrap_or(0);
             if *negative {
