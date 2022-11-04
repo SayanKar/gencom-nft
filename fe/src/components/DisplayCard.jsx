@@ -87,7 +87,7 @@ export default function DisplayCard(props) {
       }
       console.log("setting room status");
       const now = dayjs().unix()*1000;
-      console.log(canvasDetails.startTime, "---", canvasDetails.endTime);
+      //console.log(canvasDetails.startTime, "---", canvasDetails.endTime);
       if (now < parseInt(canvasDetails.startTime.replace(/,/g,""))) {
         setRoomStatus("0");
       }
@@ -131,7 +131,7 @@ export default function DisplayCard(props) {
   }, [props.contract, props.activeAccount]);
 
   // canvas grid info
-  /*useEffect(() => {
+  useEffect(() => {
     const getGridColors = async () => {
       if (props.contract && props.activeAccount) {
         console.log("Fetching grid color data...");
@@ -151,7 +151,7 @@ export default function DisplayCard(props) {
             }
             for (let i = 0; i < 32; i++) {
               for (let j = 0; j < 32; j++) {
-                temp[i][j] = "#" + parseInt(res.output.toHuman().Ok[i][j].replace(/,/g,"")).toString(16);
+                temp[i][j] = "#" + parseInt(res.output.toHuman().Ok[i][j].replace(/,/g,"")).toString(16).padStart(6, "0");
                 console.log(temp[i][j]);
               }
             }
@@ -166,7 +166,7 @@ export default function DisplayCard(props) {
       }
     };
     getGridColors();
-  }, [props.contract, props.activeAccount]);*/
+  }, [props.contract, props.activeAccount]);
 
   return (
     <Box sx={{ position: "relative" }}>
@@ -225,7 +225,7 @@ export default function DisplayCard(props) {
                 }}
               >
                 {/* error in grid color state passing */}
-                <GridSVG colors={makeColor()} />
+                <GridSVG colors={gridColors} />
               </Box>
               <Typography
                 variant="h5"
