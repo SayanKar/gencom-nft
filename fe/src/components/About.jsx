@@ -61,35 +61,39 @@ export default function About(props) {
               on the canvas along with others and create art together. Own the
               art together with others as a NFT.
             </Typography>
-            <Divider
-              sx={{ marginTop: "3%", width: "88%", marginBottom: "3%" }}
-            />
-            <Typography
-              variant="h3"
-              id="totalTokenAmount"
-              sx={{
-                fontWeight: "bold",
-                fontSize: "3rem",
-                textAlign: "left",
-                marginRight: "6rem",
-                fontFamily: "cursive",
-              }}
-            >
-              1,234.56 EDG
-            </Typography>
-            <Typography
-              variant="h6"
-              id="contributorCaption"
-              sx={{
-                fontWeight: "400",
-                textAlign: "left",
-                fontSize: "1.2rem",
-                marginTop: "1rem",
-                color: "rgb(71 85 105)",
-              }}
-            >
-              Contributed to 9,498 Rooms by 4,172 users
-            </Typography>
+            {props.contract && props.activeAccount &&
+              <Divider
+                sx={{ marginTop: "3%", width: "88%", marginBottom: "3%" }}
+              />}
+            {props.contract && props.activeAccount &&
+              <Typography
+                variant="h3"
+                id="totalTokenAmount"
+                sx={{
+                  fontWeight: "bold",
+                  fontSize: "3rem",
+                  textAlign: "left",
+                  marginRight: "6rem",
+                  fontFamily: "cursive",
+                }}
+              >
+                1,234.56 EDG
+              </Typography>}
+            {props.contract && props.activeAccount &&
+              <Typography
+                variant="h6"
+                id="contributorCaption"
+                sx={{
+                  fontWeight: "400",
+                  textAlign: "left",
+                  fontSize: "1.2rem",
+                  marginTop: "1rem",
+                  color: "rgb(71 85 105)",
+                }}
+              >
+                Contributed to 9,498 Rooms by 4,172 users
+              </Typography>
+            }
             <Divider
               sx={{ marginTop: "3%", width: "88%", marginBottom: "3%" }}
             />

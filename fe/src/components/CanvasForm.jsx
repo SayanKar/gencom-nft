@@ -305,7 +305,7 @@ export default function CanvasForm(props) {
                 setIsOwner(true);
                 console.log("You are not the owner");
               } else if (
-                dayjs().isAfter(dayjs.unix(res.startTime.replace(/,/g, "")))
+                dayjs().isAfter(dayjs.unix(res.startTime.replace(/,/g, "")/1000))
               ) {
                 setHasStarted(true);
               } else {
