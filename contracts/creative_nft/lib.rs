@@ -137,14 +137,24 @@ mod creative_nft {
         InsufficientFunds,
         /// End time should be greater than start time
         InvalidDuration,
+        /// End-time should be greater than current time
+        InvalidEndtime,
         /// Given canvas-id has not yet been created
         CanvasNotFound,
         /// Given token-id doesn't exist
         TokenNotFound,
+        /// No one has claimed the given token yet
+        CellNotMinted,
         /// Dimension of canvas cannot be zero
         ZeroDimensions,
         /// Tokens from active auctions are locked
         TokenLocked,
+        /// Cannot make changes post auction's start-time
+        EditPhaseOver,
+        /// Cannot bid on cells outside of auction phase
+        NotAuctionPhase,
+        /// You cannot recapture your own token cell
+        CannotCaptureOwnToken,
     }
 
     #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Clone, Default)]
@@ -276,6 +286,9 @@ mod creative_nft {
             if start_time >= end_time {
                 return Err(Error::InvalidDuration);
             }
+            if end_time <= self.env().block_timestamp() {
+                return Err(Error::InvalidEndtime);
+            }
 
             let caller = self.env().caller();
             let canvas_id = self.canvas_nonce;
@@ -312,6 +325,7 @@ mod creative_nft {
             canvas_id: CanvasId,
             title: Option<String>,
             desc: Option<String>,
+            dimensions: Option<(u8, u8)>,
             new_start_time: Option<u64>,
             new_end_time: Option<u64>,
             base_price: Option<Balance>,
@@ -321,7 +335,7 @@ mod creative_nft {
             let canvas = self.get_canvas_details(canvas_id)?;
 
             if self.env().block_timestamp() >= canvas.start_time {
-                return Err(Error::NotAllowed);
+                return Err(Error::EditPhaseOver);
             }
 
             let start_time = new_start_time.unwrap_or(canvas.start_time);
@@ -329,10 +343,14 @@ mod creative_nft {
             if start_time >= end_time {
                 return Err(Error::InvalidDuration);
             }
+            if end_time <= self.env().block_timestamp() {
+                return Err(Error::InvalidEndtime);
+            }
 
             let ncanvas = Canvas {
                 title: title.unwrap_or(canvas.title),
                 desc: desc.unwrap_or(canvas.desc),
+                dimensions: dimensions.unwrap_or(canvas.dimensions),
                 base_price: base_price.unwrap_or(canvas.base_price),
                 premium: premium.unwrap_or(canvas.premium),
                 is_dynamic: is_dynamic.unwrap_or(canvas.is_dynamic),
@@ -355,11 +373,15 @@ mod creative_nft {
                 Err(_) => return self.mint(&token_id, &caller, &color),
             };
 
+            if caller == cell.owner {
+                return Err(Error::CannotCaptureOwnToken);
+            }
+
             let (canvas_id, _, _) = decode(&token_id);
             let canvas = self.get_canvas_details(canvas_id)?;
 
             if self.env().block_timestamp() > canvas.end_time {
-                return Err(Error::NotAllowed);
+                return Err(Error::NotAuctionPhase);
             }
 
             let price = cell.value * (100 + canvas.premium as u128) / 100;
@@ -391,6 +413,11 @@ mod creative_nft {
                 from: cell.owner,
                 by: caller,
                 color,
+            });
+            self.env().emit_event(Transfer {
+                from: Some(cell.owner),
+                to: Some(caller),
+                id: token_id,
             });
             Ok(())
         }
@@ -493,7 +520,12 @@ mod creative_nft {
 
         #[ink(message)]
         pub fn get_cell_details(&self, token_id: TokenId) -> Result<Cell> {
-            self.grids.get(&token_id).ok_or(Error::TokenNotFound)
+            self.grids
+                .get(&token_id)
+                .ok_or_else(|| match self.is_valid_token_id(&token_id) {
+                    true => Error::CellNotMinted,
+                    false => Error::TokenNotFound,
+                })
         }
 
         #[ink(message)]
@@ -578,7 +610,7 @@ mod creative_nft {
 
             let time = self.env().block_timestamp();
             if time < canvas.start_time || time > canvas.end_time {
-                return Err(Error::NotAllowed);
+                return Err(Error::NotAuctionPhase);
             }
             if cord_x >= canvas.dimensions.0 || cord_y >= canvas.dimensions.1 {
                 return Err(Error::TokenNotFound);
@@ -633,6 +665,15 @@ mod creative_nft {
                     None => 1,
                 };
             self.canvas_analytics.insert(&canvas_id, &stats);
+        }
+
+        fn is_valid_token_id(&self, token_id: &TokenId) -> bool {
+            let (canvas_id, cord_x, cord_y) = decode(token_id);
+            if let Ok(canvas) = self.get_canvas_details(canvas_id) {
+                cord_x < canvas.dimensions.0 && cord_y < canvas.dimensions.1
+            } else {
+                false
+            }
         }
     }
 
