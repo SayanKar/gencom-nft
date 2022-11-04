@@ -50,6 +50,7 @@ export default function DisplayCard(props) {
   const [roomStatus, setRoomStatus] = useState("0");
   const [totalBids, setTotalBids] = useState(0);
   const [totalParticipants, setTotalParticipants] = useState(0);
+  const [gridColors, setGridColors] = useState(null);
 
   useEffect(() => {
     const getCanvasDetails = async () => {
@@ -85,13 +86,12 @@ export default function DisplayCard(props) {
         return;
       }
       console.log("setting room status");
-      const now = dayjs();
-      const startTime = dayjs.unix(parseInt(canvasDetails.startTime.replace(/,/g, "")));
-      const endTime = dayjs.unix(parseInt(canvasDetails.endTime.replace(/,/g, "")));
-      if (now.isBefore(startTime)) {
+      const now = dayjs().unix()*1000;
+      console.log(canvasDetails.startTime, "---", canvasDetails.endTime);
+      if (now < parseInt(canvasDetails.startTime.replace(/,/g,""))) {
         setRoomStatus("0");
       }
-      else if (now.isAfter(endTime)) {
+      else if (now > parseInt(canvasDetails.endTime.replace(/,/g,""))) {
         setRoomStatus("2");
       }
       else {
@@ -129,6 +129,44 @@ export default function DisplayCard(props) {
     };
     getCanvasStats();
   }, [props.contract, props.activeAccount]);
+
+  // canvas grid info
+  /*useEffect(() => {
+    const getGridColors = async () => {
+      if (props.contract && props.activeAccount) {
+        console.log("Fetching grid color data...");
+        await props.contract.query.getColoredGrid(
+          props.activeAccount.address, {
+          value: 0,
+          gasLimit: -1,
+        },
+        props.id
+        )
+        .then((res) => {
+          if (!res.result.toHuman().Err) {
+            console.log("Successfully fetched grid color data");
+            let temp = Array(32);
+            for (let i = 0; i < 32; i++) {
+              temp[i] = Array(32);
+            }
+            for (let i = 0; i < 32; i++) {
+              for (let j = 0; j < 32; j++) {
+                temp[i][j] = "#" + parseInt(res.output.toHuman().Ok[i][j].replace(/,/g,"")).toString(16);
+                console.log(temp[i][j]);
+              }
+            }
+            setGridColors(temp);
+          } else {
+            console.log("Error while fetching grid color data: ", res.result.toHuman().Err);
+          }
+        })
+        .catch((err) => {
+          console.log("Error while fetching grid color data:", err);
+        });
+      }
+    };
+    getGridColors();
+  }, [props.contract, props.activeAccount]);*/
 
   return (
     <Box sx={{ position: "relative" }}>
@@ -186,6 +224,7 @@ export default function DisplayCard(props) {
                   overflow: "hidden",
                 }}
               >
+                {/* error in grid color state passing */}
                 <GridSVG colors={makeColor()} />
               </Box>
               <Typography
