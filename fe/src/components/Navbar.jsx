@@ -16,7 +16,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import "../App.css";
-import PixelImage from "../assets/pixelimage.jpg";
+import PixelImage from "../assets/pixelimage.svg";
 import { fontWeight } from "@mui/system";
 import { Link } from "react-router-dom";
 import { useState } from "react";
