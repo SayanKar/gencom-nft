@@ -33,6 +33,39 @@ export default function CanvasRoom(props) {
   const [canvasStats, setCanvasStats] = useState({ bids: 0, participants: 0 });
   const [isOwner, setIsOwner] = useState(false);
   const [isInvalidId, setIsInvalidId] = useState(false);
+  const [nfts, setNfts] = useState(0);
+
+  useEffect(() => {
+    const getUserNftsCount = async () => {
+      if (props.contract && props.activeAccount) {
+        console.log("Fetching owned nft...");
+        await props.contract.query
+          .getUserNftCount(
+            props.activeAccount.address,
+            {
+              value: 0,
+              gasLimit: -1,
+            },
+            props.activeAccount.address,
+            canvasId
+          )
+          .then((res) => {
+            if (!res.result?.toHuman()?.Err) {
+              setNfts(res.output.toHuman());
+            } else {
+              console.log(
+                "Error fetching owner cells",
+                res.result.toHuman().Err
+              );
+            }
+          })
+          .catch((err) => {
+            console.log("Error while fetching owner cells", err);
+          });
+      }
+    };
+    getUserNftsCount();
+  }, []);
 
   function changeAddressEncoding(address, toNetworkPrefix = 42) {
     if (!address) {
@@ -270,6 +303,12 @@ export default function CanvasRoom(props) {
                     />
                   </Link>
                 )}
+              {canvasDetails.endTime < now && (
+                <Strip
+                  Text={"Your NFTs : " + nfts}
+                  tooltip={"For each cell you own you get an NFT"}
+                />
+              )}
             </Box>
             <CanvasBox
               contract={props.contract}
