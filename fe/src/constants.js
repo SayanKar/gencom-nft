@@ -14,7 +14,7 @@ export const colors = {
   12: "#0083c7",
   13: "#0000ea",
   14: "#cf6ee4",
-  15: "820080",
+  15: "#820080",
 };
 export const enumColors = [
   {
