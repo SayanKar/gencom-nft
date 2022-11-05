@@ -133,7 +133,6 @@ export default function DisplayCard(props) {
         .then((res) => {
           if (!res.result.toHuman().Err) {
             console.log("Successfully fetched grid color data");
-            // console.log("array color",res.output.toHuman().Ok.map((row) => row.map((color) => "#" +parseInt(color.replace(/,/g,"")).toString(16).padStart(6, "0"))))
             setGridColors(res.output.toHuman().Ok.map((row) => row.map((color) => "#" +parseInt(color.replace(/,/g,"")).toString(16).padStart(6, "0")))
             );
           } else {

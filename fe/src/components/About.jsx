@@ -32,7 +32,7 @@ export default function About(props) {
           <img
             src={PixelImage}
             alt="Gencom Logo - A pixel drawing of panda"
-            height="100%"
+            width="900px"
           />
         </Box>
         <Box

@@ -246,7 +246,7 @@ a {
   font-weight: 700;
 }
 
-@media screen and (max-width: 1200px){
+@media screen and (max-width: 1350px){
   #introContainer {
     display: block;
   }
