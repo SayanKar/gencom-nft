@@ -158,8 +158,8 @@ export default function CanvasBox(props) {
             enumColors[transaction.color].name
           )
           .then((res) => {
-            if (res.result?.toHuman()?.Err?.Module?.message)
-              throw new Error(res.result.toHuman().Err.Module.message);
+            if (res.result?.toHuman()?.Err?.Module?.error)
+              throw new Error(res.result.toHuman().Err.Module.error);
             else return res.output.toHuman();
           })
           .then(async (res) => {
@@ -252,8 +252,9 @@ export default function CanvasBox(props) {
             enumColors[transaction.color].name
           )
           .then((res) => {
-            if (res.result?.toHuman()?.Err?.Module?.message)
-              throw new Error(res.result.toHuman().Err.Module.message);
+            console.log(res.result.toHuman());
+            if (res.result?.toHuman()?.Err?.Module?.error) 
+              throw new Error(res.result.toHuman().Err.Module.error === "0x04000000" ? "TransferFailed": res.result.toHuman().Err.Module.error );
             else return res.output.toHuman();
           })
           .then(async (res) => {
@@ -305,8 +306,8 @@ export default function CanvasBox(props) {
             }
           })
           .catch((err) => {
-            console.log("Error capturing cell", err);
-            enqueueSnackbar("Error capturing cell" + err, { variant: "error" });
+            console.log("Error capturing cell ", err);
+            enqueueSnackbar("Error capturing cell " + err, { variant: "error" });
           });
       } catch (err) {
         console.log("Error while capturing cell", err);

@@ -122,7 +122,7 @@ export default function CanvasForm(props) {
           .then((res) => {
             console.log("Edit query res", res);
             if (!res.result.toHuman().Ok)
-              throw new Error(res.result?.toHuman()?.Err?.Module?.message);
+              throw new Error(res.result?.toHuman()?.Err?.Module?.error);
             else
               return res.output ? res.output.toHuman() : res.result.toHuman();
           })
@@ -211,8 +211,9 @@ export default function CanvasForm(props) {
             isDynamic
           )
           .then((res) => {
-            if (res.result?.toHuman()?.Err?.Module?.message)
-              throw new Error(res.result.toHuman().Err.Module.message);
+            if (res.result?.toHuman()?.Err?.Module?.error) {
+              throw new Error(res.result.toHuman().Err.Module.error === "0x04000000" ? "TransferFailed" : res.result.toHuman().Err.Module.error);
+            }
             else return res.output.toHuman();
           })
           .then(async (res) => {
