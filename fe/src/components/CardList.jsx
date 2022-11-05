@@ -40,7 +40,7 @@ export default function CardList(props) {
         {props.title}
       </Typography>
       {!props.activeAccount || props.ids.length === 0 ? (
-        <Box sx={{ width: "100%", display:"flex", justifyContent: "center" }}>
+        <Box sx={{ width: "100%", display: "flex", justifyContent: "center" }}>
           <Paper
             sx={{
               width: "400px",

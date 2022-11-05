@@ -18,11 +18,11 @@ export default function ChooseAccount(props) {
       setAllAccounts(allAcc);
     }
     tmp();
-  },[props.open]);
+  }, [props.open]);
   const handleSelectAccount = (acc) => {
     props.setActiveAccount(acc);
     props.handleClose();
-  }
+  };
   return (
     <Dialog onClose={props.handleClose} open={props.open}>
       <DialogTitle>
@@ -30,23 +30,29 @@ export default function ChooseAccount(props) {
           ? "Please install Polkadot.{js} extension"
           : "Select Account"}
       </DialogTitle>
-      <List sx={{padding: "0 20px 20px 20px"}}>
-        {allAccounts.map((account, idx) => { return (
-          <ListItem button onClick={() => handleSelectAccount(account)} key={idx} >
-            <ListItemAvatar>
-              <Avatar>
-                <Identicon
-                  size={40}
-                  theme={"polkadot"}
-                  value={account.address}
-                />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText
-              secondary={account.address}
-              primary={account.meta.name}
-            />
-          </ListItem>);
+      <List sx={{ padding: "0 20px 20px 20px" }}>
+        {allAccounts.map((account, idx) => {
+          return (
+            <ListItem
+              button
+              onClick={() => handleSelectAccount(account)}
+              key={idx}
+            >
+              <ListItemAvatar>
+                <Avatar>
+                  <Identicon
+                    size={40}
+                    theme={"polkadot"}
+                    value={account.address}
+                  />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                secondary={account.address}
+                primary={account.meta.name}
+              />
+            </ListItem>
+          );
         })}
       </List>
     </Dialog>

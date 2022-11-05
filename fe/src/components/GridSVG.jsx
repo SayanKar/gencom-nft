@@ -1,6 +1,6 @@
 import { colors } from "../constants";
 export default function GridSVG(props) {
-  const   renderCells = () => {
+  const renderCells = () => {
     let list = [];
     for (let i = 0; i < 32; i++) {
       for (let j = 0; j < 32; j++) {
@@ -19,7 +19,10 @@ export default function GridSVG(props) {
     return list;
   };
   return (
-    <svg width={props.width ? props.width*32 : "320"} height={props.height ? props.height*32 : "320"}>
+    <svg
+      width={props.width ? props.width * 32 : "320"}
+      height={props.height ? props.height * 32 : "320"}
+    >
       {renderCells()}
     </svg>
   );

@@ -16,6 +16,7 @@ import TwitterIcon from "@mui/icons-material/Twitter";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import BuilderCard from "./BuilderCard";
+import { SYMBOL } from "../constants";
 
 export default function About(props) {
   return (
@@ -61,11 +62,17 @@ export default function About(props) {
               on the canvas along with others and create art together. Own the
               art together with others as a NFT.
             </Typography>
-            {props.contract && props.activeAccount &&
+            {props.contract && props.activeAccount && (
               <Divider
-                sx={{ marginTop: "3%", width: "88%", marginBottom: "3%" }}
-              />}
-            {props.contract && props.activeAccount &&
+                sx={{
+                  margin: "0 auto",
+                  marginTop: "3%",
+                  width: "88%",
+                  marginBottom: "3%",
+                }}
+              />
+            )}
+            {props.contract && props.activeAccount && (
               <Typography
                 variant="h3"
                 id="totalTokenAmount"
@@ -77,9 +84,10 @@ export default function About(props) {
                   fontFamily: "cursive",
                 }}
               >
-                1,234.56 EDG
-              </Typography>}
-            {props.contract && props.activeAccount &&
+                1,234.56 {SYMBOL}
+              </Typography>
+            )}
+            {props.contract && props.activeAccount && (
               <Typography
                 variant="h6"
                 id="contributorCaption"
@@ -93,9 +101,14 @@ export default function About(props) {
               >
                 Contributed to 9,498 Rooms by 4,172 users
               </Typography>
-            }
+            )}
             <Divider
-              sx={{ marginTop: "3%", width: "88%", marginBottom: "3%" }}
+              sx={{
+                margin: "0 auto",
+                marginTop: "3%",
+                width: "88%",
+                marginBottom: "3%",
+              }}
             />
             <Stack
               direction="row"

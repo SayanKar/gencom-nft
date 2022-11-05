@@ -204,7 +204,7 @@ export default function Profile(props) {
               fontWeight: "700",
             }}
           >
-            Total Spent: {totalSpent} EDG
+            Total Spent: {totalSpent + " " +SYMBOL} 
           </Typography>
           <Typography
             variant="subtitle1"
@@ -216,7 +216,7 @@ export default function Profile(props) {
               fontWeight: "700",
             }}
           >
-            Received: {totalReceived} EDG
+            Received: {totalReceived + " " + SYMBOL} 
           </Typography>
         </Box>
         <CardList

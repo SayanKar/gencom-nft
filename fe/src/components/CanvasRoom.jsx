@@ -18,6 +18,7 @@ const keyring = new Keyring({ type: "sr25519" });
 const BN = require("bn.js");
 export default function CanvasRoom(props) {
   const { canvasId } = useParams();
+  const now = dayjs().unix() * 1000;
   const [canvasDetails, setCanvasDetails] = useState({
     title: "-----",
     desc: "---- ---- ---- ---- ---- ---- ---- --- ---",
@@ -255,17 +256,20 @@ export default function CanvasRoom(props) {
                   "Canvas cell owners can change cell color of NFT even after canvas expires"
                 }
               />
-              <Link to={"/edit/" + canvasId}>
-                <Strip
-                  Icon={
-                    <EditIcon
-                      sx={{ fontSize: "16px", margin: "0px 8px -3px 0px" }}
+              {props.activeAccount.address === canvasDetails.creatorAddress &&
+                canvasDetails.startTime > now && (
+                  <Link to={"/edit/" + canvasId}>
+                    <Strip
+                      Icon={
+                        <EditIcon
+                          sx={{ fontSize: "16px", margin: "0px 8px -3px 0px" }}
+                        />
+                      }
+                      tooltip={"Edit room"}
+                      Text={"Edit room"}
                     />
-                  }
-                  tooltip={"Edit room"}
-                  Text={"Edit room"}
-                />
-              </Link>
+                  </Link>
+                )}
             </Box>
             <CanvasBox
               contract={props.contract}
@@ -314,7 +318,7 @@ const RenderTimer = (props) => {
   const now = dayjs().unix() * 1000;
   const [time, setTime] = useState(0);
   useEffect(() => {
-    const diff = (props.end - dayjs().unix()*1000)/ 1000;
+    const diff = (props.end - dayjs().unix() * 1000) / 1000;
     setTime(diff);
   }, [props.end, props.start]);
 

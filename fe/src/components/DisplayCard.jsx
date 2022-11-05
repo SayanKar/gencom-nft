@@ -44,20 +44,25 @@ export default function DisplayCard(props) {
   useEffect(() => {
     const getCanvasDetails = async () => {
       if (props.contract && props.activeAccount) {
-        console.log("Fetching Canvas Details: ", props.id);
-        await props.contract.query.getCanvasDetails(
-          props.activeAccount.address, {
-          value: 0,
-          gasLimit: -1,
-        },
-          props.id
-        )
+        console.log("Fetching Canvas Details ");
+        await props.contract.query
+          .getCanvasDetails(
+            props.activeAccount.address,
+            {
+              value: 0,
+              gasLimit: -1,
+            },
+            props.id
+          )
           .then((res) => {
             if (!res.result.toHuman().Err) {
-              console.log('Successfully fetched canvas ' + props.id + ' details');
+              console.log("Successfully fetched canvas  details");
               setCanvasDetails(res.output.toHuman().Ok);
             } else {
-              console.log('Error fetching canvas details', res.result.toHuman());
+              console.log(
+                "Error fetching canvas details",
+                res.result.toHuman()
+              );
             }
           })
           .catch((err) => {
@@ -68,46 +73,47 @@ export default function DisplayCard(props) {
     getCanvasDetails();
   }, [props.contract, props.activeAccount]);
 
-
   useEffect(() => {
     const getRoomStatus = () => {
       if (canvasDetails === null) {
         return;
       }
       console.log("setting room status");
-      const now = dayjs().unix()*1000;
-      if (now < parseInt(canvasDetails.startTime.replace(/,/g,""))) {
+      const now = dayjs().unix() * 1000;
+      if (now < parseInt(canvasDetails.startTime.replace(/,/g, ""))) {
         setRoomStatus("0");
-      }
-      else if (now > parseInt(canvasDetails.endTime.replace(/,/g,""))) {
+      } else if (now > parseInt(canvasDetails.endTime.replace(/,/g, ""))) {
         setRoomStatus("2");
-      }
-      else {
+      } else {
         setRoomStatus("1");
       }
     };
     getRoomStatus();
   }, [canvasDetails]);
 
-
   useEffect(() => {
     const getCanvasStats = async () => {
       if (props.contract && props.activeAccount) {
-        console.log("Fetching Canvas stats: ", props.id);
-        await props.contract.query.getCanvasStats(
-          props.activeAccount.address, {
-          value: 0,
-          gasLimit: -1,
-        },
-          props.id
-        )
+        console.log("Fetching Canvas stats ");
+        await props.contract.query
+          .getCanvasStats(
+            props.activeAccount.address,
+            {
+              value: 0,
+              gasLimit: -1,
+            },
+            props.id
+          )
           .then((res) => {
             if (!res.result.toHuman().Err) {
-              console.log('Successfully fetched canvas ' + props.id + ' stats');
+              console.log("Successfully fetched canvas  stats");
               setTotalBids(res.output.toHuman().totalBids);
               setTotalParticipants(res.output.toHuman().totalParticipants);
             } else {
-              console.log('Error fetching canvas stats', res.result.toHuman().Err);
+              console.log(
+                "Error fetching canvas stats",
+                res.result.toHuman().Err
+              );
             }
           })
           .catch((err) => {
@@ -123,25 +129,41 @@ export default function DisplayCard(props) {
     const getGridColors = async () => {
       if (props.contract && props.activeAccount) {
         console.log("Fetching grid color data...");
-        await props.contract.query.getColoredGrid(
-          props.activeAccount.address, {
-          value: 0,
-          gasLimit: -1,
-        },
-        props.id
-        )
-        .then((res) => {
-          if (!res.result.toHuman().Err) {
-            console.log("Successfully fetched grid color data");
-            setGridColors(res.output.toHuman().Ok.map((row) => row.map((color) => "#" +parseInt(color.replace(/,/g,"")).toString(16).padStart(6, "0")))
-            );
-          } else {
-            console.log("Error while fetching grid color data: ", res.result.toHuman().Err);
-          }
-        })
-        .catch((err) => {
-          console.log("Error while fetching grid color data:", err);
-        });
+        await props.contract.query
+          .getColoredGrid(
+            props.activeAccount.address,
+            {
+              value: 0,
+              gasLimit: -1,
+            },
+            props.id
+          )
+          .then((res) => {
+            if (!res.result.toHuman().Err) {
+              console.log("Successfully fetched grid color data");
+              setGridColors(
+                res.output
+                  .toHuman()
+                  .Ok.map((row) =>
+                    row.map(
+                      (color) =>
+                        "#" +
+                        parseInt(color.replace(/,/g, ""))
+                          .toString(16)
+                          .padStart(6, "0")
+                    )
+                  )
+              );
+            } else {
+              console.log(
+                "Error while fetching grid color data: ",
+                res.result.toHuman().Err
+              );
+            }
+          })
+          .catch((err) => {
+            console.log("Error while fetching grid color data:", err);
+          });
       }
     };
     getGridColors();
@@ -149,8 +171,11 @@ export default function DisplayCard(props) {
 
   return (
     <Box sx={{ position: "relative" }}>
-      {props.isProfile && (parseInt(roomStatus) !== 2) && (
-        <Tooltip arrow title={parseInt(roomStatus) ? "Room is live" : "Edit Canvas"}>
+      {props.isProfile && parseInt(roomStatus) !== 2 && (
+        <Tooltip
+          arrow
+          title={parseInt(roomStatus) ? "Room is live" : "Edit Canvas"}
+        >
           <Box
             sx={{
               width: "27px",
@@ -167,7 +192,10 @@ export default function DisplayCard(props) {
             }}
           >
             {!parseInt(roomStatus) && (
-              <Link to={"/edit/" + props.id} style={{ fontSize: "20px", margin: "0 auto" }}>
+              <Link
+                to={"/edit/" + props.id}
+                style={{ fontSize: "20px", margin: "0 auto" }}
+              >
                 <EditIcon sx={{ fontSize: "20px", margin: "0 auto" }} />
               </Link>
             )}

@@ -39,7 +39,10 @@ export default function CanvasBox(props) {
             <IconButton
               sx={{
                 marginRight: "6px",
-                border: transaction.color === key ? "1px solid #afafb3" : "1px solid white",
+                border:
+                  transaction.color === key
+                    ? "1px solid #afafb3"
+                    : "1px solid white",
               }}
               onClick={() => setTransaction({ ...transaction, color: key })}
             >
@@ -69,8 +72,42 @@ export default function CanvasBox(props) {
     color: "0",
   });
   const [now] = useState(dayjs().unix() * 1000);
+  const [ownedCells, setOwnedCells] = useState({});
   const [showOwnedCell, setShowOwnedCell] = useState(false);
+  const getUserNfts = async () => {
+    if (props.contract && props.activeAccount) {
+      console.log("Fetching owned nft...");
+      await props.contract.query
+        .getUserNfts(
+          props.activeAccount.address,
+          {
+            value: 0,
+            gasLimit: -1,
+          },
+          props.activeAccount.address,
+          props.id
+        )
+        .then((res) => {
+          if (!res.result?.toHuman()?.Err) {
+            const tmp = {};
+            res.output.toHuman().forEach((element) => {
+              tmp[element.replace(/,/g, "")] = true;
+            });
+            setOwnedCells(tmp);
+          } else {
+            console.log("Error fetching owner cells", res.result.toHuman().Err);
+          }
+        })
+        .catch((err) => {
+          console.log("Error while fetching owner cells", err);
+        });
+    }
+  };
 
+  useEffect(() => {
+    showOwnedCell && getUserNfts();
+    !showOwnedCell && setOwnedCells({});
+  }, [showOwnedCell]);
   function changeAddressEncoding(address, toNetworkPrefix = 42) {
     if (!address) {
       return null;
@@ -103,7 +140,6 @@ export default function CanvasBox(props) {
         .then((res) => {
           if (!res.output.toHuman().Err) {
             res = res.output?.toHuman().Ok;
-            console.log(res);
             setSelectedCellDetails({
               ...selectedCellDetails,
               owner: changeAddressEncoding(res.owner),
@@ -257,7 +293,6 @@ export default function CanvasBox(props) {
             enumColors[transaction.color].name
           )
           .then((res) => {
-            console.log(res.result.toHuman());
             if (res.result?.toHuman()?.Err?.Module?.error)
               throw new Error(
                 res.result.toHuman().Err.Module.error === "0x04000000"
@@ -365,6 +400,8 @@ export default function CanvasBox(props) {
                 activeAccount={props.activeAccount}
                 contract={props.contract}
                 id={props.id}
+                ownedCells={ownedCells}
+                selectedCell={selectedCell}
               />
               <Box
                 sx={{
@@ -470,8 +507,8 @@ export default function CanvasBox(props) {
                   <span
                     style={{ color: "rgba(143,151,163,1)", fontSize: "11px" }}
                   >
-                    {props.start > now 
-                      ? "Canvas opening soon"
+                    {props.start > now
+                      ? "None"
                       : clicked
                       ? selectedCellDetails.owner
                       : "Select a cell"}{" "}
@@ -686,7 +723,9 @@ export default function CanvasBox(props) {
                   variant="contained"
                   sx={{ marginTop: "10px" }}
                   onClick={() => onBid()}
-                  disabled={props.start > now || props.end < now}
+                  disabled={
+                    props.start > now || (props.end < now && !props.isDynamic)
+                  }
                 >
                   {selectedCellDetails.owner === props.activeAccount.address
                     ? !posting

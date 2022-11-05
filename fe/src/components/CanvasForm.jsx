@@ -212,9 +212,12 @@ export default function CanvasForm(props) {
           )
           .then((res) => {
             if (res.result?.toHuman()?.Err?.Module?.error) {
-              throw new Error(res.result.toHuman().Err.Module.error === "0x04000000" ? "TransferFailed" : res.result.toHuman().Err.Module.error);
-            }
-            else return res.output.toHuman();
+              throw new Error(
+                res.result.toHuman().Err.Module.error === "0x04000000"
+                  ? "TransferFailed"
+                  : res.result.toHuman().Err.Module.error
+              );
+            } else return res.output.toHuman();
           })
           .then(async (res) => {
             if (!res.Err) {

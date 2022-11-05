@@ -9,11 +9,13 @@ export default function Broken(props) {
         height: "100%",
         justifyContent: "center",
         flexDirection: "column",
-        alignItems: "center"
+        alignItems: "center",
       }}
     >
-      <img src={brokenRobot} alt={"Robot Image"} style={{width: "300px"}}/>
-      <Typography variant="h6" sx={{fontWeight: "500"}}>Something broke :(</Typography>
+      <img src={brokenRobot} alt={"Robot Image"} style={{ width: "300px" }} />
+      <Typography variant="h6" sx={{ fontWeight: "500" }}>
+        Something broke :(
+      </Typography>
     </Box>
   );
 }
