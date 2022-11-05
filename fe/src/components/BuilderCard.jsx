@@ -8,10 +8,6 @@ import {
   Paper,
   Skeleton,
 } from "@mui/material";
-import Circle from "@mui/icons-material/Circle";
-import { colors } from "../constants";
-import GridSVG from "./GridSVG";
-import { Link } from "react-router-dom";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";

@@ -37,7 +37,10 @@ export default function CanvasBox(props) {
         list.push(
           <Tooltip title={`Color: ${colors[key]}`} key={key}>
             <IconButton
-              sx={{ marginRight: "8px" }}
+              sx={{
+                marginRight: "6px",
+                border: transaction.color === key ? "1px solid #afafb3" : "1px solid white",
+              }}
               onClick={() => setTransaction({ ...transaction, color: key })}
             >
               <CircleIcon
@@ -144,6 +147,7 @@ export default function CanvasBox(props) {
       if (!clicked) {
         enqueueSnackbar("Select a cell first");
       }
+      setPosting(true);
       try {
         await props.contract.query
           .changeCellColor(
@@ -218,6 +222,7 @@ export default function CanvasBox(props) {
           variant: "error",
         });
       }
+      setPosting(false);
     } else {
       console.log("Connect your wallet");
       enqueueSnackbar("Connect your wallet", { variant: "error" });
@@ -237,7 +242,7 @@ export default function CanvasBox(props) {
           "Must pay atleast " + props.premium + "% more of last bid price"
         );
       }
-
+      setPosting(true);
       try {
         await props.contract.query
           .captureCell(
@@ -253,8 +258,12 @@ export default function CanvasBox(props) {
           )
           .then((res) => {
             console.log(res.result.toHuman());
-            if (res.result?.toHuman()?.Err?.Module?.error) 
-              throw new Error(res.result.toHuman().Err.Module.error === "0x04000000" ? "TransferFailed": res.result.toHuman().Err.Module.error );
+            if (res.result?.toHuman()?.Err?.Module?.error)
+              throw new Error(
+                res.result.toHuman().Err.Module.error === "0x04000000"
+                  ? "TransferFailed"
+                  : res.result.toHuman().Err.Module.error
+              );
             else return res.output.toHuman();
           })
           .then(async (res) => {
@@ -307,7 +316,9 @@ export default function CanvasBox(props) {
           })
           .catch((err) => {
             console.log("Error capturing cell ", err);
-            enqueueSnackbar("Error capturing cell " + err, { variant: "error" });
+            enqueueSnackbar("Error capturing cell " + err, {
+              variant: "error",
+            });
           });
       } catch (err) {
         console.log("Error while capturing cell", err);
@@ -315,6 +326,7 @@ export default function CanvasBox(props) {
           variant: "error",
         });
       }
+      setPosting(false);
     } else {
       console.log("Connect your wallet");
       enqueueSnackbar("Connect your wallet", { variant: "error" });
@@ -406,25 +418,7 @@ export default function CanvasBox(props) {
                   </span>
                 </Typography>
               </Box>
-              <Box component="div" className="cardDataRow">
-                <Typography
-                  align="left"
-                  variant="subtitle2"
-                  sx={{ width: "382px" }}
-                >
-                  Owner:{" "}
-                  <span
-                    style={{ color: "rgba(143,151,163,1)", fontSize: "11px" }}
-                  >
-                    {props.start > now || props.end < now
-                      ? "Canvas Expired"
-                      : clicked
-                      ? selectedCellDetails.owner
-                      : "Select a cell"}{" "}
-                  </span>
-                </Typography>
-              </Box>
-              <Box component="div" className="cardDataRow">
+              {/* <Box component="div" className="cardDataRow">
                 <Typography
                   align="left"
                   variant="subtitle2"
@@ -440,8 +434,8 @@ export default function CanvasBox(props) {
                       : "Select a cell"}
                   </span>
                 </Typography>
-              </Box>
-              <Box component="div" className="cardDataRow">
+              </Box> */}
+              {/* <Box component="div" className="cardDataRow">
                 <Typography
                   align="left"
                   variant="subtitle2"
@@ -460,6 +454,28 @@ export default function CanvasBox(props) {
                       color: clicked ? selectedCellDetails.color : "white",
                     }}
                   />
+                </Typography>
+              </Box> */}
+              <Box
+                component="div"
+                className="cardDataRow"
+                style={{ marginTop: "10px" }}
+              >
+                <Typography
+                  align="left"
+                  variant="subtitle2"
+                  sx={{ width: "382px" }}
+                >
+                  Owner:{" "}
+                  <span
+                    style={{ color: "rgba(143,151,163,1)", fontSize: "11px" }}
+                  >
+                    {props.start > now 
+                      ? "Canvas opening soon"
+                      : clicked
+                      ? selectedCellDetails.owner
+                      : "Select a cell"}{" "}
+                  </span>
                 </Typography>
               </Box>
             </Card>
@@ -520,13 +536,35 @@ export default function CanvasBox(props) {
                     color: "rgba(31, 38, 59, 1)",
                     fontWeight: "500",
                     display: "flex",
-                    margin: "10px 0px 20px 0px",
+                    margin: "10px 0px 10px 0px",
                   }}
                   align="left"
                 >
                   Choose Color
                   <PaletteIcon sx={{ margin: "0px 0px 0px 4px" }} />
                 </Typography>
+                <Box component="div" style={{ display: "flex" }}>
+                  <Typography
+                    align="left"
+                    variant="caption"
+                    // sx={{ width: "352px" }}
+                  >
+                    Current cell color:{" "}
+                    <span
+                      style={{ color: "rgba(143,151,163,1)", fontSize: "12px" }}
+                    >
+                      {clicked ? selectedCellDetails.color : "Select a cell"}
+                    </span>
+                  </Typography>
+                  <Typography sx={{ width: "20px" }}>
+                    <SquareIcon
+                      sx={{
+                        color: clicked ? selectedCellDetails.color : "white",
+                        fontSize: "16px",
+                      }}
+                    />
+                  </Typography>
+                </Box>
                 <Box
                   component="div"
                   sx={{
@@ -544,13 +582,41 @@ export default function CanvasBox(props) {
                     color: "rgba(31, 38, 59, 1)",
                     fontWeight: "500",
                     display: "flex",
-                    margin: "10px 0px 20px 0px",
+                    margin: "10px 0px 10px 0px",
                   }}
                   align="left"
                 >
                   Choose Bid Amount
                   <GavelIcon sx={{ margin: "0px 0px 0px 8px" }} />
                 </Typography>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography
+                    sx={{ width: "50%", marginBottom: "10px" }}
+                    align="left"
+                    variant="caption"
+                  >
+                    Last bid price:{" "}
+                    <span
+                      style={{ color: "rgba(143,151,163,1)", fontSize: "12px" }}
+                    >
+                      {clicked
+                        ? selectedCellDetails.bidPrice + " " + SYMBOL
+                        : "Select a cell"}
+                    </span>
+                  </Typography>
+                  <Typography
+                    sx={{ width: "50%", marginBottom: "10px" }}
+                    align="right"
+                    variant="caption"
+                  >
+                    Premium:{" "}
+                    <span
+                      style={{ color: "rgba(143,151,163,1)", fontSize: "12px" }}
+                    >
+                      {props.premium + " %"}
+                    </span>
+                  </Typography>
+                </Box>
                 <FormControl
                   sx={{ m: 1, width: "400px" }}
                   disabled={
