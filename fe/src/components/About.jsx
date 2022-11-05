@@ -503,7 +503,7 @@ export default function About(props) {
             <BuilderCard
               link="https://avatars.githubusercontent.com/u/46227078?v=4"
               name="Nimish Agrawal"
-              twitter=""
+              twitter="https://twitter.com/realnimish"
               github="https://github.com/realnimish"
               linkedin="https://www.linkedin.com/in/realnimish/"
             />
