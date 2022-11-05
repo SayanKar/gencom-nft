@@ -280,6 +280,7 @@ export default function CanvasRoom(props) {
               start={canvasDetails.startTime}
               end={canvasDetails.endTime}
               signer={props.signer}
+              isDynamic={canvasDetails.isDynamic}
             />
           </>
         )}
