@@ -17,7 +17,8 @@ import About from "./components/About";
 import Error404 from "./components/Error404";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { ContractPromise } from "@polkadot/api-contract";
-import { CONTRACT_ADDRESS, metadata } from "./constants";
+import { CONTRACT_ADDRESS, NETWORK_ENDPOINT } from "./constants";
+import { metadata } from "./metadata";
 import { web3FromSource } from "@polkadot/extension-dapp";
 function App() {
   const [contract, setContract] = useState(null);
@@ -26,9 +27,7 @@ function App() {
   const [signer, setSigner] = useState(null);
 
   const connectToContract = async () => {
-    const wsProvider = new WsProvider(
-      "wss://rpc.shibuya.astar.network"
-    );
+    const wsProvider = new WsProvider(NETWORK_ENDPOINT);
     const api = await ApiPromise.create({ provider: wsProvider });
     const contract = new ContractPromise(api, metadata, CONTRACT_ADDRESS);
     setApi(api);

@@ -7,6 +7,7 @@ import {
   Switch,
   FormControlLabel,
   Button,
+  Tooltip,
 } from "@mui/material";
 import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -15,7 +16,7 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
-import { PRECISION, SYMBOL } from "../constants";
+import { GAS_LIMIT, PRECISION, SYMBOL } from "../constants";
 import { useEffect } from "react";
 import { Keyring } from "@polkadot/api";
 import { useNavigate } from "react-router-dom";
@@ -132,7 +133,7 @@ export default function CanvasForm(props) {
                 .editCanvas(
                   {
                     value: 0,
-                    gasLimit: 300000n * 1000000n,
+                    gasLimit: GAS_LIMIT,
                   },
                   canvasId,
                   title,
@@ -225,7 +226,7 @@ export default function CanvasForm(props) {
                 .createCanvas(
                   {
                     value: new BN(creationFee * 1000000).mul(new BN(PRECISION)),
-                    gasLimit: 300000n * 1000000n,
+                    gasLimit: GAS_LIMIT,
                   },
                   title,
                   desc,
@@ -418,7 +419,7 @@ export default function CanvasForm(props) {
             padding: "40px",
             margin: "140px 0px",
           }}
-          elevation={10}
+          elevation={2}
         >
           <Typography
             sx={{ width: "100%", fontWeight: "500", color: "#333652" }}
@@ -426,7 +427,7 @@ export default function CanvasForm(props) {
             variant="h5"
           >
             {!props.activeAccount
-              ? "Connect your wallet"
+              ? "Wallet not connected"
               : props.isEdit && isInvalidId
               ? "Invalid canvas room Id"
               : "Cannot edit canvas once started"}
@@ -498,7 +499,7 @@ export default function CanvasForm(props) {
           />
 
           <TextField
-            helperText={"* You will get this amount when painters buy a cell."}
+            helperText={"* You will get this amount when a user buys a cell in " +SYMBOL+" tokens"}
             id="minPriceInput"
             label="Cell base price"
             fullWidth
@@ -511,7 +512,7 @@ export default function CanvasForm(props) {
           />
 
           <TextField
-            helperText="* Set premium percentage"
+            helperText="* Minimum premium % over last cell bid pricce"
             id="premiumInput"
             label="Premium %"
             fullWidth
@@ -572,9 +573,10 @@ export default function CanvasForm(props) {
               flexWrap: "wrap",
             }}
           >
+            <Tooltip title="Cell owners can change its color even after room expires." arrow>
             <FormControlLabel
               control={<Switch />}
-              label="Is Dynamic"
+              label="Is dynamic ?"
               sx={{ color: "rgba(0, 0, 0, 0.6)", font: "8px" }}
               labelPlacement="end"
               checked={isDynamic}
@@ -582,6 +584,7 @@ export default function CanvasForm(props) {
               inputProps={{ "aria-label": "controlled" }}
               disabled={isOwner}
             />
+            </Tooltip>
             {!posting ? (
               <Button
                 sx={{ marginTop: "5px" }}

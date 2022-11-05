@@ -46,16 +46,16 @@ export default function CardList(props) {
               width: "400px",
               height: "fit-content",
               padding: "40px",
-              margin: "140px 0px",
+              margin: "40px 0px",
             }}
-            elevation={10}
+            elevation={2}
           >
             <Typography
               sx={{ width: "100%", fontWeight: "500", color: "#333652" }}
               align="center"
               variant="h5"
             >
-              {!props.activeAccount ? "Connect your wallet" : "No Items Found"}
+              {!props.activeAccount ? "Wallet not connected" : "No Items Found"}
             </Typography>
           </Paper>
         </Box>

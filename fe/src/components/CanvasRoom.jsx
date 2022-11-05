@@ -394,8 +394,8 @@ const RenderTimer = (props) => {
               )} hrs : ${Math.floor(
                 ((time % 86400) % 3600) / 60
               )} mins : ${Math.floor(time % 60)} sec`
-            : "Canvas expired"
-          : "Opening Soon"
+            : "Canvas expired on " +  dayjs.unix(props.end/1000).format('llll')
+          : "Opening on " + dayjs.unix(props.start/1000).format('llll')
       }
       tooltip={"Countdown till bidding ends"}
     />

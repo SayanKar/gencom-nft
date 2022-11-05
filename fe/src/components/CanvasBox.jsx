@@ -20,7 +20,7 @@ import SquareIcon from "@mui/icons-material/Square";
 import PaletteIcon from "@mui/icons-material/Palette";
 import CircleIcon from "@mui/icons-material/Circle";
 import GavelIcon from "@mui/icons-material/Gavel";
-import { colors, PRECISION, SYMBOL, enumColors } from "../constants";
+import { colors, PRECISION, SYMBOL, enumColors, GAS_LIMIT } from "../constants";
 import { useState } from "react";
 import { useEffect } from "react";
 import { Keyring } from "@polkadot/api";
@@ -159,7 +159,7 @@ export default function CanvasBox(props) {
               .div(new BN(PRECISION))
               .toNumber() / 1000_000) * ((100 + parseInt(props.premium)) / 100)).toFixed(6) 
             })
-          } else if (res.output?.toHuman()?.Err === "TokenNotFound") {
+          } else if (res.output?.toHuman()?.Err === "CellNotMinted") {
             setSelectedCellDetails({
               ...selectedCellDetails,
               owner: "Be the first one to bid",
@@ -218,7 +218,7 @@ export default function CanvasBox(props) {
                 .changeCellColor(
                   {
                     value: 0,
-                    gasLimit: 300000n * 1000000n,
+                    gasLimit: GAS_LIMIT,
                   },
                   props.id,
                   selectedCell.row,
@@ -319,7 +319,7 @@ export default function CanvasBox(props) {
                     value: new BN(transaction.bid * 1000_000_000_000).mul(
                       new BN(1000_000)
                     ),
-                    gasLimit: 300000n * 1000000n,
+                    gasLimit: GAS_LIMIT,
                   },
                   createTokenId(
                     props.id,
@@ -513,7 +513,7 @@ export default function CanvasBox(props) {
                   variant="subtitle2"
                   sx={{ width: "382px" }}
                 >
-                  Owner:{" "}
+                  Cell Owner:{" "}
                   <span
                     style={{ color: "rgba(143,151,163,1)", fontSize: "11px" }}
                   >
@@ -590,7 +590,7 @@ export default function CanvasBox(props) {
                   Choose Color
                   <PaletteIcon sx={{ margin: "0px 0px 0px 4px" }} />
                 </Typography>
-                <Box component="div" style={{ display: "flex" }}>
+                <Box component="div" style={{ display: "flex", marginBottom: "10px"}}>
                   <Typography
                     align="left"
                     variant="caption"

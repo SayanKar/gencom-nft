@@ -58,7 +58,7 @@ export default function About(props) {
               }}
             >
               <span id="siteNameInAbout">Gencom</span> is a platform for
-              creating and owning NFT as a community. Create a canvas, buy slot
+              creating and owning NFT as a community. Create a canvas, buy cell
               on the canvas along with others and create art together. Own the
               art together with others as a NFT.
             </Typography>
@@ -432,7 +432,7 @@ export default function About(props) {
               }}
               align="left"
             >
-              Owner can't change the color of the cell once the NFT is minted.
+              Color of the cells in the NFT gets fixed when the room expires.{" "}
             </Typography>
           </Grid>
           <Grid
@@ -477,7 +477,7 @@ export default function About(props) {
         component="div"
         id="teamIntroContainer"
         sx={{
-          backgroundColor: "#444649",
+          backgroundColor: "#4d6589",
           paddingTop: "150px",
           paddingBottom: "150px",
         }}
@@ -491,7 +491,8 @@ export default function About(props) {
             fontFamily: "'Fredoka One', cursive",
           }}
         >
-          Meet Our Developers
+          <span style={{ color: "black" }}>Gen</span>com{" "}
+          <span style={{ color: "black" }}>BUIDL</span>ERs
         </Typography>
         <Grid
           container

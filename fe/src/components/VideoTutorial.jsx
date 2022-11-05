@@ -28,7 +28,7 @@ export default function VideoTutorial(pros) {
           marginBottom: "40px",
         }}
       >
-        How to buy your first Gencom NFT?
+        How to get your first Gencom NFT?
       </Typography>
       <Box
         component="div"
@@ -43,9 +43,7 @@ export default function VideoTutorial(pros) {
           height="100%"
           src="https://www.youtube.com/embed/dQw4w9WgXcQ"
           title="How to buy your first Gencom NFT?"
-          frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
           id="tutorialVideo"
         />
       </Box>

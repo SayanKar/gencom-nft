@@ -40,7 +40,6 @@ export default function DisplayCard(props) {
   const [totalBids, setTotalBids] = useState(0);
   const [totalParticipants, setTotalParticipants] = useState(0);
   const [gridColors, setGridColors] = useState(null);
-
   useEffect(() => {
     const getCanvasDetails = async () => {
       if (props.contract && props.activeAccount) {
