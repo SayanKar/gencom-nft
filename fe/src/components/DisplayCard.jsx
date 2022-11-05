@@ -133,16 +133,9 @@ export default function DisplayCard(props) {
         .then((res) => {
           if (!res.result.toHuman().Err) {
             console.log("Successfully fetched grid color data");
-            let temp = Array(32);
-            for (let i = 0; i < 32; i++) {
-              temp[i] = Array(32);
-            }
-            for (let i = 0; i < 32; i++) {
-              for (let j = 0; j < 32; j++) {
-                temp[i][j] = "#" + parseInt(res.output.toHuman().Ok[i][j].replace(/,/g,"")).toString(16).padStart(6, "0");
-              }
-            }
-            setGridColors(temp);
+            // console.log("array color",res.output.toHuman().Ok.map((row) => row.map((color) => "#" +parseInt(color.replace(/,/g,"")).toString(16).padStart(6, "0"))))
+            setGridColors(res.output.toHuman().Ok.map((row) => row.map((color) => "#" +parseInt(color.replace(/,/g,"")).toString(16).padStart(6, "0")))
+            );
           } else {
             console.log("Error while fetching grid color data: ", res.result.toHuman().Err);
           }
