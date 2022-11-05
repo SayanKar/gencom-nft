@@ -153,6 +153,12 @@ export default function CanvasBox(props) {
                   .toString(16)
                   .padStart(6, "0"),
             });
+            setTransaction({
+              ...transaction,
+              bid: (0.000001 + (new BN(res.value.replace(/,/g, ""))
+              .div(new BN(PRECISION))
+              .toNumber() / 1000_000) * ((100 + parseInt(props.premium)) / 100)).toFixed(6) 
+            })
           } else if (res.output?.toHuman()?.Err === "TokenNotFound") {
             setSelectedCellDetails({
               ...selectedCellDetails,
@@ -160,6 +166,10 @@ export default function CanvasBox(props) {
               bidPrice: props.basePrice,
               color: colors["0"],
             });
+            setTransaction({
+              ...transaction,
+              bid: (0.000001 + ((props.basePrice) * ((100 + parseInt(props.premium)) / 100))).toFixed(6)
+            })
           } else {
             console.log("Error on get cell details", res.output.toHuman().Err);
           }
