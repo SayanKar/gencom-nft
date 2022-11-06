@@ -193,6 +193,7 @@ export default function CanvasBox(props) {
     if (props.contract && props.activeAccount) {
       if (!clicked) {
         enqueueSnackbar("Select a cell first");
+        return;
       }
       setPosting(true);
       try {
@@ -280,6 +281,7 @@ export default function CanvasBox(props) {
     if (props.contract && props.activeAccount) {
       if (!clicked) {
         enqueueSnackbar("Select a cell first");
+        return;
       }
       if (
         transaction.bid <
@@ -288,6 +290,7 @@ export default function CanvasBox(props) {
         enqueueSnackbar(
           "Must pay atleast " + props.premium + "% more of last bid price"
         );
+        return;
       }
       setPosting(true);
       try {

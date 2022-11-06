@@ -170,7 +170,7 @@ export default function DisplayCard(props) {
 
   return (
     <Box sx={{ position: "relative" }}>
-      {props.isProfile && parseInt(roomStatus) !== 2 && (
+      {props.isProfile && parseInt(roomStatus) !== 2 && props.activeAccount.address === props.address && (
         <Tooltip
           arrow
           title={parseInt(roomStatus) ? "Room is live" : "Edit Canvas"}

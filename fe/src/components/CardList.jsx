@@ -7,12 +7,13 @@ export default function CardList(props) {
       return (
         <Grid
           item
-          lg={4}
-          sm={12}
+          xl={4}
+          lg={props.isProfile ? 6 : 4}
           md={6}
+          sm={12}
           sx={{
             display: "flex",
-            justifyContent: "start",
+            justifyContent: "center",
             alignItems: "center",
             marginBottom: "20px",
           }}
@@ -25,6 +26,7 @@ export default function CardList(props) {
             isEdit={props.isEdit}
             contract={props.contract}
             activeAccount={props.activeAccount}
+            address={props.address}
           />
         </Grid>
       );

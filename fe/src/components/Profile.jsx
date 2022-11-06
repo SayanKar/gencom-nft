@@ -9,7 +9,6 @@ export default function Profile(props) {
   const { address } = useParams();
   const { enqueueSnackbar } = useSnackbar();
   const BN = require("bn.js");
-
   const [userCreatedCanvasIds, setUserCreatedCanvasIds] = useState([]);
   const [userParticipatedCanvasIds, setUserParticipatedCanvasIds] = useState([]);
   const [totalSpent, setTotalSpent] = useState(0);
@@ -45,7 +44,7 @@ export default function Profile(props) {
       }
     };
     getUserCreatedCanvasIds();
-  }, [props.contract, props.activeAccount]);
+  }, [props.contract, props.activeAccount, address]);
 
   useEffect(() => {
     const getUserParticipatedCanvasIds = async () => {
@@ -72,7 +71,7 @@ export default function Profile(props) {
       }
     };
     getUserParticipatedCanvasIds();
-  }, [props.contract, props.activeAccount]);
+  }, [props.contract, props.activeAccount, address]);
 
   useEffect(() => {
     const getUserCashFlow = async () => {
@@ -100,7 +99,7 @@ export default function Profile(props) {
       }
     };
     getUserCashFlow();
-  }, [props.contract, props.activeAccount]);
+  }, [props.contract, props.activeAccount, address]);
 
   useEffect(() => {
     const getUserNFTCount = async () => {
@@ -128,7 +127,7 @@ export default function Profile(props) {
       }
     };
     getUserNFTCount();
-  }, [props.contract, props.activeAccount]);
+  }, [props.contract, props.activeAccount, address]);
 
   return (
     <Box sx={{ padding: "60px 0" }}>
@@ -227,7 +226,7 @@ export default function Profile(props) {
           isEdit={true}
           contract={props.contract}
           activeAccount={props.activeAccount}
-
+          address={address}
         />
         <CardList
           ids={userParticipatedCanvasIds}
@@ -235,6 +234,7 @@ export default function Profile(props) {
           title={"Participations"}
           contract={props.contract}
           activeAccount={props.activeAccount}
+          address={address}
         />
       </Box>
     </Box>

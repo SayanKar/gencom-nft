@@ -101,10 +101,14 @@ export default function CanvasForm(props) {
   };
 
   useEffect(() => {
-    props.activeAccount && props.api && (async () => {
-      const { data: balance} = await props.api.query.system.account(props.activeAccount.address);
-      setBalance(new BN(balance.free).div(new BN(PRECISION)).toString(10)/ 1000_000);
-    })();
+    const getBalance = async () => {
+      if(props.activeAccount && props.api ) {
+        const { data: balance} = await props.api.query.system.account(props.activeAccount.address);
+        setBalance(new BN(balance.free).div(new BN(PRECISION)).toString(10)/ 1000_000);
+      }
+    }
+    const id = setInterval(() => getBalance(), 5000);
+    return () => clearInterval(id);
   }, [props.activeAccount]);
   const editRoom = async () => {
     if (props.contract && props.activeAccount && props.signer) {

@@ -37,10 +37,14 @@ export default function CanvasRoom(props) {
   const [nfts, setNfts] = useState(0);
   const [balance, setBalance] = useState(0);
   useEffect(() => {
-    props.activeAccount && props.api && (async () => {
-      const {nonce, data: balance} = await props.api.query.system.account(props.activeAccount.address);
-      setBalance(new BN(balance.free).div(new BN(PRECISION)).toString(10)/ 1000_000);
-    })();
+    const getBalance = async () => {
+      if(props.activeAccount && props.api ) {
+        const { data: balance} = await props.api.query.system.account(props.activeAccount.address);
+        setBalance(new BN(balance.free).div(new BN(PRECISION)).toString(10)/ 1000_000);
+      }
+    }
+    const id = setInterval(() => getBalance(), 5000);
+    return () => clearInterval(id);
   }, [props.activeAccount]);
 
   useEffect(() => {
@@ -269,7 +273,11 @@ export default function CanvasRoom(props) {
                 tooltip={"Total Bids"}
               />
               <Strip
-                Text={<Link to={"/profile/"+canvasDetails.creatorAddress}>{"Creator : " + canvasDetails.creatorAddress}</Link>}
+                Text={
+                  <Link to={"/profile/" + canvasDetails.creatorAddress}>
+                    {"Creator : " + canvasDetails.creatorAddress}
+                  </Link>
+                }
                 tooltip={"Creator Address"}
               />
               <Strip
@@ -403,8 +411,8 @@ const RenderTimer = (props) => {
               )} hrs : ${Math.floor(
                 ((time % 86400) % 3600) / 60
               )} mins : ${Math.floor(time % 60)} sec`
-            : "Canvas expired on " +  dayjs.unix(props.end/1000).format('llll')
-          : "Opening on " + dayjs.unix(props.start/1000).format('llll')
+            : "Canvas expired on " + dayjs.unix(props.end / 1000).format("llll")
+          : "Opening on " + dayjs.unix(props.start / 1000).format("llll")
       }
       tooltip={"Countdown till bidding ends"}
     />
