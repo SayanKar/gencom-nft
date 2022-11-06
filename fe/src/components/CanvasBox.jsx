@@ -295,7 +295,7 @@ export default function CanvasBox(props) {
           .captureCell(
             props.activeAccount.address,
             {
-              value: new BN(transaction.bid * 1000_000_000_000).mul(
+              value: new BN(transaction.bid * PRECISION).mul(
                 new BN(1000_000)
               ),
               gasLimit: -1,
@@ -317,7 +317,7 @@ export default function CanvasBox(props) {
               await props.contract.tx
                 .captureCell(
                   {
-                    value: new BN(transaction.bid * 1000_000_000_000).mul(
+                    value: new BN(transaction.bid * PRECISION).mul(
                       new BN(1000_000)
                     ),
                     gasLimit: GAS_LIMIT,

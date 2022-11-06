@@ -113,7 +113,7 @@ export default function CanvasRoom(props) {
                 creatorAddress: changeAddressEncoding(res.creator),
                 basePrice:
                   new BN(res.basePrice.replace(/,/g, ""))
-                    .div(new BN(1000_000_000_000))
+                    .div(new BN(PRECISION))
                     .toNumber() / 1000_000,
               });
               if (
