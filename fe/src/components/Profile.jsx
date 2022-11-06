@@ -29,7 +29,7 @@ export default function Profile(props) {
           value: 0,
           gasLimit: -1,
         },
-          props.activeAccount.address
+          address
         )
           .then((res) => {
             if (!res.output.toHuman().Err) {
@@ -56,7 +56,7 @@ export default function Profile(props) {
           value: 0,
           gasLimit: -1,
         },
-          props.activeAccount.address
+          address
         )
           .then((res) => {
             if (!res.output.toHuman().Err) {
@@ -83,7 +83,7 @@ export default function Profile(props) {
           value: 0,
           gasLimit: -1,
         },
-          props.activeAccount.address
+          address
         )
           .then((res) => {
             if (!res.result.toHuman().Err) {
@@ -111,7 +111,7 @@ export default function Profile(props) {
           value: 0,
           gasLimit: -1,
         },
-          props.activeAccount.address
+          address
         )
           .then((res) => {
             if (!res.result.toHuman().Err) {
