@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Box,
   Dialog,
   DialogTitle,
   List,
@@ -10,6 +11,7 @@ import {
 import Identicon from "@polkadot/react-identicon";
 import { useEffect, useState } from "react";
 import { getAllAccounts } from "../Integration";
+import polkadotjs from "../assets/polkadotjs.svg";
 export default function ChooseAccount(props) {
   const [allAccounts, setAllAccounts] = useState([]);
   useEffect(() => {
@@ -30,6 +32,27 @@ export default function ChooseAccount(props) {
           ? "Please install Polkadot.{js} extension"
           : "Select Account"}
       </DialogTitle>
+      {allAccounts.length === 0 && (
+        <Box
+          sx={{
+            width: "80%",
+            height: "180px",
+            margin: "0 auto",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
+          }}
+        >
+          <a href="https://polkadot.js.org/extension/">
+            <img
+              src={polkadotjs}
+              alt={"Polkadot js extention"}
+              style={{ width: "155px" }}
+            />
+          </a>
+        </Box>
+      )}
       <List sx={{ padding: "0 20px 20px 20px" }}>
         {allAccounts.map((account, idx) => {
           return (

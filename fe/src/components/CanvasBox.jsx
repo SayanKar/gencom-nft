@@ -107,7 +107,9 @@ export default function CanvasBox(props) {
 
   useEffect(() => {
     showOwnedCell && getUserNfts();
+    const id = setInterval(() => showOwnedCell && getUserNfts(), 5000);
     !showOwnedCell && setOwnedCells({});
+    return () => clearInterval(id);
   }, [showOwnedCell]);
   function changeAddressEncoding(address, toNetworkPrefix = 42) {
     if (!address) {

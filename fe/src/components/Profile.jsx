@@ -10,7 +10,9 @@ export default function Profile(props) {
   const { enqueueSnackbar } = useSnackbar();
   const BN = require("bn.js");
   const [userCreatedCanvasIds, setUserCreatedCanvasIds] = useState([]);
-  const [userParticipatedCanvasIds, setUserParticipatedCanvasIds] = useState([]);
+  const [userParticipatedCanvasIds, setUserParticipatedCanvasIds] = useState(
+    []
+  );
   const [totalSpent, setTotalSpent] = useState(0);
   const [totalReceived, setTotalReceived] = useState(0);
   const [userNFTCount, setUserNFTCount] = useState(0);
@@ -23,23 +25,28 @@ export default function Profile(props) {
     const getUserCreatedCanvasIds = async () => {
       if (props.contract && props.activeAccount) {
         console.log("Fetching user created canvas ids");
-        await props.contract.query.getUserCreatedCanvasIds(
-          props.activeAccount.address, {
-          value: 0,
-          gasLimit: -1,
-        },
-          address
-        )
+        await props.contract.query
+          .getUserCreatedCanvasIds(
+            props.activeAccount.address,
+            {
+              value: 0,
+              gasLimit: -1,
+            },
+            address
+          )
           .then((res) => {
             if (!res.output.toHuman().Err) {
-              console.log('Succesfully fetched user created canvas ids');
+              console.log("Succesfully fetched user created canvas ids");
               setUserCreatedCanvasIds(res.output.toHuman());
             } else {
-              console.log("Error fetching user created canvas ids", res.output.toHuman());
+              console.log(
+                "Error fetching user created canvas ids",
+                res.output.toHuman()
+              );
             }
           })
           .catch((err) => {
-            console.log('Error while fetching user created canvas ids: ', err);
+            console.log("Error while fetching user created canvas ids: ", err);
           });
       }
     };
@@ -50,23 +57,31 @@ export default function Profile(props) {
     const getUserParticipatedCanvasIds = async () => {
       if (props.contract && props.activeAccount) {
         console.log("Fetching user participated canvas ids");
-        await props.contract.query.getUserParticipatedCanvasIds(
-          props.activeAccount.address, {
-          value: 0,
-          gasLimit: -1,
-        },
-          address
-        )
+        await props.contract.query
+          .getUserParticipatedCanvasIds(
+            props.activeAccount.address,
+            {
+              value: 0,
+              gasLimit: -1,
+            },
+            address
+          )
           .then((res) => {
             if (!res.output.toHuman().Err) {
-              console.log('Succesfully fetched user participated canvas ids');
+              console.log("Succesfully fetched user participated canvas ids");
               setUserParticipatedCanvasIds(res.output.toHuman());
             } else {
-              console.log("Error fetching user participated canvas ids", res.output.toHuman());
+              console.log(
+                "Error fetching user participated canvas ids",
+                res.output.toHuman()
+              );
             }
           })
           .catch((err) => {
-            console.log('Error while fetching user participated canvas ids: ', err);
+            console.log(
+              "Error while fetching user participated canvas ids: ",
+              err
+            );
           });
       }
     };
@@ -77,20 +92,33 @@ export default function Profile(props) {
     const getUserCashFlow = async () => {
       if (props.contract && props.activeAccount) {
         console.log("Fetching user cash flow..");
-        await props.contract.query.getUserCashFlow(
-          props.activeAccount.address, {
-          value: 0,
-          gasLimit: -1,
-        },
-          address
-        )
+        await props.contract.query
+          .getUserCashFlow(
+            props.activeAccount.address,
+            {
+              value: 0,
+              gasLimit: -1,
+            },
+            address
+          )
           .then((res) => {
             if (!res.result.toHuman().Err) {
               console.log("Successfully fetched user cash flow data...");
-              setTotalSpent((new BN(res.output.toHuman()[0].replace(/,/g, "")).div(new BN(PRECISION))).toNumber() / 1000_000);
-              setTotalReceived((new BN(res.output.toHuman()[1].replace(/,/g, "")).div(new BN(PRECISION))).toNumber() / 1000_000);
+              setTotalSpent(
+                new BN(res.output.toHuman()[0].replace(/,/g, ""))
+                  .div(new BN(PRECISION))
+                  .toNumber() / 1000_000
+              );
+              setTotalReceived(
+                new BN(res.output.toHuman()[1].replace(/,/g, ""))
+                  .div(new BN(PRECISION))
+                  .toNumber() / 1000_000
+              );
             } else {
-              console.log("Error fetching user cash flow data", res.result.toHuman().Err);
+              console.log(
+                "Error fetching user cash flow data",
+                res.result.toHuman().Err
+              );
             }
           })
           .catch((err) => {
@@ -105,20 +133,24 @@ export default function Profile(props) {
     const getUserNFTCount = async () => {
       if (props.contract && props.activeAccount) {
         console.log("Fetching user NFT count..");
-        await props.contract.query.balanceOf(
-          props.activeAccount.address, {
-          value: 0,
-          gasLimit: -1,
-        },
-          address
-        )
+        await props.contract.query
+          .balanceOf(
+            props.activeAccount.address,
+            {
+              value: 0,
+              gasLimit: -1,
+            },
+            address
+          )
           .then((res) => {
             if (!res.result.toHuman().Err) {
               console.log("Successfully fetched user NFT count...");
               setUserNFTCount(res.output.toHuman());
-
             } else {
-              console.log("Error fetching user NFT count", res.result.toHuman().Err);
+              console.log(
+                "Error fetching user NFT count",
+                res.result.toHuman().Err
+              );
             }
           })
           .catch((err) => {
@@ -133,6 +165,18 @@ export default function Profile(props) {
     <Box sx={{ padding: "60px 0" }}>
       <Box id="profileInfo" sx={{ width: "90%", margin: "0 auto" }}>
         <Identicon value={address} size={100} theme={"polkadot"} />
+        {address === props.activeAccount.address && (
+          <Typography
+            variant="body2"
+            sx={{
+              fontFamily: "'Fredoka One', cursive",
+              cursor: "pointer",
+              margin: "20px 0 20px 0",
+            }}
+          >
+            {props.activeAccount.meta.name}
+          </Typography>
+        )}
         <Tooltip title="Click to copy address" arrow>
           <Typography
             variant="body2"
@@ -203,7 +247,7 @@ export default function Profile(props) {
               fontWeight: "700",
             }}
           >
-            Total Spent: {totalSpent + " " +SYMBOL} 
+            Total Spent: {totalSpent + " " + SYMBOL}
           </Typography>
           <Typography
             variant="subtitle1"
@@ -215,7 +259,7 @@ export default function Profile(props) {
               fontWeight: "700",
             }}
           >
-            Received: {totalReceived + " " + SYMBOL} 
+            Received: {totalReceived + " " + SYMBOL}
           </Typography>
         </Box>
         <CardList
