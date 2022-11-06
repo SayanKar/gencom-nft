@@ -116,7 +116,7 @@ export default function HomePage(props) {
                   <h1 id="homePageHeader">
                     <Typewriter
                       onInit={(typewriter) => {
-                        typewriter.typeString('NFT By the community, for the community.  ')
+                        typewriter.typeString('NFT by the community, for the community.  ')
                           .callFunction(() => {
                             console.log('String typed out!');
                           })
