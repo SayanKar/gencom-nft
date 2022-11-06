@@ -15,6 +15,7 @@ import "../App.css";
 import CardList from "./CardList";
 import VideoTutorial from "./VideoTutorial";
 import { useState } from "react";
+import Typewriter from 'typewriter-effect';
 
 export default function HomePage(props) {
   const [highestRoomId, setHighestRoomId] = useState(null);
@@ -113,7 +114,23 @@ export default function HomePage(props) {
               >
                 <Box component="div" id="lowBox">
                   <h1 id="homePageHeader">
-                    NFT by the community, for the community.
+                    <Typewriter
+                      onInit={(typewriter) => {
+                        typewriter.typeString('NFT By the community, for the community.  ')
+                          .callFunction(() => {
+                            console.log('String typed out!');
+                          })
+                          .pauseFor(2500)
+                          .callFunction(() => {
+                            console.log('All strings were deleted');
+                          })
+                          .changeDelay(2)
+                          .start();
+                      }}
+                      options={{
+                        cursorClassName: 'typingCursor',
+                      }}
+                    />
                   </h1>
                   <Box
                     component="div"
