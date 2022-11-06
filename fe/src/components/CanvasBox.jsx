@@ -26,6 +26,7 @@ import { useEffect } from "react";
 import { Keyring } from "@polkadot/api";
 import dayjs from "dayjs";
 import { useSnackbar } from "notistack";
+import { Link } from "react-router-dom";
 
 const keyring = new Keyring({ type: "sr25519" });
 const BN = require("bn.js");
@@ -511,16 +512,16 @@ export default function CanvasBox(props) {
                 <Typography
                   align="left"
                   variant="subtitle2"
-                  sx={{ width: "382px" }}
+                  sx={{ width: "382px", display: "flex", alignItems:"center", fontSize:"13px" }}
                 >
                   Cell Owner:{" "}
                   <span
-                    style={{ color: "rgba(143,151,163,1)", fontSize: "11px" }}
+                    style={{ color: "rgba(143,151,163,1)", fontSize: "10px", marginLeft: "5px"}}
                   >
                     {props.start > now
                       ? "None"
                       : clicked
-                      ? selectedCellDetails.owner
+                      ? <Link to={"/profile/" + selectedCellDetails.owner}>{selectedCellDetails.owner}</Link>
                       : "Select a cell"}{" "}
                   </span>
                 </Typography>
@@ -745,6 +746,7 @@ export default function CanvasBox(props) {
                     ? "Bid"
                     : "Bidding"}
                 </Button>
+                <Typography variant="subtitle2" style={{marginTop:"10px", width: "100%", color:"gray"}} align="right">{"Balance = " + props.balance + " " + SYMBOL}</Typography>
               </CardContent>
             </Card>
           </Grid>

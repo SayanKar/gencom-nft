@@ -1,5 +1,5 @@
-export const PRECISION = 1000_000_000_000n;
-export const SYMBOL = "SBY";
+export const PRECISION = 1000_000;
+export const SYMBOL = "TZERO";
 export const CONTRACT_ADDRESS =
   "5F78uMCeFZA3KHgUGCvotFqBALNm35NigmSFSudEthkWxyXn";
 export const NETWORK_ENDPOINT = "wss://ws.test.azero.dev";

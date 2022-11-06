@@ -50,7 +50,7 @@ export default function CanvasGrid(props) {
       }
     };
     getGridColors();
-    const updateColors = setInterval(() => getGridColors(), 20000);
+    const updateColors = setInterval(() => getGridColors(), 5000);
     return () => clearInterval(updateColors);
   }, [props.contract, props.activeAccount]);
 

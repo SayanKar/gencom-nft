@@ -14,6 +14,7 @@ import { Link, useParams } from "react-router-dom";
 import Loading from "./Loading";
 import EditIcon from "@mui/icons-material/Edit";
 import { Keyring } from "@polkadot/api";
+import { PRECISION } from "../constants";
 const keyring = new Keyring({ type: "sr25519" });
 const BN = require("bn.js");
 export default function CanvasRoom(props) {
@@ -34,6 +35,13 @@ export default function CanvasRoom(props) {
   const [isOwner, setIsOwner] = useState(false);
   const [isInvalidId, setIsInvalidId] = useState(false);
   const [nfts, setNfts] = useState(0);
+  const [balance, setBalance] = useState(0);
+  useEffect(() => {
+    props.activeAccount && props.api && (async () => {
+      const {nonce, data: balance} = await props.api.query.system.account(props.activeAccount.address);
+      setBalance(new BN(balance.free).div(new BN(PRECISION)).toString(10)/ 1000_000);
+    })();
+  }, [props.activeAccount]);
 
   useEffect(() => {
     const getUserNftsCount = async () => {
@@ -261,7 +269,7 @@ export default function CanvasRoom(props) {
                 tooltip={"Total Bids"}
               />
               <Strip
-                Text={canvasDetails.creatorAddress}
+                Text={<Link to={"/profile/"+canvasDetails.creatorAddress}>{"Creator : " + canvasDetails.creatorAddress}</Link>}
                 tooltip={"Creator Address"}
               />
               <Strip
@@ -320,6 +328,7 @@ export default function CanvasRoom(props) {
               end={canvasDetails.endTime}
               signer={props.signer}
               isDynamic={canvasDetails.isDynamic}
+              balance={balance}
             />
           </>
         )}

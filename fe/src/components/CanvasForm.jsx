@@ -40,6 +40,8 @@ export default function CanvasForm(props) {
   const { canvasId } = useParams();
   const [isInvalidId, setIsInvalidId] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [balance, setBalance] = useState(0);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -97,6 +99,13 @@ export default function CanvasForm(props) {
       createRoom();
     }
   };
+
+  useEffect(() => {
+    props.activeAccount && props.api && (async () => {
+      const { data: balance} = await props.api.query.system.account(props.activeAccount.address);
+      setBalance(new BN(balance.free).div(new BN(PRECISION)).toString(10)/ 1000_000);
+    })();
+  }, [props.activeAccount]);
   const editRoom = async () => {
     if (props.contract && props.activeAccount && props.signer) {
       if (isInvalid()) return;
@@ -604,6 +613,7 @@ export default function CanvasForm(props) {
               </Button>
             )}
           </Box>
+          <Typography variant="subtitle2" style={{marginTop:"10px", width: "100%", color:"gray"}} align="right">{"Balance = " + balance + " " + SYMBOL}</Typography>
         </Paper>
       )}
     </Box>
