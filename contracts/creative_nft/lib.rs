@@ -216,6 +216,9 @@ mod creative_nft {
         sudo: Mapping<AccountId, ()>,
         /// It is the minimum fees a user needs to pay to create a new canvas
         creation_fees: Balance,
+        /// A small fee charged when capturing a cell. 
+        /// 1 is equivalent to 0.01% fee. (Capped at 50)
+        commission_percent: u8,
         /// It is the number of canvases created so far
         canvas_nonce: CanvasId,
         /// Mapping from `canvas_id` to its readonly metadata.
@@ -260,10 +263,15 @@ mod creative_nft {
     impl CreativeNft {
         /// Creates a new auction place with the minimum canvas creation fees as @fees
         #[ink(constructor)]
-        pub fn new(fees: Balance) -> Self {
+        pub fn new(creation_fees: Balance, commission_percent: u8) -> Self {
             ink_lang::utils::initialize_contract(|contract: &mut Self| {
+                assert!(
+                    commission_percent <= 50,
+                    "Commission fees more than the limit of 50 (0.5%)"
+                );
                 contract.sudo.insert(&Self::env().caller(), &());
-                contract.creation_fees = fees;
+                contract.creation_fees = creation_fees;
+                contract.commission_percent = commission_percent;
             })
         }
 
@@ -488,10 +496,14 @@ mod creative_nft {
             Ok(())
         }
 
-        /// Returns (canvasNonce, creationFees)
+        /// Returns (commissionPercent, canvasNonce, creationFees)
         #[ink(message)]
-        pub fn get_game_details(&self) -> (CanvasId, Balance) {
-            (self.canvas_nonce, self.creation_fees)
+        pub fn get_game_details(&self) -> (u8, CanvasId, Balance) {
+            (
+                self.commission_percent,
+                self.canvas_nonce,
+                self.creation_fees,
+            )
         }
 
         /// Get the metadata of the given canvas if it exists
@@ -616,6 +628,39 @@ mod creative_nft {
             self.owned_tokens.get(&(acc, canvas_id, 0)).unwrap_or(0)
         }
 
+        /// Returns sorted list of canvas ids based on a heuristic which identifies trending canvases
+        #[ink(message)]
+        pub fn get_canvases_by_popularity(&self) -> Vec<CanvasId> {
+            // 1. Priority (LIVE > UPCOMING > EXPIRED)
+            // 2. More Bids are preferred
+            // 3. More participants are preferred
+
+            let mut order: Vec<CanvasId> = Vec::from_iter(0..self.canvas_nonce);
+            order.sort_by_cached_key(|&canvas_id| {
+                let canvas = self.get_canvas_details(canvas_id).unwrap();
+                let priority;
+
+                let now = self.env().block_timestamp();
+                if now < canvas.start_time {
+                    priority = 2;
+                } else if now <= canvas.end_time {
+                    priority = 3;
+                } else {
+                    priority = 1;
+                }
+
+                let CanvasStats {
+                    total_bids: bids,
+                    total_participants: participants,
+                } = self.get_canvas_stats(canvas_id);
+
+                (priority, bids, participants)
+            });
+            order.reverse();
+
+            order
+        }
+
         /// A helper function equivalent to onlyOwner modifier in Solidity
         fn only_owner(&self) -> Result<()> {
             if !self.has_sudo_powers(self.env().caller()) {
@@ -667,10 +712,7 @@ mod creative_nft {
             if bid < &canvas.base_price {
                 return Err(Error::InsufficientFunds);
             }
-
-            self.env()
-                .transfer(canvas.creator, *bid)
-                .expect("transfer failed");
+            self.send_funds(&canvas.creator, bid);
 
             let cell = Cell {
                 owner: *owner,
@@ -722,10 +764,7 @@ mod creative_nft {
             if bid < &price {
                 return Err(Error::InsufficientFunds);
             }
-
-            self.env()
-                .transfer(cell.owner, *bid)
-                .expect("transfer failed"); // Is Re-entrancy possible?
+            self.send_funds(&cell.owner, bid);
 
             self.remove_token_from(&token_id, &cell.owner);
             self.add_token_to(&token_id, &caller);
@@ -752,6 +791,12 @@ mod creative_nft {
                 id: *token_id,
             });
             Ok(())
+        }
+
+        /// Sends funds to account `to` after deducting commission charges
+        fn send_funds(&mut self, to: &AccountId, val: &Balance) {
+            let amt = val - val * (self.commission_percent as Balance) / 10_000;
+            self.env().transfer(*to, amt).expect("transfer failed");
         }
 
         /// Updates the internal storage tracking the cumulative (spending, earning) on the platform
