@@ -212,9 +212,8 @@ mod creative_nft {
     #[ink(storage)]
     #[derive(SpreadAllocate)]
     pub struct CreativeNft {
-        /// Account id which deployed the contract.
-        /// It has access to withdraw the fees collected from canvas creation
-        owner: AccountId,
+        /// Accounts which have access to privileged calls
+        sudo: Mapping<AccountId, ()>,
         /// It is the minimum fees a user needs to pay to create a new canvas
         creation_fees: Balance,
         /// It is the number of canvases created so far
@@ -263,9 +262,31 @@ mod creative_nft {
         #[ink(constructor)]
         pub fn new(fees: Balance) -> Self {
             ink_lang::utils::initialize_contract(|contract: &mut Self| {
-                contract.owner = Self::env().caller();
+                contract.sudo.insert(&Self::env().caller(), &());
                 contract.creation_fees = fees;
             })
+        }
+
+        /// Returns true if the account has sudo privileges
+        #[ink(message)]
+        pub fn has_sudo_powers(&self, acc: AccountId) -> bool {
+            self.sudo.contains(acc)
+        }
+
+        /// (PRIVILEGED) Give the account sudo privileges
+        #[ink(message)]
+        pub fn add_sudo(&mut self, acc: AccountId) -> Result<()> {
+            self.only_owner()?;
+            self.sudo.insert(&acc, &());
+            Ok(())
+        }
+
+        /// (PRIVILEGED) Take away the sudo privilege from the given account
+        #[ink(message)]
+        pub fn remove_sudo(&mut self, acc: AccountId) -> Result<()> {
+            self.only_owner()?;
+            self.sudo.remove(&acc);
+            Ok(())
         }
 
         /// PRIVILEGED Call. Owner can change the min. fees for future canvases
@@ -399,62 +420,33 @@ mod creative_nft {
         /// last bid value. Caller can optionally update the cell color to a different color.
         #[ink(message, payable)]
         pub fn capture_cell(&mut self, token_id: TokenId, color: Option<Colors>) -> Result<()> {
-            let caller = self.env().caller();
-
-            // If the cell is not found, mint() function is called instead
-            let cell = match self.get_cell_details(token_id) {
-                Ok(cell) => cell,
-                Err(_) => return self.mint(&token_id, &caller, &color),
-            };
-
-            if caller == cell.owner {
-                // It is done to prevent the owner from inflating the price of their cell
-                // while they receive back the fund to themselves.
-                return Err(Error::CannotCaptureOwnToken);
-            }
-
-            let (canvas_id, _, _) = decode(&token_id);
-            let canvas = self.get_canvas_details(canvas_id)?;
-
-            if self.env().block_timestamp() > canvas.end_time {
-                return Err(Error::NotAuctionPhase);
-            }
-
-            let price = cell.value * (100 + canvas.premium as u128) / 100;
             let bid = self.env().transferred_value();
+            self.capture(&token_id, &color, &bid)
+        }
 
-            if bid < price {
+        /// (PRIVILEGED) Allows capturing multiple tokens in a batch. Right now only for development
+        /// usage. It will be rolled out for all in the future after the gameplay considerations.
+        #[ink(message, payable)]
+        pub fn capture_multiple_cells(
+            &mut self,
+            token_ids: Vec<TokenId>,
+            colors: Vec<Option<Colors>>,
+            bids: Vec<Balance>,
+        ) -> Result<()> {
+            self.only_owner()?;
+            assert!(token_ids.len() == colors.len(), "Missing input");
+            assert!(token_ids.len() == bids.len(), "Missing input");
+
+            let val: Balance = bids.iter().sum();
+            if val < self.env().transferred_value() {
+                // Excess funds goes to the developers
                 return Err(Error::InsufficientFunds);
             }
 
-            self.env()
-                .transfer(cell.owner, bid)
-                .expect("transfer failed"); // Is Re-entrancy possible?
-
-            self.remove_token_from(&token_id, &cell.owner);
-            self.add_token_to(&token_id, &caller);
-
-            let ncell = Cell {
-                owner: caller,
-                value: bid,
-                color: color.map_or(cell.color, |c| Colors::color_code(&c)),
-            };
-            self.grids.insert(&token_id, &ncell);
-
-            self.update_cash_flow(&caller, &Some(cell.owner), &bid);
-            self.update_canvas_analytics(&canvas_id, &caller);
-
-            self.env().emit_event(TokenCaptured {
-                token_id,
-                from: cell.owner,
-                by: caller,
-                color,
-            });
-            self.env().emit_event(Transfer {
-                from: Some(cell.owner),
-                to: Some(caller),
-                id: token_id,
-            });
+            for i in 0..token_ids.len() {
+                // Err() reverts the state...
+                self.capture(&token_ids[i], &colors[i], &bids[i])?;
+            }
             Ok(())
         }
 
@@ -496,10 +488,10 @@ mod creative_nft {
             Ok(())
         }
 
-        /// Returns (contractOwner, canvasNonce, creationFees)
+        /// Returns (canvasNonce, creationFees)
         #[ink(message)]
-        pub fn get_game_details(&self) -> (AccountId, CanvasId, Balance) {
-            (self.owner, self.canvas_nonce, self.creation_fees)
+        pub fn get_game_details(&self) -> (CanvasId, Balance) {
+            (self.canvas_nonce, self.creation_fees)
         }
 
         /// Get the metadata of the given canvas if it exists
@@ -626,7 +618,7 @@ mod creative_nft {
 
         /// A helper function equivalent to onlyOwner modifier in Solidity
         fn only_owner(&self) -> Result<()> {
-            if self.env().caller() != self.owner {
+            if !self.has_sudo_powers(self.env().caller()) {
                 return Err(Error::Unauthorised);
             }
             Ok(())
@@ -660,6 +652,7 @@ mod creative_nft {
             token_id: &TokenId,
             owner: &AccountId,
             color: &Option<Colors>,
+            bid: &Balance,
         ) -> Result<()> {
             let (canvas_id, cord_x, cord_y) = decode(&token_id);
             let canvas = self.get_canvas_details(canvas_id)?;
@@ -671,19 +664,17 @@ mod creative_nft {
             if cord_x >= canvas.dimensions.0 || cord_y >= canvas.dimensions.1 {
                 return Err(Error::TokenNotFound);
             }
-
-            let bid = self.env().transferred_value();
-            if bid < canvas.base_price {
+            if bid < &canvas.base_price {
                 return Err(Error::InsufficientFunds);
             }
 
             self.env()
-                .transfer(canvas.creator, bid)
+                .transfer(canvas.creator, *bid)
                 .expect("transfer failed");
 
             let cell = Cell {
                 owner: *owner,
-                value: bid,
+                value: *bid,
                 color: color.unwrap_or(Colors::White).color_code(),
             };
             self.grids.insert(&token_id, &cell);
@@ -695,6 +686,69 @@ mod creative_nft {
             self.env().emit_event(Transfer {
                 from: None,
                 to: Some(*owner),
+                id: *token_id,
+            });
+            Ok(())
+        }
+
+        fn capture(
+            &mut self,
+            token_id: &TokenId,
+            color: &Option<Colors>,
+            bid: &Balance,
+        ) -> Result<()> {
+            let caller = self.env().caller();
+
+            // If the cell is not found, mint() function is called instead
+            let cell = match self.get_cell_details(*token_id) {
+                Ok(cell) => cell,
+                Err(_) => return self.mint(&token_id, &caller, &color, &bid),
+            };
+
+            if caller == cell.owner {
+                // It is done to prevent the owner from inflating the price of their cell
+                // while they receive back the fund to themselves.
+                return Err(Error::CannotCaptureOwnToken);
+            }
+
+            let (canvas_id, _, _) = decode(&token_id);
+            let canvas = self.get_canvas_details(canvas_id)?;
+
+            if self.env().block_timestamp() > canvas.end_time {
+                return Err(Error::NotAuctionPhase);
+            }
+
+            let price = cell.value * (100 + canvas.premium as u128) / 100;
+            if bid < &price {
+                return Err(Error::InsufficientFunds);
+            }
+
+            self.env()
+                .transfer(cell.owner, *bid)
+                .expect("transfer failed"); // Is Re-entrancy possible?
+
+            self.remove_token_from(&token_id, &cell.owner);
+            self.add_token_to(&token_id, &caller);
+
+            let ncell = Cell {
+                owner: caller,
+                value: *bid,
+                color: color.map_or(cell.color, |c| Colors::color_code(&c)),
+            };
+            self.grids.insert(&token_id, &ncell);
+
+            self.update_cash_flow(&caller, &Some(cell.owner), &bid);
+            self.update_canvas_analytics(&canvas_id, &caller);
+
+            self.env().emit_event(TokenCaptured {
+                token_id: *token_id,
+                from: cell.owner,
+                by: caller,
+                color: *color,
+            });
+            self.env().emit_event(Transfer {
+                from: Some(cell.owner),
+                to: Some(caller),
                 id: *token_id,
             });
             Ok(())
