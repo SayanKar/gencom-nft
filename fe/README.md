@@ -28,8 +28,6 @@ export const SYMBOL = "TZERO";
 export const CONTRACT_ADDRESS =
   "5HEdBfVACfCYaK2YXeoWD2KRmUxxiShgKnK5RgCP149baSUr"; 
 export const NETWORK_ENDPOINT = "wss://ws.test.azero.dev";
-// this is a test account used for artwork creation for demo
-export const mnemonic = "crouch twice begin hub note start reject edit cruel valid lazy stage";
 // gaslimit of each transaction
 export const GAS_LIMIT = 10000n * 1000000n;
 export const faucet = "https://faucet.test.azero.dev/";

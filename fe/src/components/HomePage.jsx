@@ -29,7 +29,7 @@ export default function HomePage(props) {
         })
         .then((res) => {
           if (!res.result?.toHuman()?.Err) {
-            setTrendingRoomList(res.output.toHuman());
+            setTrendingRoomList(res.output.toHuman().slice(0, 6));
           } else {
             console.log(
               "Error fetching trending rooms",

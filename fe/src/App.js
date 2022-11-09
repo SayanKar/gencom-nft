@@ -20,7 +20,6 @@ import { ContractPromise } from "@polkadot/api-contract";
 import { CONTRACT_ADDRESS, NETWORK_ENDPOINT } from "./constants";
 import { metadata } from "./metadata";
 import { web3FromSource } from "@polkadot/extension-dapp";
-import CaptureMultipleCells from "./components/CaptureMultipleCells";
 function App() {
   const [contract, setContract] = useState(null);
   const [activeAccount, setActiveAccount] = useState(null);
@@ -156,7 +155,7 @@ function App() {
             }
             errorElement={<Broken />}
           />
-          <Route
+          {/* <Route
             path="canvas_painter"
             element={
               <CaptureMultipleCells
@@ -167,7 +166,7 @@ function App() {
               />
             }
             errorElement={<Broken />}
-          />
+          /> */}
           <Route path="*" element={<Error404 />} />
         </Routes>
         <Footer />
