@@ -17,7 +17,11 @@ export default function CaptureMultipleCells(props) {
     );
   };
 
-  const onSubmit = () => {
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  const onSubmit = async () => {
     let x = 0,
       y = 0;
     let tokenIds = [],
@@ -30,40 +34,32 @@ export default function CaptureMultipleCells(props) {
         x++;
         y = 0;
       }
-      bids.push(
-        new BN(price * PRECISION).mul(new BN(1000_000))
-      );
+      bids.push(new BN(price * PRECISION).mul(new BN(1000_000)));
       Object.keys(colors).forEach((key) => {
         if (colors[key] === el) {
           colours.push(enumColors[key].name);
         }
       });
     });
-  // console.log(tokenIds, colours, bids);
-   console.log(colours.slice(0, 2));
-    captureMultipleCells(
-      tokenIds.slice(0, 2),
-      colours.slice(0, 2),
-      bids.slice(0, 2)
-    );
-    // captureMultipleCells(tokenIds.slice(256,511), colours.slice(256,511), bids.slice(256,511));
-    // captureMultipleCells(tokenIds.slice(512, 767), colours.slice(512,767), bids.slice(512,767));
-    // captureMultipleCells(tokenIds.slice(767, 1023), colours.slice(767, 1023), bids.slice(767, 1023));
+    for(let i = 0; i < 1024; i++) {
+      if(colours[i] !== "White") {
+        captureMultipleCells(tokenIds[i],colours[i]);
+        await sleep(10000);
+      }
+    }
   };
-  const captureMultipleCells = async (tokenIds, colours, bids) => {
-    if (props.contract && props.activeAccount && colrs.length === 1024) {
+  const captureMultipleCells = async (tokenId, colour) => {
+    if (props.contract && props.activeAccount) {
       try {
         await props.contract.query
-          .captureMultipleCells(
+          .captureCell(
             props.activeAccount.address,
             {
-              value:
-                new BN(price * PRECISION).mul(new BN(1000_000 * 256)),
+              value: new BN(price * PRECISION).mul(new BN(1000_000)),
               gasLimit: -1,
             },
-            tokenIds,
-            colours,
-            bids
+            tokenId,
+            colour
           )
           .then((res) => {
             if (res.result?.toHuman()?.Err?.Module?.error)
@@ -77,24 +73,20 @@ export default function CaptureMultipleCells(props) {
           .then(async (res) => {
             if (!res.Err) {
               await props.contract.tx
-                .captureMultipleCells(
+                .captureCell(
                   {
-                    value:
-                      new BN(price * PRECISION).mul(
-                        new BN(1000_000 * 256)),
+                    value: new BN(price * PRECISION).mul(new BN(1000_000)),
                     gasLimit: GAS_LIMIT,
                   },
-                  tokenIds,
-                  colours,
-                  bids
+                  tokenId,
+                  colour
                 )
                 .signAndSend(
                   props.activeAccount.address,
                   { signer: props.signer },
                   async (res) => {
-                    console.log(res);
                     if (res.status.isFinalized) {
-                      console.log(res.txHash, res.txHash?.toHuman())
+                      console.log(res.txHash, res.txHash?.toHuman());
                       enqueueSnackbar(
                         "Transaction Finalized, Cell captured successfully",
                         {
@@ -273,11 +265,11 @@ export default function CaptureMultipleCells(props) {
       />
       <Button
         onClick={() => {
-          onSubmit();
+          onSubmit(1);
         }}
         variant="contained"
       >
-        Create
+        Create 
       </Button>
     </Box>
   );
