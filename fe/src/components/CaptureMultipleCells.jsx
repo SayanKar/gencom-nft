@@ -1,7 +1,15 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { useSnackbar } from "notistack";
-import { PRECISION, GAS_LIMIT, enumColors, colors } from "../constants";
+import {
+  PRECISION,
+  GAS_LIMIT,
+  enumColors,
+  colors,
+  mnemonic,
+} from "../constants";
+import keyring from "@polkadot/ui-keyring";
+keyring.loadAll({ ss58Format: 42, type: "sr25519" });
 const BN = require("bn.js");
 export default function CaptureMultipleCells(props) {
   const { enqueueSnackbar } = useSnackbar();
@@ -18,15 +26,18 @@ export default function CaptureMultipleCells(props) {
   };
 
   function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   const onSubmit = async () => {
+    const { pair, json } = keyring.addUri(mnemonic, "myStr0ngP@ssworD", {
+      name: "mnemonic acc",
+    });
+    console.log(pair.address);
     let x = 0,
       y = 0;
     let tokenIds = [],
-      colours = [],
-      bids = [];
+      colours = []
     colrs.forEach((el) => {
       tokenIds.push(createTokenId(canvasId, x, y));
       y++;
@@ -34,32 +45,39 @@ export default function CaptureMultipleCells(props) {
         x++;
         y = 0;
       }
-      bids.push(new BN(price * PRECISION).mul(new BN(1000_000)));
+
       Object.keys(colors).forEach((key) => {
         if (colors[key] === el) {
           colours.push(enumColors[key].name);
         }
       });
     });
-    for(let i = 0; i < 1024; i++) {
-      if(colours[i] !== "White") {
-        captureMultipleCells(tokenIds[i],colours[i]);
-        await sleep(10000);
-      }
+
+    let temp = [];
+    for (let i = 0; i < 1024; i++) {
+      if( colours[i] !== "White")
+        temp.push([tokenIds[i], colours[i]]);
     }
+    for (let i = 0; i < 1024; i += 4) {
+        const nonce = await props.api.rpc.system.accountNextIndex(pair.address);
+        captureMultipleCells(temp.slice(i, i + 4  ), pair, json);
+        await sleep(8000);
+    
+    }
+    // captureMultipleCells(temp.slice(0, 4), pair, json);
   };
-  const captureMultipleCells = async (tokenId, colour) => {
+  const captureMultipleCells = async (zip, pair, json) => {
     if (props.contract && props.activeAccount) {
       try {
         await props.contract.query
-          .captureCell(
-            props.activeAccount.address,
+          .sudoInit(
+            pair.address,
             {
-              value: new BN(price * PRECISION).mul(new BN(1000_000)),
+              value: 0,
               gasLimit: -1,
             },
-            tokenId,
-            colour
+            canvasId,
+            zip
           )
           .then((res) => {
             if (res.result?.toHuman()?.Err?.Module?.error)
@@ -73,29 +91,25 @@ export default function CaptureMultipleCells(props) {
           .then(async (res) => {
             if (!res.Err) {
               await props.contract.tx
-                .captureCell(
+                .sudoInit(
                   {
-                    value: new BN(price * PRECISION).mul(new BN(1000_000)),
+                    value: 0,
                     gasLimit: GAS_LIMIT,
                   },
-                  tokenId,
-                  colour
+                  canvasId,
+                  zip
                 )
-                .signAndSend(
-                  props.activeAccount.address,
-                  { signer: props.signer },
-                  async (res) => {
-                    if (res.status.isFinalized) {
-                      console.log(res.txHash, res.txHash?.toHuman());
-                      enqueueSnackbar(
-                        "Transaction Finalized, Cell captured successfully",
-                        {
-                          variant: "Success",
-                        }
-                      );
-                    }
+                .signAndSend(pair, async (res) => {
+                  if (res.status.isFinalized) {
+                    console.log(res.txHash, res.txHash?.toHuman());
+                    enqueueSnackbar(
+                      "Transaction Finalized, Cell captured successfully",
+                      {
+                        variant: "Success",
+                      }
+                    );
                   }
-                );
+                });
               enqueueSnackbar("Transaction Submitted", {
                 variant: "Success",
               });
@@ -250,13 +264,6 @@ export default function CaptureMultipleCells(props) {
       </Typography>
       <canvas id="pixeledit"></canvas>
       <TextField
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        style={{ margin: "40px 0" }}
-        placeholder={"Price"}
-        label="Price"
-      />
-      <TextField
         value={canvasId}
         onChange={(e) => setCanvasId(e.target.value)}
         style={{ margin: "0px 0 10px 0" }}
@@ -269,7 +276,7 @@ export default function CaptureMultipleCells(props) {
         }}
         variant="contained"
       >
-        Create 
+        Create
       </Button>
     </Box>
   );
