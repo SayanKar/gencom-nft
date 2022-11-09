@@ -25,6 +25,30 @@ export default function HomePage(props) {
     window.scrollTo(0, 0);
   }, []);
 
+  const getTrendingRoomList = async () => {
+    if (props.contract && props.activeAccount) {
+      console.log("Fetching  trending rooms...");
+      await props.contract.query
+        .getCanvasByPopularity(
+          props.activeAccount.address,
+          {
+            value: 0,
+            gasLimit: -1,
+          },
+        )
+        .then((res) => {
+          if (!res.result?.toHuman()?.Err) {
+            setTrendingRoomList(res.output.toHuman());
+          } else {
+            console.log("Error fetching trending rooms", res.result.toHuman().Err);
+          }
+        })
+        .catch((err) => {
+          console.log("Error while fetching trending rooms", err);
+        });
+    }
+  };
+
   useEffect(() => {
     const getRoomList = async () => {
       if (props.contract && props.activeAccount) {
@@ -49,6 +73,7 @@ export default function HomePage(props) {
       }
     };
     getRoomList();
+    // getTrendingRoomList();
   }, [props.contract, props.activeAccount]);
 
   useEffect(() => {

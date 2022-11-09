@@ -1,1 +1,1 @@
-# gencom-nft
+# Gencom NFT
