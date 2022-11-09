@@ -17,34 +17,48 @@ export default function CaptureMultipleCells(props) {
     );
   };
 
-  const captureMultipleCells = async () => {
-    if (props.contract && props.activeAccount && colrs.length === 1024) {
-      let x = 0,
+  const onSubmit = () => {
+    let x = 0,
+      y = 0;
+    let tokenIds = [],
+      colours = [],
+      bids = [];
+    colrs.forEach((el) => {
+      tokenIds.push(createTokenId(canvasId, x, y));
+      y++;
+      if (y === 32) {
+        x++;
         y = 0;
-      let tokenIds = [],
-        colours = [],
-        bids = [];
-      colrs.forEach((el) => {
-        tokenIds.push(createTokenId(canvasId, x, y));
-        y++;
-        if (y === 32) {
-          x++;
-          y = 0;
+      }
+      bids.push(
+        new BN(price * PRECISION).mul(new BN(1000_000))
+      );
+      Object.keys(colors).forEach((key) => {
+        if (colors[key] === el) {
+          colours.push(enumColors[key].name);
         }
-        bids.push(new BN(price * PRECISION).mul(new BN(1000_000)));
-        Object.keys(colors).forEach((key) => {
-          if (colors[key] === el) {
-            colours.push(enumColors[key].name);
-          }
-        });
       });
-      console.log(tokenIds, colours, bids);
+    });
+  // console.log(tokenIds, colours, bids);
+   console.log(colours.slice(0, 2));
+    captureMultipleCells(
+      tokenIds.slice(0, 2),
+      colours.slice(0, 2),
+      bids.slice(0, 2)
+    );
+    // captureMultipleCells(tokenIds.slice(256,511), colours.slice(256,511), bids.slice(256,511));
+    // captureMultipleCells(tokenIds.slice(512, 767), colours.slice(512,767), bids.slice(512,767));
+    // captureMultipleCells(tokenIds.slice(767, 1023), colours.slice(767, 1023), bids.slice(767, 1023));
+  };
+  const captureMultipleCells = async (tokenIds, colours, bids) => {
+    if (props.contract && props.activeAccount && colrs.length === 1024) {
       try {
         await props.contract.query
           .captureMultipleCells(
             props.activeAccount.address,
             {
-              value: new BN(price * PRECISION).mul(new BN(1000_000 * 1024)),
+              value:
+                new BN(price * PRECISION).mul(new BN(1000_000 * 256)),
               gasLimit: -1,
             },
             tokenIds,
@@ -65,9 +79,9 @@ export default function CaptureMultipleCells(props) {
               await props.contract.tx
                 .captureMultipleCells(
                   {
-                    value: new BN(price * PRECISION).mul(
-                      new BN(1000_000 * 1024)
-                    ),
+                    value:
+                      new BN(price * PRECISION).mul(
+                        new BN(1000_000 * 256)),
                     gasLimit: GAS_LIMIT,
                   },
                   tokenIds,
@@ -78,7 +92,9 @@ export default function CaptureMultipleCells(props) {
                   props.activeAccount.address,
                   { signer: props.signer },
                   async (res) => {
+                    console.log(res);
                     if (res.status.isFinalized) {
+                      console.log(res.txHash, res.txHash?.toHuman())
                       enqueueSnackbar(
                         "Transaction Finalized, Cell captured successfully",
                         {
@@ -202,12 +218,12 @@ export default function CaptureMultipleCells(props) {
     console.log(pixels.length, pixels);
     const pixelColors = [];
     for (let x = 0; x < pixels.length; x += 4) {
-      let simCol = similarColor([pixels[x+0], pixels[x + 1], pixels[x + 2]]);
+      let simCol = similarColor([pixels[x + 0], pixels[x + 1], pixels[x + 2]]);
       pixelColors.push(toHex(simCol[0], simCol[1], simCol[2]));
     }
     console.log(pixelColors.length, pixelColors);
     console.log("colors in the pixelated image: ");
-    console.log([... new Set(pixelColors)]);
+    console.log([...new Set(pixelColors)]);
     setColors(pixelColors);
     document.getElementById("pixelit").visibility = "visible";
   };
@@ -257,7 +273,7 @@ export default function CaptureMultipleCells(props) {
       />
       <Button
         onClick={() => {
-          captureMultipleCells();
+          onSubmit();
         }}
         variant="contained"
       >
@@ -505,26 +521,26 @@ class pixelit {
       finalWidth +=
         this.drawfrom.naturalWidth > this.drawfrom.naturalHeight
           ? parseInt(
-            this.drawfrom.naturalWidth /
-            (this.drawfrom.naturalWidth * this.scale)
-          ) / 1.5
+              this.drawfrom.naturalWidth /
+                (this.drawfrom.naturalWidth * this.scale)
+            ) / 1.5
           : parseInt(
-            this.drawfrom.naturalWidth /
-            (this.drawfrom.naturalWidth * this.scale)
-          );
+              this.drawfrom.naturalWidth /
+                (this.drawfrom.naturalWidth * this.scale)
+            );
     }
     let finalHeight = this.drawfrom.naturalHeight;
     if (this.drawfrom.naturalHeight > 300) {
       finalHeight +=
         this.drawfrom.naturalHeight > this.drawfrom.naturalWidth
           ? parseInt(
-            this.drawfrom.naturalHeight /
-            (this.drawfrom.naturalHeight * this.scale)
-          ) / 1.5
+              this.drawfrom.naturalHeight /
+                (this.drawfrom.naturalHeight * this.scale)
+            ) / 1.5
           : parseInt(
-            this.drawfrom.naturalHeight /
-            (this.drawfrom.naturalHeight * this.scale)
-          );
+              this.drawfrom.naturalHeight /
+                (this.drawfrom.naturalHeight * this.scale)
+            );
     }
     //draw to final canvas
     //https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage

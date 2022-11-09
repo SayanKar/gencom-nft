@@ -165,7 +165,7 @@ export default function Profile(props) {
     <Box sx={{ padding: "60px 0" }}>
       <Box id="profileInfo" sx={{ width: "90%", margin: "0 auto" }}>
         <Identicon value={address} size={100} theme={"polkadot"} />
-        {address === props.activeAccount.address && (
+        {address === props.activeAccount?.address && (
           <Typography
             variant="body2"
             sx={{

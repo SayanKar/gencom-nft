@@ -396,6 +396,7 @@ export default function CanvasForm(props) {
             gasLimit: -1,
           })
           .then((res) => {
+            console.log("Game Details",res);
             if (!res.result?.toHuman()?.Err) {
               console.log("Successfully updated creation Fee");
               setCreationFee(

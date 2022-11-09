@@ -1,12 +1,12 @@
 export const PRECISION = 1000_000;
 export const SYMBOL = "TZERO";
 export const CONTRACT_ADDRESS =
-  "5F78uMCeFZA3KHgUGCvotFqBALNm35NigmSFSudEthkWxyXn";
+  "5EjjbKtU4AweDnJHj7MtwYWyUWGTeWcMsPL7Cqu9jNRJxDvL";
 export const NETWORK_ENDPOINT = "wss://ws.test.azero.dev";
 export const GAS_LIMIT = 10000n * 1000000n;
 export const colors = {
   0: "#f8f8f8",
-  1: "#E4E4E4",
+  1: "#e4e4e4",
   2: "#888888",
   3: "#222222",
   4: "#ffa7d1",
