@@ -1,8 +1,11 @@
+/*
+  This component is a helper component just for demo purpose
+*/
+
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { useSnackbar } from "notistack";
 import {
-  PRECISION,
   GAS_LIMIT,
   enumColors,
   colors,
@@ -13,9 +16,10 @@ keyring.loadAll({ ss58Format: 42, type: "sr25519" });
 const BN = require("bn.js");
 export default function CaptureMultipleCells(props) {
   const { enqueueSnackbar } = useSnackbar();
-  const [price, setPrice] = useState(0);
   const [canvasId, setCanvasId] = useState(0);
   const [colrs, setColors] = useState([]);
+  const accounts = keyring.getAccounts();
+  console.log(accounts);
 
   const createTokenId = (canvasId, row, column) => {
     return (
@@ -37,7 +41,7 @@ export default function CaptureMultipleCells(props) {
     let x = 0,
       y = 0;
     let tokenIds = [],
-      colours = []
+      colours = [];
     colrs.forEach((el) => {
       tokenIds.push(createTokenId(canvasId, x, y));
       y++;
@@ -55,19 +59,17 @@ export default function CaptureMultipleCells(props) {
 
     let temp = [];
     for (let i = 0; i < 1024; i++) {
-      if( colours[i] !== "White")
-        temp.push([tokenIds[i], colours[i]]);
+      if (colours[i] !== "White") temp.push([tokenIds[i], colours[i]]);
     }
     for (let i = 0; i < 1024; i += 4) {
-        const nonce = await props.api.rpc.system.accountNextIndex(pair.address);
-        captureMultipleCells(temp.slice(i, i + 4  ), pair, json);
-        await sleep(8000);
-    
+      const nonce = await props.api.rpc.system.accountNextIndex(pair.address);
+      captureMultipleCells(temp.slice(i, i + 4), pair, json);
+      await sleep(8000);
     }
-    // captureMultipleCells(temp.slice(0, 4), pair, json);
+    //captureMultipleCells(temp.slice(15, 25), pair, json);
   };
   const captureMultipleCells = async (zip, pair, json) => {
-    if (props.contract && props.activeAccount) {
+    if (props.contract) {
       try {
         await props.contract.query
           .sudoInit(

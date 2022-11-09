@@ -20,13 +20,21 @@ import SquareIcon from "@mui/icons-material/Square";
 import PaletteIcon from "@mui/icons-material/Palette";
 import CircleIcon from "@mui/icons-material/Circle";
 import GavelIcon from "@mui/icons-material/Gavel";
-import { colors, PRECISION, SYMBOL, enumColors, GAS_LIMIT } from "../constants";
+import {
+  colors,
+  PRECISION,
+  SYMBOL,
+  enumColors,
+  GAS_LIMIT,
+  faucet,
+} from "../constants";
 import { useState } from "react";
 import { useEffect } from "react";
 import { Keyring } from "@polkadot/api";
 import dayjs from "dayjs";
 import { useSnackbar } from "notistack";
 import { Link } from "react-router-dom";
+import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 
 const keyring = new Keyring({ type: "sr25519" });
 const BN = require("bn.js");
@@ -158,10 +166,15 @@ export default function CanvasBox(props) {
             });
             setTransaction({
               ...transaction,
-              bid: (0.000001 + (new BN(res.value.replace(/,/g, ""))
-              .div(new BN(PRECISION))
-              .toNumber() / 1000_000) * ((100 + parseInt(props.premium)) / 100)).toFixed(6) 
-            })
+              bid: (
+                0.000001 +
+                (new BN(res.value.replace(/,/g, ""))
+                  .div(new BN(PRECISION))
+                  .toNumber() /
+                  1000_000) *
+                  ((100 + parseInt(props.premium)) / 100)
+              ).toFixed(6),
+            });
           } else if (res.output?.toHuman()?.Err === "CellNotMinted") {
             setSelectedCellDetails({
               ...selectedCellDetails,
@@ -171,8 +184,11 @@ export default function CanvasBox(props) {
             });
             setTransaction({
               ...transaction,
-              bid: (0.000001 + ((props.basePrice) * ((100 + parseInt(props.premium)) / 100))).toFixed(6)
-            })
+              bid: (
+                0.000001 +
+                props.basePrice * ((100 + parseInt(props.premium)) / 100)
+              ).toFixed(6),
+            });
           } else {
             console.log("Error on get cell details", res.output.toHuman().Err);
           }
@@ -300,9 +316,7 @@ export default function CanvasBox(props) {
           .captureCell(
             props.activeAccount.address,
             {
-              value: new BN(transaction.bid * PRECISION).mul(
-                new BN(1000_000)
-              ),
+              value: new BN(transaction.bid * PRECISION).mul(new BN(1000_000)),
               gasLimit: -1,
             },
             createTokenId(props.id, selectedCell.row, selectedCell.column),
@@ -517,17 +531,30 @@ export default function CanvasBox(props) {
                 <Typography
                   align="left"
                   variant="subtitle2"
-                  sx={{ width: "382px", display: "flex", alignItems:"center", fontSize:"13px" }}
+                  sx={{
+                    width: "382px",
+                    display: "flex",
+                    alignItems: "center",
+                    fontSize: "13px",
+                  }}
                 >
                   Cell Owner:{" "}
                   <span
-                    style={{ color: "rgba(143,151,163,1)", fontSize: "10px", marginLeft: "5px"}}
+                    style={{
+                      color: "rgba(143,151,163,1)",
+                      fontSize: "10px",
+                      marginLeft: "5px",
+                    }}
                   >
-                    {props.start > now
-                      ? "None"
-                      : clicked
-                      ? <Link to={"/profile/" + selectedCellDetails.owner}>{selectedCellDetails.owner}</Link>
-                      : "Select a cell"}{" "}
+                    {props.start > now ? (
+                      "None"
+                    ) : clicked ? (
+                      <Link to={"/profile/" + selectedCellDetails.owner}>
+                        {selectedCellDetails.owner}
+                      </Link>
+                    ) : (
+                      "Select a cell"
+                    )}{" "}
                   </span>
                 </Typography>
               </Box>
@@ -596,7 +623,10 @@ export default function CanvasBox(props) {
                   Choose Color
                   <PaletteIcon sx={{ margin: "0px 0px 0px 4px" }} />
                 </Typography>
-                <Box component="div" style={{ display: "flex", marginBottom: "10px"}}>
+                <Box
+                  component="div"
+                  style={{ display: "flex", marginBottom: "10px" }}
+                >
                   <Typography
                     align="left"
                     variant="caption"
@@ -751,7 +781,25 @@ export default function CanvasBox(props) {
                     ? "Bid"
                     : "Bidding"}
                 </Button>
-                <Typography variant="subtitle2" style={{marginTop:"10px", width: "100%", color:"gray"}} align="right">{"Balance = " + props.balance + " " + SYMBOL}</Typography>
+                <Typography
+                  variant="subtitle2"
+                  style={{ marginTop: "10px", width: "100%", color: "gray" }}
+                  align="right"
+                >
+                  {"Balance = " + props.balance + " " + SYMBOL}
+                </Typography>
+                <a href={faucet} style={{ textAlign: "start" }}>
+                  <Typography
+                    variant="caption"
+                    style={{ marginTop: "10px", width: "100%" }}
+                    align="left"
+                  >
+                    Link to Faucet
+                    <ArrowOutwardIcon
+                      sx={{ margin: "0 0 -4px 0", fontSize: "16px" }}
+                    />
+                  </Typography>
+                </a>
               </CardContent>
             </Card>
           </Grid>

@@ -13,13 +13,14 @@ import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
-import { GAS_LIMIT, PRECISION, SYMBOL } from "../constants";
+import { faucet, GAS_LIMIT, PRECISION, SYMBOL } from "../constants";
 import { useEffect } from "react";
 import { Keyring } from "@polkadot/api";
 import { useNavigate } from "react-router-dom";
+import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 
 const keyring = new Keyring({ type: "sr25519" });
 export default function CanvasForm(props) {
@@ -102,11 +103,15 @@ export default function CanvasForm(props) {
 
   useEffect(() => {
     const getBalance = async () => {
-      if(props.activeAccount && props.api ) {
-        const { data: balance} = await props.api.query.system.account(props.activeAccount.address);
-        setBalance(new BN(balance.free).div(new BN(PRECISION)).toString(10)/ 1000_000);
+      if (props.activeAccount && props.api) {
+        const { data: balance } = await props.api.query.system.account(
+          props.activeAccount.address
+        );
+        setBalance(
+          new BN(balance.free).div(new BN(PRECISION)).toString(10) / 1000_000
+        );
       }
-    }
+    };
     const id = setInterval(() => getBalance(), 5000);
     return () => clearInterval(id);
   }, [props.activeAccount]);
@@ -396,7 +401,7 @@ export default function CanvasForm(props) {
             gasLimit: -1,
           })
           .then((res) => {
-            console.log("Game Details",res);
+            console.log("Game Details", res);
             if (!res.result?.toHuman()?.Err) {
               console.log("Successfully updated creation Fee");
               setCreationFee(
@@ -513,7 +518,11 @@ export default function CanvasForm(props) {
           />
 
           <TextField
-            helperText={"* You will get this amount when a user buys a cell in " +SYMBOL+" tokens"}
+            helperText={
+              "* You will get this amount when a user buys a cell in " +
+              SYMBOL +
+              " tokens"
+            }
             id="minPriceInput"
             label="Cell base price"
             fullWidth
@@ -587,17 +596,20 @@ export default function CanvasForm(props) {
               flexWrap: "wrap",
             }}
           >
-            <Tooltip title="Cell owners can change its color even after room expires." arrow>
-            <FormControlLabel
-              control={<Switch />}
-              label="Is dynamic ?"
-              sx={{ color: "rgba(0, 0, 0, 0.6)", font: "8px" }}
-              labelPlacement="end"
-              checked={isDynamic}
-              onChange={(e) => setIsDynamic(e.target.checked)}
-              inputProps={{ "aria-label": "controlled" }}
-              disabled={isOwner}
-            />
+            <Tooltip
+              title="Cell owners can change its color even after room expires."
+              arrow
+            >
+              <FormControlLabel
+                control={<Switch />}
+                label="Is dynamic ?"
+                sx={{ color: "rgba(0, 0, 0, 0.6)", font: "8px" }}
+                labelPlacement="end"
+                checked={isDynamic}
+                onChange={(e) => setIsDynamic(e.target.checked)}
+                inputProps={{ "aria-label": "controlled" }}
+                disabled={isOwner}
+              />
             </Tooltip>
             {!posting ? (
               <Button
@@ -618,7 +630,25 @@ export default function CanvasForm(props) {
               </Button>
             )}
           </Box>
-          <Typography variant="subtitle2" style={{marginTop:"10px", width: "100%", color:"gray"}} align="right">{"Balance = " + balance + " " + SYMBOL}</Typography>
+          <Typography
+            variant="subtitle2"
+            style={{ marginTop: "10px", width: "100%", color: "gray" }}
+            align="right"
+          >
+            {"Balance = " + balance + " " + SYMBOL}
+          </Typography>
+          <a href={faucet} style={{ textAlign: "start", width: "100%" }}>
+            <Typography
+              variant="caption"
+              style={{ marginTop: "20px", width: "100%" }}
+              align="left"
+            >
+              Link to Faucet
+              <ArrowOutwardIcon
+                sx={{ margin: "0 0 -4px 0", fontSize: "16px" }}
+              />
+            </Typography>
+          </a>
         </Paper>
       )}
     </Box>

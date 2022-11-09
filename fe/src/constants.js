@@ -5,6 +5,7 @@ export const CONTRACT_ADDRESS =
 export const NETWORK_ENDPOINT = "wss://ws.test.azero.dev";
 export const mnemonic = "crouch twice begin hub note start reject edit cruel valid lazy stage";
 export const GAS_LIMIT = 10000n * 1000000n;
+export const faucet = "https://faucet.test.azero.dev/";
 export const colors = {
   0: "#f8f8f8",
   1: "#e4e4e4",

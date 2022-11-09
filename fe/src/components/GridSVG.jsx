@@ -1,4 +1,3 @@
-import { colors } from "../constants";
 export default function GridSVG(props) {
   const renderCells = () => {
     let list = [];

@@ -1,14 +1,6 @@
 import {
   Box,
-  Button,
-  Grid,
-  Card,
-  CardActionArea,
-  CardMedia,
   Typography,
-  CardContent,
-  Stack,
-  Item,
 } from "@mui/material";
 import "../App.css";
 import TwitterIcon from "@mui/icons-material/Twitter";

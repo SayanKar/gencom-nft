@@ -2,11 +2,8 @@ import {
   Box,
   Card,
   CardActionArea,
-  CardContent,
   Typography,
   Stack,
-  Paper,
-  Skeleton,
 } from "@mui/material";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import GitHubIcon from "@mui/icons-material/GitHub";

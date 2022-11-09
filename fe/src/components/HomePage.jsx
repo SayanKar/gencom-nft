@@ -1,13 +1,7 @@
 import {
   Box,
   Button,
-  Grid,
-  Card,
-  CardActionArea,
-  CardMedia,
   Typography,
-  CardContent,
-  Stack,
 } from "@mui/material";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -15,7 +9,7 @@ import "../App.css";
 import CardList from "./CardList";
 import VideoTutorial from "./VideoTutorial";
 import { useState } from "react";
-import Typewriter from 'typewriter-effect';
+import Typewriter from "typewriter-effect";
 
 export default function HomePage(props) {
   const [highestRoomId, setHighestRoomId] = useState(null);
@@ -29,18 +23,18 @@ export default function HomePage(props) {
     if (props.contract && props.activeAccount) {
       console.log("Fetching  trending rooms...");
       await props.contract.query
-        .getCanvasByPopularity(
-          props.activeAccount.address,
-          {
-            value: 0,
-            gasLimit: -1,
-          },
-        )
+        .getCanvasesByPopularity(props.activeAccount.address, {
+          value: 0,
+          gasLimit: -1,
+        })
         .then((res) => {
           if (!res.result?.toHuman()?.Err) {
             setTrendingRoomList(res.output.toHuman());
           } else {
-            console.log("Error fetching trending rooms", res.result.toHuman().Err);
+            console.log(
+              "Error fetching trending rooms",
+              res.result.toHuman().Err
+            );
           }
         })
         .catch((err) => {
@@ -72,8 +66,8 @@ export default function HomePage(props) {
           });
       }
     };
-    getRoomList();
-    // getTrendingRoomList();
+    // getRoomList();
+    getTrendingRoomList();
   }, [props.contract, props.activeAccount]);
 
   useEffect(() => {
@@ -141,19 +135,22 @@ export default function HomePage(props) {
                   <h1 id="homePageHeader">
                     <Typewriter
                       onInit={(typewriter) => {
-                        typewriter.typeString('NFT by the community, for the community.  ')
+                        typewriter
+                          .typeString(
+                            "NFT by the community, for the community.  "
+                          )
                           .callFunction(() => {
-                            console.log('String typed out!');
+                            console.log("String typed out!");
                           })
                           .pauseFor(2500)
                           .callFunction(() => {
-                            console.log('All strings were deleted');
+                            console.log("All strings were deleted");
                           })
                           .changeDelay(2)
                           .start();
                       }}
                       options={{
-                        cursorClassName: 'typingCursor',
+                        cursorClassName: "typingCursor",
                       }}
                     />
                   </h1>

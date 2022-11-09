@@ -41,20 +41,24 @@ function App() {
 
   useEffect(() => {
     const createSigner = async () => {
-      activeAccount && setSigner(
-        await web3FromSource(activeAccount.meta.source).then(
-          res => res.signer
-        )
-      )
+      activeAccount &&
+        setSigner(
+          await web3FromSource(activeAccount.meta.source).then(
+            (res) => res.signer
+          )
+        );
     };
     createSigner();
   }, [activeAccount]);
 
   useEffect(() => {
-    activeAccount && (async () => {
-      const {nonce, data: balance} = await api.query.system.account(activeAccount.address);
-      console.log(nonce * 1, balance.free * 1);
-    })();
+    activeAccount &&
+      (async () => {
+        const { nonce, data: balance } = await api.query.system.account(
+          activeAccount.address
+        );
+        console.log(nonce * 1, balance.free * 1);
+      })();
   }, [activeAccount]);
 
   return (
@@ -87,7 +91,6 @@ function App() {
                 contract={contract}
                 api={api}
                 signer={signer}
-
               />
             }
             errorElement={<Broken />}
@@ -100,7 +103,6 @@ function App() {
                 contract={contract}
                 api={api}
                 signer={signer}
-
               />
             }
             errorElement={<Broken />}
@@ -113,7 +115,6 @@ function App() {
                 contract={contract}
                 api={api}
                 signer={signer}
-
               />
             }
             errorElement={<Broken />}
@@ -126,7 +127,6 @@ function App() {
                 contract={contract}
                 api={api}
                 signer={signer}
-
               />
             }
             errorElement={<Broken />}
@@ -139,7 +139,6 @@ function App() {
                 contract={contract}
                 api={api}
                 signer={signer}
-
               />
             }
             errorElement={<Broken />}
@@ -153,7 +152,6 @@ function App() {
                 contract={contract}
                 api={api}
                 signer={signer}
-
               />
             }
             errorElement={<Broken />}
@@ -166,7 +164,6 @@ function App() {
                 contract={contract}
                 api={api}
                 signer={signer}
-
               />
             }
             errorElement={<Broken />}

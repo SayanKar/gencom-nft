@@ -7,11 +7,9 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import "../App.css";
 import CanvasBox from "./CanvasBox";
-import Navbar from "./Navbar";
 import { useState } from "react";
 import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import Loading from "./Loading";
 import EditIcon from "@mui/icons-material/Edit";
 import { Keyring } from "@polkadot/api";
 import { PRECISION } from "../constants";
@@ -38,11 +36,15 @@ export default function CanvasRoom(props) {
   const [balance, setBalance] = useState(0);
   useEffect(() => {
     const getBalance = async () => {
-      if(props.activeAccount && props.api ) {
-        const { data: balance} = await props.api.query.system.account(props.activeAccount.address);
-        setBalance(new BN(balance.free).div(new BN(PRECISION)).toString(10)/ 1000_000);
+      if (props.activeAccount && props.api) {
+        const { data: balance } = await props.api.query.system.account(
+          props.activeAccount.address
+        );
+        setBalance(
+          new BN(balance.free).div(new BN(PRECISION)).toString(10) / 1000_000
+        );
       }
-    }
+    };
     const id = setInterval(() => getBalance(), 5000);
     return () => clearInterval(id);
   }, [props.activeAccount]);

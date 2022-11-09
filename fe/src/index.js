@@ -18,8 +18,10 @@ root.render(
       maxSnack={5}
       TransitionProps={{ direction: "left" }}
       anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-      style={{ maxWidth: "700px", width: "fit-content"}}
-      action={snackbarKey => <SnackbarCloseButton snackbarKey={snackbarKey} />}
+      style={{ maxWidth: "700px", width: "fit-content" }}
+      action={(snackbarKey) => (
+        <SnackbarCloseButton snackbarKey={snackbarKey} />
+      )}
     >
       <App />
     </SnackbarProvider>

@@ -8,7 +8,6 @@ import {
   Tooltip,
 } from "@mui/material";
 import Circle from "@mui/icons-material/Circle";
-import { colors } from "../constants";
 import GridSVG from "./GridSVG";
 import { Link } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
@@ -170,37 +169,39 @@ export default function DisplayCard(props) {
 
   return (
     <Box sx={{ position: "relative" }}>
-      {props.isProfile && parseInt(roomStatus) !== 2 && props.activeAccount.address === props.address && (
-        <Tooltip
-          arrow
-          title={parseInt(roomStatus) ? "Room is live" : "Edit Canvas"}
-        >
-          <Box
-            sx={{
-              width: "27px",
-              height: "27px",
-              borderRadius: "50%",
-              position: "absolute",
-              top: "-10px",
-              right: "-5px",
-              background: parseInt(roomStatus) ? "green" : "#E8E8E8",
-              zIndex: 3,
-              display: "flex",
-              alignItems: "center",
-              cursor: "pointer",
-            }}
+      {props.isProfile &&
+        parseInt(roomStatus) !== 2 &&
+        props.activeAccount.address === props.address && (
+          <Tooltip
+            arrow
+            title={parseInt(roomStatus) ? "Room is live" : "Edit Canvas"}
           >
-            {!parseInt(roomStatus) && (
-              <Link
-                to={"/edit/" + props.id}
-                style={{ fontSize: "20px", margin: "0 auto" }}
-              >
-                <EditIcon sx={{ fontSize: "20px", margin: "0 auto" }} />
-              </Link>
-            )}
-          </Box>
-        </Tooltip>
-      )}
+            <Box
+              sx={{
+                width: "27px",
+                height: "27px",
+                borderRadius: "50%",
+                position: "absolute",
+                top: "-10px",
+                right: "-5px",
+                background: parseInt(roomStatus) ? "green" : "#E8E8E8",
+                zIndex: 3,
+                display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
+              }}
+            >
+              {!parseInt(roomStatus) && (
+                <Link
+                  to={"/edit/" + props.id}
+                  style={{ fontSize: "20px", margin: "0 auto" }}
+                >
+                  <EditIcon sx={{ fontSize: "20px", margin: "0 auto" }} />
+                </Link>
+              )}
+            </Box>
+          </Tooltip>
+        )}
       <Card
         sx={{
           width: width,

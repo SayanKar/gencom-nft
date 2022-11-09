@@ -1,14 +1,5 @@
 import {
   Box,
-  Button,
-  Grid,
-  Card,
-  CardActionArea,
-  CardMedia,
-  Typography,
-  CardContent,
-  Stack,
-  Divider,
 } from "@mui/material";
 import "../App.css";
 import errorImg from "../assets/404.jpg";

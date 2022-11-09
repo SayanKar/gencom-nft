@@ -1,13 +1,6 @@
 import {
   Box,
-  Button,
-  Grid,
-  Card,
-  CardActionArea,
-  CardMedia,
   Typography,
-  CardContent,
-  Stack,
 } from "@mui/material";
 import "../App.css";
 

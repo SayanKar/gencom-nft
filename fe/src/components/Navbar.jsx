@@ -3,21 +3,15 @@ import {
   Typography,
   AppBar,
   Toolbar,
-  IconButton,
   Stack,
   Button,
-  Chip,
-  Avatar,
   Card,
-  CardHeader,
-  Paper,
   CardActionArea,
   Menu,
   MenuItem,
 } from "@mui/material";
 import "../App.css";
 import PixelImage from "../assets/pixelimage.svg";
-import { fontWeight } from "@mui/system";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import ChooseAccount from "./ChooseAccount";
