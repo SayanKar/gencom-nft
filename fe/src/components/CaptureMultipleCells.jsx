@@ -160,6 +160,31 @@ export default function CaptureMultipleCells(props) {
     mypalette.forEach((el) =>
       console.log(el, " to the hex", toHex(el[0], el[1], el[2]))
     );
+
+    const similarityScore = (rgbColor, compareColor) => {
+      let i;
+      let max;
+      let d = 0;
+      for (i = 0, max = rgbColor.length; i < max; i++) {
+        d += (rgbColor[i] - compareColor[i]) * (rgbColor[i] - compareColor[i]);
+      }
+      return Math.sqrt(d);
+    };
+
+    const similarColor = (actualColor) => {
+      let selectedColor = [];
+      let currentSim = similarityScore(actualColor, mypalette[0]);
+      let nextColor;
+      mypalette.forEach((color) => {
+        nextColor = similarityScore(actualColor, color);
+        if (nextColor <= currentSim) {
+          selectedColor = color;
+          currentSim = nextColor;
+        }
+      });
+      return selectedColor;
+    };
+
     const px = new pixelit({
       from: document.getElementById("pixelit"),
       to: document.getElementById("pixeledit"),
@@ -177,9 +202,12 @@ export default function CaptureMultipleCells(props) {
     console.log(pixels.length, pixels);
     const pixelColors = [];
     for (let x = 0; x < pixels.length; x += 4) {
-      pixelColors.push(toHex(pixels[x + 0], pixels[x + 1], pixels[x + 2]));
+      let simCol = similarColor([pixels[x+0], pixels[x + 1], pixels[x + 2]]);
+      pixelColors.push(toHex(simCol[0], simCol[1], simCol[2]));
     }
     console.log(pixelColors.length, pixelColors);
+    console.log("colors in the pixelated image: ");
+    console.log([... new Set(pixelColors)]);
     setColors(pixelColors);
     document.getElementById("pixelit").visibility = "visible";
   };
@@ -477,26 +505,26 @@ class pixelit {
       finalWidth +=
         this.drawfrom.naturalWidth > this.drawfrom.naturalHeight
           ? parseInt(
-              this.drawfrom.naturalWidth /
-                (this.drawfrom.naturalWidth * this.scale)
-            ) / 1.5
+            this.drawfrom.naturalWidth /
+            (this.drawfrom.naturalWidth * this.scale)
+          ) / 1.5
           : parseInt(
-              this.drawfrom.naturalWidth /
-                (this.drawfrom.naturalWidth * this.scale)
-            );
+            this.drawfrom.naturalWidth /
+            (this.drawfrom.naturalWidth * this.scale)
+          );
     }
     let finalHeight = this.drawfrom.naturalHeight;
     if (this.drawfrom.naturalHeight > 300) {
       finalHeight +=
         this.drawfrom.naturalHeight > this.drawfrom.naturalWidth
           ? parseInt(
-              this.drawfrom.naturalHeight /
-                (this.drawfrom.naturalHeight * this.scale)
-            ) / 1.5
+            this.drawfrom.naturalHeight /
+            (this.drawfrom.naturalHeight * this.scale)
+          ) / 1.5
           : parseInt(
-              this.drawfrom.naturalHeight /
-                (this.drawfrom.naturalHeight * this.scale)
-            );
+            this.drawfrom.naturalHeight /
+            (this.drawfrom.naturalHeight * this.scale)
+          );
     }
     //draw to final canvas
     //https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
