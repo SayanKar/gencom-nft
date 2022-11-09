@@ -446,7 +446,7 @@ mod creative_nft {
             assert!(token_ids.len() == bids.len(), "Missing input");
 
             let val: Balance = bids.iter().sum();
-            if val < self.env().transferred_value() {
+            if val > self.env().transferred_value() {
                 // Excess funds goes to the developers
                 return Err(Error::InsufficientFunds);
             }
