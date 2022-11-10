@@ -179,6 +179,7 @@ export default function CanvasRoom(props) {
 
   useEffect(() => {
     getCanvasDetails();
+    getCanvasStats();
     const id = setInterval(() => getCanvasStats(), 20000);
     return () => clearInterval(id);
   }, [props.contract, props.activeAccount]);
