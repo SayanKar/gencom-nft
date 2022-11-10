@@ -637,18 +637,20 @@ export default function CanvasForm(props) {
           >
             {"Balance = " + balance + " " + SYMBOL}
           </Typography>
-          <a href={faucet} style={{ textAlign: "start", width: "100%" }}>
-            <Typography
-              variant="caption"
-              style={{ marginTop: "20px", width: "100%" }}
-              align="left"
-            >
-              Link to Faucet
-              <ArrowOutwardIcon
-                sx={{ margin: "0 0 -4px 0", fontSize: "16px" }}
-              />
-            </Typography>
-          </a>
+          {faucet !== "" && (
+            <a href={faucet} style={{ textAlign: "start", width: "100%" }}>
+              <Typography
+                variant="caption"
+                style={{ marginTop: "20px", width: "100%" }}
+                align="left"
+              >
+                Link to Faucet
+                <ArrowOutwardIcon
+                  sx={{ margin: "0 0 -4px 0", fontSize: "16px" }}
+                />
+              </Typography>
+            </a>
+          )}
         </Paper>
       )}
     </Box>

@@ -788,18 +788,20 @@ export default function CanvasBox(props) {
                 >
                   {"Balance = " + props.balance + " " + SYMBOL}
                 </Typography>
-                <a href={faucet} style={{ textAlign: "start" }}>
-                  <Typography
-                    variant="caption"
-                    style={{ marginTop: "10px", width: "100%" }}
-                    align="left"
-                  >
-                    Link to Faucet
-                    <ArrowOutwardIcon
-                      sx={{ margin: "0 0 -4px 0", fontSize: "16px" }}
-                    />
-                  </Typography>
-                </a>
+                {faucet !== "" && (
+                  <a href={faucet} style={{ textAlign: "start" }}>
+                    <Typography
+                      variant="caption"
+                      style={{ marginTop: "10px", width: "100%" }}
+                      align="left"
+                    >
+                      Link to Faucet
+                      <ArrowOutwardIcon
+                        sx={{ margin: "0 0 -4px 0", fontSize: "16px" }}
+                      />
+                    </Typography>
+                  </a>
+                )}
               </CardContent>
             </Card>
           </Grid>

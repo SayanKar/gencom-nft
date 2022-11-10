@@ -1,10 +1,10 @@
-export const PRECISION = 1000_000;
-export const SYMBOL = "TZERO";
+export const PRECISION = 1000_000_000_000;
+export const SYMBOL = "SDN";
 export const CONTRACT_ADDRESS =
-  "5HEdBfVACfCYaK2YXeoWD2KRmUxxiShgKnK5RgCP149baSUr";
-export const NETWORK_ENDPOINT = "wss://aleph-zero-testnet-rpc.dwellir.com";
-export const GAS_LIMIT = 10000n * 1000000n;
-export const faucet = "https://faucet.test.azero.dev/";
+  "";
+export const NETWORK_ENDPOINT = "wss://shiden-rpc.dwellir.com";
+export const GAS_LIMIT = 300000n * 1000000n;
+export const faucet = "";
 export const colors = {
   0: "#f8f8f8",
   1: "#e4e4e4",
