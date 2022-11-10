@@ -1,8 +1,8 @@
 export const PRECISION = 1000_000_000_000;
 export const SYMBOL = "SDN";
 export const CONTRACT_ADDRESS =
-  "ZYkeJ5zBvm2am6kFitCV5VkHTazHgTPpQWqaVWnasvme8gZ";
-export const NETWORK_ENDPOINT = "wss://rpc.shibuya.astar.network";
+  "XwVu91ivFWdpzQNTX5am4zWSSv5sWR34EzRHJQrkaYFsbbq";
+export const NETWORK_ENDPOINT = "wss://shiden.api.onfinality.io/public-ws";
 export const GAS_LIMIT = 300000n * 1000000n;
 export const faucet = "";
 export const colors = {
