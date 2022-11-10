@@ -40,6 +40,28 @@ This method of bidding on the pixels (NFT) helps with the price discovery of the
 
 The individual pixels collectively form an NFT artwork and therefore pixel owners have fractional ownership of the art. If the canvas creator had enabled dynamic NFT, then owners can still change the color of the pixels they own even after the bidding phase. Having such a feature enables the NFTs to appreciate/retain their value in the secondary market since the NFTs can be purchased to modify the artwork and it evolves over time.
 
+## Economic Model
+
+* Canvas creators pays creation fees which prevents spam and also incentivises developers for the work.
+
+* When a cell is purchased for the first time, the bid amount goes to the creator.
+
+* When a user captures a cell which is owned by another user, The bid value (contains atleast a pre-specified percentage premium over last cell price) goes to the last owner. In this way, last owner profits from the premium.
+
+* Each successful capture cell is charged a commission fee which goes to the developers.
+
+Summary:
+
+* Developers earn when users interact with the dapp in the form of canvas creation fees and capture cell commission charges.
+
+* Canvas creator earns when users buys their canvas pixels.
+
+* Intermediate owner earns profit from the premium.
+
+* Last owner gets ownership of the NFT
+
+This kind of auction helps with the price discovery of the NFTs.
+
 ## Novelty/Originality
   
 * Gencom introduces the idea of collaborative art - Users can create digital artwork together in a decentralised and permissionless manner.
