@@ -1,6 +1,6 @@
 export const metadata = {
   "source": {
-    "hash": "0x893f0c12e56c25f8e8d067c462ea88c50971079172307c8738b5d7ae2b042cb9",
+    "hash": "0x34f103701480578b84df2b42b949c1e22876bf9f74660f3b7b777961a385dd55",
     "language": "ink! 3.4.0",
     "compiler": "rustc 1.65.0-nightly"
   },
@@ -55,7 +55,7 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 57
+                "type": 55
               }
             },
             {
@@ -66,7 +66,7 @@ export const metadata = {
                 "displayName": [
                   "Option"
                 ],
-                "type": 57
+                "type": 55
               }
             },
             {
@@ -724,43 +724,6 @@ export const metadata = {
               }
             },
             {
-              "label": "data",
-              "type": {
-                "displayName": [
-                  "Vec"
-                ],
-                "type": 44
-              }
-            }
-          ],
-          "docs": [
-            " (PRIVILEGED) Only for demo.",
-            " ",
-            " Make sure it's a blank canvas otherwise data inconsistency will happen"
-          ],
-          "label": "sudo_init",
-          "mutates": true,
-          "payable": true,
-          "returnType": {
-            "displayName": [
-              "Result"
-            ],
-            "type": 30
-          },
-          "selector": "0x42e10aca"
-        },
-        {
-          "args": [
-            {
-              "label": "canvas_id",
-              "type": {
-                "displayName": [
-                  "CanvasId"
-                ],
-                "type": 7
-              }
-            },
-            {
               "label": "cord_x",
               "type": {
                 "displayName": [
@@ -820,7 +783,7 @@ export const metadata = {
                 "displayName": [
                   "Vec"
                 ],
-                "type": 46
+                "type": 44
               }
             }
           ],
@@ -848,7 +811,7 @@ export const metadata = {
           "payable": false,
           "returnType": {
             "displayName": [],
-            "type": 48
+            "type": 46
           },
           "selector": "0x5f6f09fd"
         },
@@ -874,7 +837,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 49
+            "type": 47
           },
           "selector": "0x508a25eb"
         },
@@ -928,7 +891,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 50
+            "type": 48
           },
           "selector": "0xe05d2a18"
         },
@@ -954,7 +917,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 53
+            "type": 51
           },
           "selector": "0xa7d8a4ce"
         },
@@ -982,7 +945,7 @@ export const metadata = {
             "displayName": [
               "Result"
             ],
-            "type": 56
+            "type": 54
           },
           "selector": "0xec956ac1"
         },
@@ -1008,7 +971,7 @@ export const metadata = {
             "displayName": [
               "Vec"
             ],
-            "type": 55
+            "type": 53
           },
           "selector": "0x0eb06662"
         },
@@ -1034,7 +997,7 @@ export const metadata = {
             "displayName": [
               "Vec"
             ],
-            "type": 55
+            "type": 53
           },
           "selector": "0x50e01608"
         },
@@ -1145,7 +1108,7 @@ export const metadata = {
             "displayName": [
               "Vec"
             ],
-            "type": 55
+            "type": 53
           },
           "selector": "0xe56c1f2c"
         },
@@ -1198,7 +1161,7 @@ export const metadata = {
             "displayName": [
               "Option"
             ],
-            "type": 57
+            "type": 55
           },
           "selector": "0x99720c1e"
         },
@@ -1224,7 +1187,7 @@ export const metadata = {
             "displayName": [
               "Option"
             ],
-            "type": 57
+            "type": 55
           },
           "selector": "0x27592dea"
         },
@@ -2697,7 +2660,8 @@ export const metadata = {
         "type": {
           "def": {
             "tuple": [
-              12,
+              3,
+              3,
               40
             ]
           }
@@ -2705,28 +2669,6 @@ export const metadata = {
       },
       {
         "id": 46,
-        "type": {
-          "def": {
-            "sequence": {
-              "type": 47
-            }
-          }
-        }
-      },
-      {
-        "id": 47,
-        "type": {
-          "def": {
-            "tuple": [
-              3,
-              3,
-              40
-            ]
-          }
-        }
-      },
-      {
-        "id": 48,
         "type": {
           "def": {
             "tuple": [
@@ -2738,7 +2680,7 @@ export const metadata = {
         }
       },
       {
-        "id": 49,
+        "id": 47,
         "type": {
           "def": {
             "variant": {
@@ -2780,7 +2722,7 @@ export const metadata = {
         }
       },
       {
-        "id": 50,
+        "id": 48,
         "type": {
           "def": {
             "variant": {
@@ -2788,7 +2730,7 @@ export const metadata = {
                 {
                   "fields": [
                     {
-                      "type": 51
+                      "type": 49
                     }
                   ],
                   "index": 0,
@@ -2809,7 +2751,7 @@ export const metadata = {
           "params": [
             {
               "name": "T",
-              "type": 51
+              "type": 49
             },
             {
               "name": "E",
@@ -2822,17 +2764,17 @@ export const metadata = {
         }
       },
       {
-        "id": 51,
+        "id": 49,
         "type": {
           "def": {
             "sequence": {
-              "type": 52
+              "type": 50
             }
           }
         }
       },
       {
-        "id": 52,
+        "id": 50,
         "type": {
           "def": {
             "sequence": {
@@ -2842,7 +2784,7 @@ export const metadata = {
         }
       },
       {
-        "id": 53,
+        "id": 51,
         "type": {
           "def": {
             "variant": {
@@ -2850,7 +2792,7 @@ export const metadata = {
                 {
                   "fields": [
                     {
-                      "type": 54
+                      "type": 52
                     }
                   ],
                   "index": 0,
@@ -2871,7 +2813,7 @@ export const metadata = {
           "params": [
             {
               "name": "T",
-              "type": 54
+              "type": 52
             },
             {
               "name": "E",
@@ -2884,17 +2826,17 @@ export const metadata = {
         }
       },
       {
-        "id": 54,
+        "id": 52,
         "type": {
           "def": {
             "sequence": {
-              "type": 55
+              "type": 53
             }
           }
         }
       },
       {
-        "id": 55,
+        "id": 53,
         "type": {
           "def": {
             "sequence": {
@@ -2904,7 +2846,7 @@ export const metadata = {
         }
       },
       {
-        "id": 56,
+        "id": 54,
         "type": {
           "def": {
             "variant": {
@@ -2946,7 +2888,7 @@ export const metadata = {
         }
       },
       {
-        "id": 57,
+        "id": 55,
         "type": {
           "def": {
             "variant": {

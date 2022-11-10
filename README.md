@@ -1,6 +1,6 @@
 # Gencom
 
-Gencom ([https://gencom.vercel.app/](https://gencom.vercel.app/)) provides a gamified way to create and own NFTs. The users compete and/or collaborate in a decentralized and permissionless manner to create pixelated art where each pixel represents a fractional nft of the overall artwork.  
+Gencom ([https://gencom-shiden.vercel.app/](https://gencom-shiden.vercel.app/)) provides a gamified way to create and own NFTs. The users compete and/or collaborate in a decentralized and permissionless manner to create pixelated art where each pixel represents a fractional nft of the overall artwork.  
 Users bid on the pixels to gain ownership, allowing them to color that pixel. The bid amount goes to the last owner of that pixel. Thus in this way, each participant earns a profit from the sale and/or gets to own the fractional nft, which is a benefit of our Play-to-Earn (P2E) model.  
 Usually, the NFTs obtained from the P2E games start losing their value once the game ends. To overcome this issue, We came up with a novel approach of having a dynamic state in our NFTs which opens up the possibility of a secondary market.  
 
@@ -102,7 +102,7 @@ NFTs are the best channel for crypto adoption for mass audiences. Such gamificat
 
 ## Deployment 
 
-Link : [https://gencom.vercel.app](https://gencom.vercel.app)
+Link : [https://gencom-shiden.vercel.app](https://gencom-shiden.vercel.app)
 
 ## Pitch Video
 
