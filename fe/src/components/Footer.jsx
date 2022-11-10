@@ -26,7 +26,7 @@ export default function Footer(props) {
           marginBottom: "15px",
         }}
       >
-        <a href="">
+        <a href="https://github.com/SayanKar/gencom-nft">
           <TwitterIcon
             id="twitterIcon"
             sx={{
@@ -38,7 +38,7 @@ export default function Footer(props) {
           />
         </a>
 
-        <a href="">
+        <a href="https://github.com/SayanKar/gencom-nft">
           <GitHubIcon
             id="githubIcon"
             sx={{
@@ -50,7 +50,7 @@ export default function Footer(props) {
           />
         </a>
 
-        <a href="">
+        <a href="https://github.com/SayanKar/gencom-nft">
           <InstagramIcon
             id="instagramIcon"
             sx={{

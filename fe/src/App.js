@@ -49,17 +49,7 @@ function App() {
     };
     createSigner();
   }, [activeAccount]);
-
-  useEffect(() => {
-    activeAccount &&
-      (async () => {
-        const { nonce, data: balance } = await api.query.system.account(
-          activeAccount.address
-        );
-        console.log(nonce * 1, balance.free * 1);
-      })();
-  }, [activeAccount]);
-
+ 
   return (
     <div className="App">
       <BrowserRouter basename={process.env.PUBLIC_URL}>

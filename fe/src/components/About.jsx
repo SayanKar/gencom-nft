@@ -57,7 +57,7 @@ export default function About(props) {
               on the canvas along with others and create art together. Own the
               art together with others as a NFT.
             </Typography>
-            {props.contract && props.activeAccount && (
+            {/* {props.contract && props.activeAccount && (
               <Divider
                 sx={{
                   margin: "0 auto",
@@ -80,9 +80,9 @@ export default function About(props) {
                 }}
               >
                 1,234.56 {SYMBOL}
-              </Typography>
-            )}
-            {props.contract && props.activeAccount && (
+              </Typography> */}
+            {/* )} */}
+            {/* {props.contract && props.activeAccount && (
               <Typography
                 variant="h6"
                 id="contributorCaption"
@@ -96,7 +96,7 @@ export default function About(props) {
               >
                 Contributed to 9,498 Rooms by 4,172 users
               </Typography>
-            )}
+            )} */}
             <Divider
               sx={{
                 margin: "0 auto",
@@ -111,7 +111,7 @@ export default function About(props) {
               sx={{ justifyContent: "left" }}
               id="contactContainer"
             >
-              <a href="">
+              <a href="https://github.com/SayanKar/gencom-nft">
                 <Box
                   component="div"
                   sx={{
@@ -139,7 +139,7 @@ export default function About(props) {
                   </Typography>
                 </Box>
               </a>
-              <a href="">
+              <a href="https://github.com/SayanKar/gencom-nft">
                 <Box
                   component="div"
                   sx={{
@@ -166,7 +166,7 @@ export default function About(props) {
                   </Typography>
                 </Box>
               </a>
-              <a href="">
+              <a href="https://github.com/SayanKar/gencom-nft">
                 <Box
                   component="div"
                   sx={{
@@ -351,8 +351,7 @@ export default function About(props) {
               }}
               align="left"
             >
-              Once the bidding period is over, one can simply claim the NFT for
-              the cell they won.
+              Once the bidding period is over, last owners of the cells automatically get full control over their NFTs
             </Typography>
           </Grid>
         </Grid>

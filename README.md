@@ -100,6 +100,14 @@ NFTs are the best channel for crypto adoption for mass audiences. Such gamificat
 * React
 * MUI (Material UI)
 
+## Deployment 
+
+Link : [https://gencom.vercel.app](https://gencom.vercel.app)
+
+## Pitch Video
+
+Link: [Video](https://www.youtube.com/watch?v=uMZEPvLVcAo)
+
 ## Team Members
 
 1. Nimish Agrawal - realnimish@gmail.com

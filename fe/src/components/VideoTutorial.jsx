@@ -34,7 +34,7 @@ export default function VideoTutorial(pros) {
         <iframe
           width="100%"
           height="100%"
-          src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+          src="https://www.youtube.com/embed/uMZEPvLVcAo?start=148"
           title="How to buy your first Gencom NFT?"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           id="tutorialVideo"
