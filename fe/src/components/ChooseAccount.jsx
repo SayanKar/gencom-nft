@@ -60,6 +60,7 @@ export default function ChooseAccount(props) {
               button
               onClick={() => handleSelectAccount(account)}
               key={idx}
+              sx={{ overflowX: "hidden" }}
             >
               <ListItemAvatar>
                 <Avatar>
@@ -73,6 +74,14 @@ export default function ChooseAccount(props) {
               <ListItemText
                 secondary={account.address}
                 primary={account.meta.name}
+                secondaryTypographyProps={{
+                  style: {
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    minWidth:"250px",
+                  },
+                }}
               />
             </ListItem>
           );
