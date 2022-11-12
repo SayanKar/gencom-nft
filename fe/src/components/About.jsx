@@ -105,7 +105,7 @@ export default function About(props) {
             />
             <Stack
               direction="row"
-              spacing={4}
+              spacing={isMobile ? 1 : 4}
               sx={{ justifyContent: "left" }}
               id="contactContainer"
             >

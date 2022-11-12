@@ -323,3 +323,10 @@ a {
     opacity: 1;
   }
 }
+
+@media screen and (max-width: 700px) {
+  #contactContainer {
+    margin-left: auto;
+    justify-content: center;
+  }
+}
