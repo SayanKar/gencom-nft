@@ -79,7 +79,7 @@ export default function ChooseAccount(props) {
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
-                    minWidth:"250px",
+                    minWidth:"200px",
                   },
                 }}
               />

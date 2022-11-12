@@ -9,6 +9,10 @@ import {
   CardActionArea,
   Menu,
   MenuItem,
+  List,
+  ListItem,
+  Drawer,
+  Divider,
 } from "@mui/material";
 import "../App.css";
 import PixelImage from "../assets/pixelimage.svg";
@@ -17,16 +21,93 @@ import { useState } from "react";
 import ChooseAccount from "./ChooseAccount";
 import Identicon from "@polkadot/react-identicon";
 import { cutAddress } from "../Integration";
+import { isMobile } from "react-device-detect";
+import MenuIcon from "@mui/icons-material/Menu";
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import { useNavigate } from "react-router-dom";
+
 export default function Navbar(props) {
+  const navigate = useNavigate();
   const [openChangeAccount, setChangeAccount] = useState(false);
+  const [openDrawer, setOpenDrawer] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+    !isMobile && setAnchorEl(event.currentTarget);
+    isMobile && setChangeAccount(true);
   };
   const handleClose = () => {
     setAnchorEl(null);
   };
+  console.log("Open", openChangeAccount);
+
+  const list = (anchor) => (
+    <Box sx={{ width: 200 }} role="presentation">
+      <List sx={{ padding: "60px 0 20px 0" }}>
+        {[
+          { text: "+ Create a room", link: "/create/" },
+          { text: "All Room", link: "/canvas/" },
+          { text: "About", link: "/about/" },
+        ].map((item, idx) => (
+          <ListItem disablePadding key={idx}>
+            <ListItemButton
+              onClick={() => {
+                setOpenDrawer(false);
+                navigate(item.link);
+              }}
+            >
+              <ListItemText
+                primaryTypographyProps={{
+                  color: "#0057ff",
+                  fontSize: "0.875rem",
+                  cursor: "pointer",
+                  justifyContent: "center",
+                  fontWeight: "400",
+                  fontFamily: "'Fredoka One', cursive",
+                }}
+                primary={item.text}
+              />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+      <Divider />
+      <List>
+        {props.activeAccount &&
+          ["Profile", "Logout"].map((text, index) => (
+            <ListItem key={index} disablePadding>
+              <ListItemButton
+                onClick={() => {
+                  setOpenDrawer(false);
+
+                  if (text === "Profile") {
+                    navigate("/profile/" + props.activeAccount.address);
+                  } else {
+                    props.setActiveAccount(null);
+                  }
+                }}
+              >
+                <ListItemText
+                  primary={text}
+                  primaryTypographyProps={{
+                    color: "gray",
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                    justifyContent: "center",
+                    fontWeight: "400",
+                    fontFamily: "'Fredoka One', cursive",
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
+      </List>
+    </Box>
+  );
+
   return (
     <AppBar
       position="sticky"
@@ -35,13 +116,25 @@ export default function Navbar(props) {
         backgroundColor: "white",
         paddingLeft: "1rem",
         paddingRight: "1rem",
-        zIndex: "99",
+        zIndex: "99999",
         justifyContent: "space-between",
         borderBottom: "1px solid #eaebed",
         marginTop: "-35px",
       }}
     >
       <Toolbar>
+        {isMobile &&
+          (!openDrawer ? (
+            <MenuIcon
+              sx={{ color: "gray", marginRight: "20px" }}
+              onClick={() => setOpenDrawer(true)}
+            />
+          ) : (
+            <MenuOpenIcon
+              sx={{ color: "gray", marginRight: "20px" }}
+              onClick={() => setOpenDrawer(false)}
+            />
+          ))}
         <Box
           component="div"
           sx={{
@@ -98,67 +191,72 @@ export default function Navbar(props) {
             </Box>
           </Link>
         </Box>
+
         <Stack direction="row" spacing={2}>
-          <Link to="/create">
-            <Button
-              variant="text"
-              sx={{
-                color: "#0057ff",
-                fontSize: "0.875rem",
-                cursor: "pointer",
-                justifyContent: "center",
-                fontWeight: "400",
-                border: "none",
-                borderRadius: "0.75rem",
-                padding: "0.5rem 0.75rem",
-                transition: "0.1s ease",
-                textTransform: "none",
-                fontFamily: "'Fredoka One', cursive",
-              }}
-            >
-              + Create a room
-            </Button>
-          </Link>
-          <Link to="/canvas">
-            <Button
-              variant="text"
-              sx={{
-                color: "#0057ff",
-                fontSize: "0.875rem",
-                cursor: "pointer",
-                justifyContent: "center",
-                fontWeight: "400",
-                border: "none",
-                borderRadius: "0.75rem",
-                padding: "0.5rem 0.75rem",
-                transition: "0.1s ease",
-                textTransform: "none",
-                fontFamily: "'Fredoka One', cursive",
-              }}
-            >
-              All Rooms
-            </Button>
-          </Link>
-          <Link to="/about">
-            <Button
-              variant="text"
-              sx={{
-                color: "#0057ff",
-                fontSize: "0.875rem",
-                cursor: "pointer",
-                justifyContent: "center",
-                fontWeight: "400",
-                border: "none",
-                borderRadius: "0.75rem",
-                padding: "0.5rem 0.75rem",
-                transition: "0.1s ease",
-                textTransform: "none",
-                fontFamily: "'Fredoka One', cursive",
-              }}
-            >
-              About
-            </Button>
-          </Link>
+          {!isMobile && (
+            <>
+              <Link to="/create">
+                <Button
+                  variant="text"
+                  sx={{
+                    color: "#0057ff",
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                    justifyContent: "center",
+                    fontWeight: "400",
+                    border: "none",
+                    borderRadius: "0.75rem",
+                    padding: "0.5rem 0.75rem",
+                    transition: "0.1s ease",
+                    textTransform: "none",
+                    fontFamily: "'Fredoka One', cursive",
+                  }}
+                >
+                  + Create a room
+                </Button>
+              </Link>
+              <Link to="/canvas">
+                <Button
+                  variant="text"
+                  sx={{
+                    color: "#0057ff",
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                    justifyContent: "center",
+                    fontWeight: "400",
+                    border: "none",
+                    borderRadius: "0.75rem",
+                    padding: "0.5rem 0.75rem",
+                    transition: "0.1s ease",
+                    textTransform: "none",
+                    fontFamily: "'Fredoka One', cursive",
+                  }}
+                >
+                  All Rooms
+                </Button>
+              </Link>
+              <Link to="/about">
+                <Button
+                  variant="text"
+                  sx={{
+                    color: "#0057ff",
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                    justifyContent: "center",
+                    fontWeight: "400",
+                    border: "none",
+                    borderRadius: "0.75rem",
+                    padding: "0.5rem 0.75rem",
+                    transition: "0.1s ease",
+                    textTransform: "none",
+                    fontFamily: "'Fredoka One', cursive",
+                  }}
+                >
+                  About
+                </Button>
+              </Link>
+            </>
+          )}
           {props.activeAccount === null ? (
             <Button
               variant="contained"
@@ -222,6 +320,7 @@ export default function Navbar(props) {
             </Card>
           )}
         </Stack>
+
         <Menu
           id="profile-menu"
           anchorEl={anchorEl}
@@ -256,11 +355,20 @@ export default function Navbar(props) {
           </MenuItem>
         </Menu>
       </Toolbar>
+
       <ChooseAccount
         open={openChangeAccount}
         handleClose={() => setChangeAccount(false)}
         setActiveAccount={(acc) => props.setActiveAccount(acc)}
       />
+
+      <Drawer
+        anchor={"left"}
+        open={openDrawer}
+        onClose={() => setOpenDrawer(false)}
+      >
+        {list("left")}
+      </Drawer>
     </AppBar>
   );
 }
