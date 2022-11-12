@@ -32,6 +32,7 @@ export default function About(props) {
           sx={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <Box component="div">
