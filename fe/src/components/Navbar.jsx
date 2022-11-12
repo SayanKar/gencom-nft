@@ -21,15 +21,15 @@ import { useState } from "react";
 import ChooseAccount from "./ChooseAccount";
 import Identicon from "@polkadot/react-identicon";
 import { cutAddress } from "../Integration";
-import { isMobile } from "react-device-detect";
 import MenuIcon from "@mui/icons-material/Menu";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import { useNavigate } from "react-router-dom";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 export default function Navbar(props) {
+  const isMobile = useMediaQuery("(max-width:700px)");
   const navigate = useNavigate();
   const [openChangeAccount, setChangeAccount] = useState(false);
   const [openDrawer, setOpenDrawer] = useState(false);

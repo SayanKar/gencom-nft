@@ -13,9 +13,11 @@ import { Link, useParams } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
 import { Keyring } from "@polkadot/api";
 import { PRECISION } from "../constants";
+import useMediaQuery from "@mui/material/useMediaQuery";
 const keyring = new Keyring({ type: "sr25519" });
 const BN = require("bn.js");
 export default function CanvasRoom(props) {
+  const isMobile = useMediaQuery("(max-width:700px)");
   const { canvasId } = useParams();
   const now = dayjs().unix() * 1000;
   const [canvasDetails, setCanvasDetails] = useState({
@@ -197,7 +199,7 @@ export default function CanvasRoom(props) {
           >
             <Paper
               sx={{
-                width: "400px",
+                width: isMobile ? "360px" : "400px",
                 height: "fit-content",
                 padding: "40px",
                 margin: "140px 0px",
@@ -220,7 +222,7 @@ export default function CanvasRoom(props) {
               id="roomTitle"
               sx={{
                 fontFamily: "'Fredoka One', cursive",
-                width: "500px",
+                width: isMobile ? "360px" : "500px",
                 margin: "0 auto",
                 marginTop: "20px",
               }}
@@ -233,7 +235,7 @@ export default function CanvasRoom(props) {
               align="center"
               sx={{
                 fontFamily: "'Ubuntu Condensed', sans-serif",
-                width: "500px",
+                width: isMobile ? "360px" : "500px",
                 margin: "0 auto",
               }}
             >
@@ -277,7 +279,10 @@ export default function CanvasRoom(props) {
               />
               <Strip
                 Text={
-                  <Link to={"/profile/" + canvasDetails.creatorAddress}>
+                  <Link
+                    to={"/profile/" + canvasDetails.creatorAddress}
+                    style={{ fontSize: "10px" }}
+                  >
                     {"Creator : " + canvasDetails.creatorAddress}
                   </Link>
                 }

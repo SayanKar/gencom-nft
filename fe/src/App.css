@@ -112,6 +112,12 @@ html, body {
   }
 }
 
+@media only screen and (max-width: 450px) {
+  #canvasBoxWrapper {
+    width: 390px;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -254,8 +260,6 @@ a {
 
   #introText {
     text-align: center;
-    margin-left: 30px;
-    margin-right: 30px;
   }
 
   #totalTokenAmount {
@@ -268,6 +272,8 @@ a {
 
   #contactContainer {
     margin-left: 50px;
+    display: flex;
+    flex-wrap: nowrap;
   }
 
   #aboutDivider1 {

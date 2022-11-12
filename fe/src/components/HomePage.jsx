@@ -1,8 +1,4 @@
-import {
-  Box,
-  Button,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../App.css";
@@ -10,11 +6,14 @@ import CardList from "./CardList";
 import VideoTutorial from "./VideoTutorial";
 import { useState } from "react";
 import Typewriter from "typewriter-effect";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 export default function HomePage(props) {
   const [highestRoomId, setHighestRoomId] = useState(null);
   const [trendingRoomList, setTrendingRoomList] = useState([]);
+  const mobile = useMediaQuery("(max-width:700px)");
 
+  console.log("Mobile", mobile);
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -103,105 +102,92 @@ export default function HomePage(props) {
           }}
         >
           <Box
-            component="div"
             sx={{
-              backgroundColor: "#fcc731",
-              cursor: "pointer",
+              paddingTop: "60px",
+              width: "100%",
+              background: "#fcc731",
               minHeight: "330px",
-              paddingBottom: "72px",
-              paddingTop: "24px",
             }}
           >
-            <Box
-              component="div"
-              id="topBox"
-              sx={{
-                margin: "0 auto",
-                overflow: "hidden",
-                padding: "20px",
-              }}
-            >
-              <Box
-                component="div"
-                id="midBox"
+            <Box sx={{ margin: "auto 0", marginTop: "30px" }}>
+              <Typography
                 sx={{
-                  alignItems: "center",
-                  display: "flex",
-                  minHeight: "190px",
-                  justifyContent: "space-between",
+                  fontSize: "2em",
+                  fontWeight: "bold",
+                  width: mobile ? "350px" : "500px",
+                  margin: "auto",
+                  height: "85.5px",
                 }}
               >
-                <Box component="div" id="lowBox">
-                  <h1 id="homePageHeader">
-                    <Typewriter
-                      onInit={(typewriter) => {
-                        typewriter
-                          .typeString(
-                            "NFT by the community, for the community.  "
-                          )
-                          .callFunction(() => {
-                            console.log("String typed out!");
-                          })
-                          .pauseFor(2500)
-                          .callFunction(() => {
-                            console.log("All strings were deleted");
-                          })
-                          .changeDelay(2)
-                          .start();
-                      }}
-                      options={{
-                        cursorClassName: "typingCursor",
-                      }}
-                    />
-                  </h1>
-                  <Box
-                    component="div"
-                    id="buttonContainer"
+                <Typewriter
+                  onInit={(typewriter) => {
+                    typewriter
+                      .typeString("NFT by the community, for the community.  ")
+                      .callFunction(() => {
+                        console.log("String typed out!");
+                      })
+                      .pauseFor(2500)
+                      .callFunction(() => {
+                        console.log("All strings were deleted");
+                      })
+                      .changeDelay(2)
+                      .start();
+                  }}
+                  options={{
+                    cursorClassName: "typingCursor",
+                  }}
+                />
+              </Typography>
+              <Box>
+                <Link to="/canvas">
+                  <Button
+                    variant="contained"
+                    disableElevation
+                    id="joinRoomButton"
                     sx={{
-                      display: "flex",
-                      paddingLeft: "100px",
+                      textTransform: "none",
+                      width: "152px",
+                      height: "55px",
+                      borderRadius: "12px",
+                      fontSize: "18px",
+                      fontWeight: "600",
+                      lineHeight: "140%",
+                      border: "none",
+                      transition: "0.1s ease",
+                      backgroundColor: "#111",
+                      color: "#fff",
+                      cursor: "pointer",
+                      marginTop: "30px",
+                      marginRight: "30px",
                     }}
                   >
-                    <Link to="/canvas">
-                      <Button
-                        variant="contained"
-                        disableElevation
-                        id="joinRoomButton"
-                        sx={{
-                          textTransform: "none",
-                          color: "#fff",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Join a Room
-                      </Button>
-                    </Link>
-                    <Link to="/create">
-                      <Button
-                        variant="contained"
-                        disableElevation
-                        id="startRoomButton"
-                        sx={{
-                          textTransform: "none",
-                          width: "152px",
-                          height: "55px",
-                          borderRadius: "12px",
-                          fontSize: "18px",
-                          fontWeight: "600",
-                          lineHeight: "140%",
-                          border: "none",
-                          transition: "0.1s ease",
-                          backgroundColor: "#0057ff",
-                          color: "#fff",
-                          cursor: "pointer",
-                          marginLeft: "30px",
-                        }}
-                      >
-                        Start a Room
-                      </Button>
-                    </Link>
-                  </Box>
-                </Box>
+                    Join a Room
+                  </Button>
+                </Link>
+                <Link to="/create">
+                  <Button
+                    variant="contained"
+                    disableElevation
+                    id="startRoomButton"
+                    sx={{
+                      textTransform: "none",
+                      width: "152px",
+                      height: "55px",
+                      borderRadius: "12px",
+                      fontSize: "18px",
+                      fontWeight: "600",
+                      lineHeight: "140%",
+                      border: "none",
+                      transition: "0.1s ease",
+                      backgroundColor: "#0057ff",
+                      color: "#fff",
+                      cursor: "pointer",
+                      marginTop: "30px",
+                    }}
+                  >
+                    Start a Room
+                  </Button>
+                </Link>
               </Box>
             </Box>
           </Box>

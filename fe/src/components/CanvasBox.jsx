@@ -20,6 +20,7 @@ import SquareIcon from "@mui/icons-material/Square";
 import PaletteIcon from "@mui/icons-material/Palette";
 import CircleIcon from "@mui/icons-material/Circle";
 import GavelIcon from "@mui/icons-material/Gavel";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import {
   colors,
   PRECISION,
@@ -35,10 +36,10 @@ import dayjs from "dayjs";
 import { useSnackbar } from "notistack";
 import { Link } from "react-router-dom";
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
-
 const keyring = new Keyring({ type: "sr25519" });
 const BN = require("bn.js");
 export default function CanvasBox(props) {
+  const isMobile = useMediaQuery("(max-width:700px)");
   const renderColorSelectionButtons = () => {
     let list = [];
     for (let key in colors) {
@@ -416,7 +417,10 @@ export default function CanvasBox(props) {
             lg={6}
             sx={{ display: "flex", justifyContent: "center" }}
           >
-            <Card className="gridContainerCard" sx={{ borderRadius: "15px" }}>
+            <Card
+              className="gridContainerCard"
+              sx={{ borderRadius: "15px", width: isMobile ? "390px" : "464px" }}
+            >
               <CanvasGrid
                 rows={32}
                 columns={32}
@@ -445,7 +449,7 @@ export default function CanvasBox(props) {
                   align="left"
                   id="selectionDetails"
                   sx={{
-                    width: "264px",
+                    width: isMobile ? "220px" : "264px",
                     color: "rgba(31, 38, 59, 1)",
                     fontWeight: "500",
                   }}
@@ -462,12 +466,17 @@ export default function CanvasBox(props) {
                   inputProps={{ "aria-label": "controlled" }}
                 />
               </Box>
-              <Divider sx={{ width: "384px", marginBottom: "10px" }} />
+              <Divider
+                sx={{
+                  width: isMobile ? "334px" : "384px",
+                  marginBottom: "10px",
+                }}
+              />
               <Box component="div" className="cardDataRow">
                 <Typography
                   align="left"
                   variant="subtitle2"
-                  sx={{ width: "192px" }}
+                  sx={{ width: isMobile ? "162px" : "192px" }}
                 >
                   Row:{" "}
                   <span style={{ color: "rgba(143,151,163,1)" }}>
@@ -477,7 +486,7 @@ export default function CanvasBox(props) {
                 <Typography
                   align="right"
                   variant="subtitle2"
-                  sx={{ width: "192px" }}
+                  sx={{ width: isMobile ? "162px" : "192px" }}
                 >
                   Column:{" "}
                   <span style={{ color: "rgba(143,151,163,1)" }}>
@@ -532,7 +541,7 @@ export default function CanvasBox(props) {
                   align="left"
                   variant="subtitle2"
                   sx={{
-                    width: "382px",
+                    width: isMobile ? "330px" : "382px",
                     display: "flex",
                     alignItems: "center",
                     fontSize: "13px",
@@ -570,7 +579,7 @@ export default function CanvasBox(props) {
               className="gridContainerCard"
               sx={{
                 borderRadius: "15px",
-                width: "464px",
+                width: isMobile ? "390px" : "464px",
                 height: "fit-content",
                 paddingTop: "10px",
               }}
@@ -579,7 +588,7 @@ export default function CanvasBox(props) {
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  width: "384px",
+                  width: isMobile ? "330px" : "384px",
                 }}
               >
                 <Typography
@@ -594,12 +603,17 @@ export default function CanvasBox(props) {
                 >
                   Choose and Bid
                 </Typography>
-                <Divider sx={{ width: "384px", marginBottom: "10px" }} />
+                <Divider
+                  sx={{
+                    width: isMobile ? "330px" : "384px",
+                    marginBottom: "10px",
+                  }}
+                />
                 {selectedCellDetails.owner === props.activeAccount.address && (
                   <Typography
                     variant="caption"
                     sx={{
-                      width: "384px",
+                      width: isMobile ? "330px" : "384px",
                       color: "rgba(31, 38, 59, 1)",
                       marginBottom: "8px",
                     }}
@@ -612,7 +626,7 @@ export default function CanvasBox(props) {
                 <Typography
                   variant="body1"
                   sx={{
-                    width: "384px",
+                    width: isMobile ? "330px" : "384px",
                     color: "rgba(31, 38, 59, 1)",
                     fontWeight: "500",
                     display: "flex",
@@ -661,7 +675,7 @@ export default function CanvasBox(props) {
                 <Typography
                   variant="body1"
                   sx={{
-                    width: "384px",
+                    width: isMobile ? "330px" : "384px",
                     color: "rgba(31, 38, 59, 1)",
                     fontWeight: "500",
                     display: "flex",
@@ -701,7 +715,7 @@ export default function CanvasBox(props) {
                   </Typography>
                 </Box>
                 <FormControl
-                  sx={{ m: 1, width: "400px" }}
+                  sx={{ m: 1, width: isMobile ? "330px" : "400px" }}
                   disabled={
                     selectedCellDetails.owner === props.activeAccount.address ||
                     props.start > now ||
@@ -726,7 +740,10 @@ export default function CanvasBox(props) {
                 </FormControl>
                 <Typography
                   variant="caption"
-                  sx={{ width: "384px", paddingLeft: "5px" }}
+                  sx={{
+                    width: isMobile ? "330px" : "384px",
+                    paddingLeft: "5px",
+                  }}
                   align="left"
                 >
                   {transaction.bid && transaction.color ? (

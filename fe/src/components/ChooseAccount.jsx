@@ -7,11 +7,13 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Typography,
 } from "@mui/material";
 import Identicon from "@polkadot/react-identicon";
 import { useEffect, useState } from "react";
 import { getAllAccounts } from "../Integration";
 import polkadotjs from "../assets/polkadotjs.svg";
+import polkawallet from "../assets/polkawallet.webp";
 export default function ChooseAccount(props) {
   const [allAccounts, setAllAccounts] = useState([]);
   useEffect(() => {
@@ -48,7 +50,15 @@ export default function ChooseAccount(props) {
             <img
               src={polkadotjs}
               alt={"Polkadot js extention"}
-              style={{ width: "155px" }}
+              style={{ width: "70px" }}
+            />
+          </a>
+          <Typography variant="body1" sx={{fontWeight: "500", margin: "20px 0"}}>Or Install Polkawallet for Android</Typography>
+          <a href="https://play.google.com/store/apps/details?id=io.polkawallet.www.polka_wallet">
+            <img
+              src={polkawallet}
+              alt={"Polkawallet Android App"}
+              style={{ width: "70px" }}
             />
           </a>
         </Box>

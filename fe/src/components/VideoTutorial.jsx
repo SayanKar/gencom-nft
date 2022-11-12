@@ -1,10 +1,10 @@
-import {
-  Box,
-  Typography,
-} from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import "../App.css";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 export default function VideoTutorial(pros) {
+  const isMobile = useMediaQuery("(max-width:700px)");
+
   return (
     <Box
       component="div"
@@ -26,9 +26,9 @@ export default function VideoTutorial(pros) {
       <Box
         component="div"
         sx={{
-          height: "600px",
-          marginLeft: "15%",
-          marginRight: "15%",
+          height: isMobile ? "230px" : "600px",
+          marginLeft: !isMobile ? "15%" : "none",
+          marginRight: !isMobile ? "15%" : "none",
         }}
       >
         <iframe

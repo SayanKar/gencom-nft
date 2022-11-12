@@ -3,6 +3,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { colors } from "../constants";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 export default function CanvasGrid(props) {
   const [cellColor, setCellColor] = useState(
@@ -79,8 +80,19 @@ const createTokenId = (canvasId, row, column) => {
   );
 };
 function GridCell(props) {
+  const isMobile = useMediaQuery("(max-width:700px)");
   return props.color.map((color, idx) => (
-    <td id={"row-" + props.row + "-col-" + idx} key={idx} className="tableCell">
+    <td
+      id={"row-" + props.row + "-col-" + idx}
+      key={idx}
+      style={{
+        minWidth: isMobile ? "10px" : "12px",
+        height: isMobile ? "10px" : "12px",
+        padding: "0px",
+        borderBottom: "1px solid #757272",
+        borderRight: "1px solid #757272",
+      }}
+    >
       <div
         className="cellBox"
         tabIndex={0}

@@ -1,10 +1,4 @@
-import {
-  Box,
-  Grid,
-  Typography,
-  Stack,
-  Divider,
-} from "@mui/material";
+import { Box, Grid, Typography, Stack, Divider } from "@mui/material";
 import "../App.css";
 import PixelImage from "../assets/pixelimage.svg";
 import TwitterIcon from "@mui/icons-material/Twitter";
@@ -12,8 +6,9 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import BuilderCard from "./BuilderCard";
 import { SYMBOL } from "../constants";
-
+import useMediaQuery from "@mui/material/useMediaQuery";
 export default function About(props) {
+  const isMobile = useMediaQuery("(max-width:700px)");
   return (
     <Box component="div">
       <Box
@@ -28,7 +23,7 @@ export default function About(props) {
           <img
             src={PixelImage}
             alt="Gencom Logo - A pixel drawing of panda"
-            width="900px"
+            width={isMobile ? "390px" : "900px"}
           />
         </Box>
         <Box
@@ -50,6 +45,8 @@ export default function About(props) {
                 fontWeight: "400",
                 textAlign: "left",
                 marginRight: "6rem",
+                width: isMobile ? "380px" : "fit-content",
+                margin: isMobile ? "auto" : "inherit",
               }}
             >
               <span id="siteNameInAbout">Gencom</span> is a platform for
@@ -351,7 +348,8 @@ export default function About(props) {
               }}
               align="left"
             >
-              Once the bidding period is over, last owners of the cells automatically get full control over their NFTs
+              Once the bidding period is over, last owners of the cells
+              automatically get full control over their NFTs
             </Typography>
           </Grid>
         </Grid>
