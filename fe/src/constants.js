@@ -1,7 +1,7 @@
 export const PRECISION = 1000_000;
 export const SYMBOL = "TZERO";
 export const CONTRACT_ADDRESS =
-  "5HEdBfVACfCYaK2YXeoWD2KRmUxxiShgKnK5RgCP149baSUr";
+  "5GoPeF3XgN777CmoT1r33p7RysLGygtGTkTSk891ZNMZ1fBm";
 export const NETWORK_ENDPOINT = "wss://aleph-zero-testnet-rpc.dwellir.com";
 export const GAS_LIMIT = 10000n * 1000000n;
 export const faucet = "https://faucet.test.azero.dev/";

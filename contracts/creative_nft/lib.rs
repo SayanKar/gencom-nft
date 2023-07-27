@@ -21,13 +21,9 @@
 //! The owner of a token can change its color at any time during the painting phase and if the canvas
 //! was marked `Dynamic` by the creator then its color can be changed even after the painting phase!
 
-#![cfg_attr(not(feature = "std"), no_std)]
-#![feature(is_some_with)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-use ink_lang as ink;
-use ink_storage::traits::{PackedLayout, SpreadLayout};
-
-#[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Copy, Clone)]
+#[derive(scale::Encode, scale::Decode, Copy, Clone)]
 #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
 pub enum Colors {
     White,
@@ -74,8 +70,8 @@ impl Colors {
 #[ink::contract]
 mod creative_nft {
     use super::*;
-    use ink_prelude::{string::String, vec::Vec};
-    use ink_storage::{traits::SpreadAllocate, Mapping};
+    use ink::prelude::{string::String, vec::Vec};
+    use ink::storage::Mapping;
 
     type CanvasId = u32;
     type TokenId = u64;
@@ -180,16 +176,22 @@ mod creative_nft {
         CannotCaptureOwnToken,
     }
 
-    #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Clone, Default)]
-    #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
+    #[derive(scale::Encode, scale::Decode, Clone)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout, Debug)
+    )]
     pub struct Cell {
         owner: AccountId,
         color: u32,
         value: Balance,
     }
 
-    #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode)]
-    #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
+    #[derive(scale::Encode, scale::Decode)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout, Debug)
+    )]
     pub struct Canvas {
         creator: AccountId,
         title: String,
@@ -202,21 +204,24 @@ mod creative_nft {
         is_dynamic: bool,
     }
 
-    #[derive(PackedLayout, SpreadLayout, scale::Encode, scale::Decode, Default)]
-    #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
+    #[derive(scale::Encode, scale::Decode, Default)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout, Debug)
+    )]
     pub struct CanvasStats {
         total_bids: u32,
         total_participants: u32,
     }
 
     #[ink(storage)]
-    #[derive(SpreadAllocate)]
+    #[derive(Default)]
     pub struct CreativeNft {
         /// Accounts which have access to privileged calls
         sudo: Mapping<AccountId, ()>,
         /// It is the minimum fees a user needs to pay to create a new canvas
         creation_fees: Balance,
-        /// A small fee charged when capturing a cell. 
+        /// A small fee charged when capturing a cell.
         /// 1 is equivalent to 0.01% fee. (Capped at 50)
         commission_percent: u8,
         /// It is the number of canvases created so far
@@ -264,15 +269,17 @@ mod creative_nft {
         /// Creates a new auction place with the minimum canvas creation fees as @fees
         #[ink(constructor)]
         pub fn new(creation_fees: Balance, commission_percent: u8) -> Self {
-            ink_lang::utils::initialize_contract(|contract: &mut Self| {
-                assert!(
-                    commission_percent <= 50,
-                    "Commission fees more than the limit of 50 (0.5%)"
-                );
-                contract.sudo.insert(&Self::env().caller(), &());
-                contract.creation_fees = creation_fees;
-                contract.commission_percent = commission_percent;
-            })
+            assert!(
+                commission_percent <= 50,
+                "Commission fees more than the limit of 50 (0.5%)"
+            );
+            let mut contract = Self {
+                creation_fees,
+                commission_percent,
+                ..Default::default()
+            };
+            contract.sudo.insert(&Self::env().caller(), &());
+            contract
         }
 
         /// Returns true if the account has sudo privileges
@@ -534,7 +541,11 @@ mod creative_nft {
                 let mut row: Vec<Cell> = Vec::with_capacity(canvas.dimensions.1.into());
                 for y in 0..canvas.dimensions.1 {
                     let token_id = encode(canvas_id, x, y);
-                    let cell = self.get_cell_details(token_id).unwrap_or_default();
+                    let cell = self.get_cell_details(token_id).unwrap_or(Cell {
+                        owner: self.env().account_id(),
+                        color: Default::default(),
+                        value: Default::default(),
+                    });
                     row.push(cell);
                 }
                 grid.push(row);
@@ -586,8 +597,14 @@ mod creative_nft {
             (0..self.canvas_nonce)
                 .into_iter()
                 .filter(|&id| {
-                    self.get_canvas_details(id)
-                        .is_ok_and(|canvas| canvas.creator == acc)
+                    // self.get_canvas_details(id)
+                    // .and_then(|canvas| Ok(canvas.creator == acc))
+                    // .unwrap_or(false)
+
+                    if let Ok(canvas) = self.get_canvas_details(id) {
+                        return canvas.creator == acc;
+                    }
+                    false
                 })
                 .collect()
         }
@@ -817,11 +834,10 @@ mod creative_nft {
         fn update_canvas_analytics(&mut self, canvas_id: &CanvasId, user: &AccountId) {
             let mut stats = self.canvas_analytics.get(canvas_id).unwrap_or_default();
             stats.total_bids += 1;
-            stats.total_participants +=
-                match self.participants.insert_return_size((canvas_id, user), &()) {
-                    Some(_) => 0,
-                    None => 1,
-                };
+            stats.total_participants += match self.participants.insert((canvas_id, user), &()) {
+                Some(_) => 0,
+                None => 1,
+            };
             self.canvas_analytics.insert(&canvas_id, &stats);
         }
 
